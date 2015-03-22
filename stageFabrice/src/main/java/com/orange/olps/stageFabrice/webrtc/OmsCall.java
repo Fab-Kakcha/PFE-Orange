@@ -54,10 +54,11 @@ public class OmsCall extends Thread {
 	 * @param hostVip OMS's IP address 
 	 * @param portVip OMS's listening port
 	 * @throws OmsException
+	 * @throws IOException 
 	 */
-	public void connect(String hostVip, String portVip) throws OmsException{
+	public void connect(String hostVip, String portVip) throws OmsException, IOException{
 		
-		try {
+		//try {
 			this.setIsCaller(true);
 			this.connOMS = new VipConnexion(hostVip, portVip);
 			//String respInfo = this.connOMS.getReponse("info ocam");
@@ -67,12 +68,12 @@ public class OmsCall extends Thread {
 				this.connOMS.getReponse("mt1 setparam escape_sdp_newline=true");
 			} else 
 				throw new OmsException("Error: Cannot create rvi webrtc "+ respWebrtcCreation);
-		} catch (UnknownHostException e) {
+		/*} catch (UnknownHostException e) {
 			throw new OmsException("Cannot connect to the IP address "
 					+ connOMS.getSocket().getLocalAddress());
 		} catch (IOException e) {
 			throw new OmsException("No server is listening at " + hostVip+ ": " + portVip);
-		}		
+		}	*/	
 	}
 	
 	/**

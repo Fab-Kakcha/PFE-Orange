@@ -20,10 +20,10 @@ public class VipConnexion extends Connexion {
 	private PrintWriter out = null;
 	private BufferedReader in = null;
 
-	public VipConnexion(String serveur, String portStr) throws OmsException, IOException {
+	public VipConnexion(String serveur, String portStr) throws OmsException{
 		
-		// {
-
+		try{
+			
 			int port = new Integer(portStr).intValue();
 			socket = new Socket(serveur,port);
 			//logger.info("Connexion au serveur : " + serveur + ":" + port);
@@ -36,13 +36,13 @@ public class VipConnexion extends Connexion {
 			// On recupere la reponse "OK id=CON1082388" mais on ne l'affiche pas
 			in.readLine();
 
-		//} catch (UnknownHostException e) {
+		} catch (UnknownHostException e) {
 			//logger.error("Impossible de se connecter a l'adresse "+socket.getLocalAddress());
-			//throw new OmsException("Connexion au serveur impossible");
-		//} catch (IOException e) {
+			throw new OmsException("Connexion au serveur impossible");
+		} catch (IOException e) {
 		//	logger.error("Aucun serveur a l'ecoute du port " + portStr + " sur le serveur " + serveur);
-		//	throw new OmsException("Cannot connect to OMS serveur at " + serveur);
-		//}
+			throw new OmsException("Cannot connect to OMS serveur at " + serveur);
+		}
 	}
 	
 	public String getReponse(String question) throws OmsException {

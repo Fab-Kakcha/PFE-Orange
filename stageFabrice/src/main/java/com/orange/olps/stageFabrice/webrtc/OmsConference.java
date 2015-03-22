@@ -3,7 +3,6 @@
  */
 package com.orange.olps.stageFabrice.webrtc;
 
-import java.io.IOException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -29,7 +28,7 @@ public class OmsConference {
 	private int partNumber; // The
 	
 	
-	public OmsConference(String name, String hostVipConf, String portVipConf) throws OmsException, IOException{
+	public OmsConference(String name, String hostVipConf, String portVipConf) throws OmsException{
 		
 		confName = name;
 		nbOfPartInConf = 0;
