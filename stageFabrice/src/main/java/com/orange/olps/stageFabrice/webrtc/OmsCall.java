@@ -33,7 +33,7 @@ public class OmsCall extends Thread {
 	private boolean isRviRecogExist = false;
 	private boolean isCaller = false;
 	private boolean isCallee = false;
-	private int clientNumber = 1;
+	private int nbOfClientConnected = 1;
 	private WebSocket conn = null;
 	private String ipAddress;
 
@@ -49,6 +49,31 @@ public class OmsCall extends Thread {
 		this.ipAddress = ipAddress;
 	}
 	
+	/**
+	 * To connect to OMS at IP address (hostVip) and port (portVip)
+	 * @param hostVip OMS's IP address 
+	 * @param portVip OMS's listening port
+	 * @throws OmsException
+	 */
+	public void connect(String hostVip, String portVip) throws OmsException{
+		
+		try {
+			this.setIsCaller(true);
+			this.connOMS = new VipConnexion(hostVip, portVip);
+			//String respInfo = this.connOMS.getReponse("info ocam");
+			String respWebrtcCreation = this.connOMS.getReponse("new mt1 webrtc");
+			
+			if (respWebrtcCreation.equals("OK")) {
+				this.connOMS.getReponse("mt1 setparam escape_sdp_newline=true");
+			} else 
+				throw new OmsException("Error: Cannot create rvi webrtc "+ respWebrtcCreation);
+		} catch (UnknownHostException e) {
+			throw new OmsException("Cannot connect to the IP address "
+					+ connOMS.getSocket().getLocalAddress());
+		} catch (IOException e) {
+			throw new OmsException("No server is listening at " + hostVip+ ": " + portVip);
+		}		
+	}
 	
 	/**
 	 * 
@@ -125,9 +150,9 @@ public class OmsCall extends Thread {
 			String resp1 = this.connOMS.getReponse("new s1 synt");
 			
 			if (resp1.equals("OK")) {
-				String setParam = this.connOMS.getReponse("mt1 setparam bind=s1");
+				/*String setParam = this.connOMS.getReponse("mt1 setparam bind=s1");
 				if(!setParam.equals("OK"))
-					throw new OmsException("cannot execute mt1 setparam bind=s1");
+					throw new OmsException("cannot execute mt1 setparam bind=s1");*/
 				isRviSyntExist = true;
 				
 			} else
@@ -137,6 +162,12 @@ public class OmsCall extends Thread {
 		String respSh = connOMS.getReponse("mt1 shutup");
 		if(!respSh.equals("OK"))
 			throw new OmsException("Cannot shutup mt1");
+		
+		String setParam = this.connOMS.getReponse("mt1 setparam bind=s1");
+		if(!setParam.equals("OK"))
+			throw new OmsException("cannot execute mt1 setparam bind=s1");
+		
+		sleep(100);
 		
 		String respSay = connOMS.getReponse("s1 say \"" + say + "\"");
 		if (!respSay.equals("OK"))
@@ -275,9 +306,9 @@ public class OmsCall extends Thread {
 	public void delResources() throws OmsException{
 			
 		int i;
-		int num = this.getClientNumber();
+		int num = this.getNbOfClientConnected();
 		
-		if(this.getIsCaller()){
+		/*if(this.getIsCaller()){
 			
 			OmsCall call = null;
 			Iterator<OmsCall> iter = this.listOmsCall.iterator();
@@ -307,7 +338,7 @@ public class OmsCall extends Thread {
 					throw new OmsException(" Error cannot delete enreg rvi " + delRviEnreg);			
 			}
 		
-		}else if(this.getIsCallee()){
+		}else if(this.getIsCallee()){*/
 			
 			String delRviWebrtc = this.connOMS.getReponse("delete mt" + num);
 			if (delRviWebrtc.equals("OK"))
@@ -319,7 +350,7 @@ public class OmsCall extends Thread {
 			if(!delRviSyn.equals("OK"))
 				throw new OmsException("Error cannot delete synt rvi s " + delRviSyn);
 			
-		}
+		//}
 	}
 		
 	/**
@@ -345,13 +376,13 @@ public class OmsCall extends Thread {
 
 	public void call(OmsCall omsCall) throws OmsException {
 
-		int num = this.getClientNumber();
+		int num = this.getNbOfClientConnected();
 		num += 1;
-		this.setClientNumber(num);
+		this.setNbOfClientConnected(num);
 		
 		WebSocket calleeWs = omsCall.getWebSocket();
 		omsCall.setVipConnexion(this.connOMS);
-		omsCall.setClientNumber(this.getClientNumber());
+		omsCall.setNbOfClientConnected(this.getNbOfClientConnected());
 		omsCall.setIsCallee(true);
 		this.listOmsCall.add(omsCall);
 
@@ -367,7 +398,7 @@ public class OmsCall extends Thread {
 	public void answer(String sdp) throws OmsException {
 		// TODO Auto-generated method stub
 		
-		int clientNumber = this.getClientNumber();
+		int clientNumber = this.getNbOfClientConnected();
 		createNewRvi(clientNumber);
 		Sdp sdpAnswer = this.sdpAnswer("mt"+ clientNumber, sdp);
 		this.conn.send(sdpAnswer.getSdp());
@@ -417,52 +448,15 @@ public class OmsCall extends Thread {
 
 		String mediaConn = connOMS.getReponse("wait evt=mt1.mediaconnected");
 		//if(!mediaConn.startsWith("OK"))
-			//throw new OmsException("media is not connected " + mediaConn);
-		
-	}
-	
-	/**
-	 * To connect to OMS at IP address (hostVip) and port (portVip)
-	 * @param hostVip OMS's IP address 
-	 * @param portVip OMS's listening port
-	 * @throws OmsException
-	 */
-	public void connect(String hostVip, String portVip) throws OmsException{
-		
-		try {
-			this.setIsCaller(true);
-			this.connOMS = new VipConnexion(hostVip, portVip);
-			//String respInfo = this.connOMS.getReponse("info ocam");
-			String respWebrtcCreation = this.connOMS.getReponse("new mt1 webrtc");
-			
-			if (respWebrtcCreation.equals("OK")) {
-				this.connOMS.getReponse("mt1 setparam escape_sdp_newline=true");
-			} else 
-				throw new OmsException("Error: Cannot create rvi webrtc "+ respWebrtcCreation);
-		} catch (UnknownHostException e) {
-			throw new OmsException("Cannot connect to the IP address "
-					+ connOMS.getSocket().getLocalAddress());
-		} catch (IOException e) {
-			throw new OmsException("No server is listening at " + hostVip+ ": " + portVip);
-		}		
+			//throw new OmsException("media is not connected " + mediaConn);		
 	}
 	
 
-	/**
-	 * set the variable VipConnexion to its new value
-	 * 
-	 * @param connOMS
-	 *            the new value of the variable to set
-	 */
 	public void setVipConnexion(VipConnexion connOMS) {
 
 		this.connOMS = connOMS;
 	}
 
-	/**
-	 * 
-	 * @return the VipConnexion of the current OmsClientClient object
-	 */
 	public VipConnexion getVipConnexion() {
 		return this.connOMS;
 	}
@@ -472,10 +466,6 @@ public class OmsCall extends Thread {
 		this.conn = Ws;
 	}
 	
-	/**
-	 * 
-	 * @return
-	 */
 	public WebSocket getWebSocket(){
 		
 		return this.conn;
@@ -486,34 +476,20 @@ public class OmsCall extends Thread {
 		return ipAddress;
 	}
 
-	/**
-	 * 
-	 * @param num
-	 */
-	public void setClientNumber(int num){
-		this.clientNumber = num;
+	public void setNbOfClientConnected(int num){
+		this.nbOfClientConnected = num;
 	}
 	
-	/**
-	 * 
-	 * @return
-	 */
-	public int getClientNumber(){
-		return this.clientNumber;
+
+	public int getNbOfClientConnected(){
+		return this.nbOfClientConnected;
 	}
 	
-	/**
-	 * 
-	 * @param isCaller
-	 */
+
 	public void setIsCaller(boolean isCaller){
 		this.isCaller = isCaller;
 	}
 	
-	/**
-	 * 
-	 * @param isCallee
-	 */
 	public void setIsCallee(boolean isCallee){
 		this.isCallee = isCallee;
 	}
@@ -539,21 +515,15 @@ public class OmsCall extends Thread {
 	 * close the connection to OMS
 	 * 
 	 * @throws OmsException
+	 * @throws IOException 
 	 */
 	
-	public void closeClient() throws OmsException {
-
-		try {
-			//this.delResources();
-			this.delResources();
-			this.connOMS.getSocket().close();
-			this.listOmsCall.clear();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			throw new OmsException("Error: cannot close the connection to OMS");
-			// e.printStackTrace();
-		}
-
+	public void closeClient(String goodByeMsg) throws OmsException, IOException {
+	
+		say(goodByeMsg, false);
+		this.delResources();
+		this.connOMS.getSocket().close();
+		this.listOmsCall.clear();
 	}
 }
 
