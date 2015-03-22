@@ -1,0 +1,26 @@
+package com.orange.olps.stageFabrice.webrtc;
+
+import java.util.EventObject;
+
+public class OmsMessageEvent extends EventObject{
+
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+	
+	private String message;
+	private String omsCall;
+
+	public OmsMessageEvent(Object source, OmsCall omsCall, String msg) {
+		super(source);
+		message = msg;
+		// TODO Auto-generated constructor stub
+	}
+
+	
+	public String getMessage(){
+		
+		return message;
+	}	
+}

@@ -1,0 +1,35 @@
+/**
+ * 
+ */
+package com.orange.olps.stageFabrice.sip;
+
+/**
+ * @author JWPN9644
+ *
+ */
+public class Main {
+
+	/**
+	 * @param args
+	 */
+	public static void main(String[] args) {
+		// TODO Auto-generated method stub
+
+		try {
+			MonService monService = new MonService();
+			//monService.waitDtmf();
+					
+			
+			Dtmf dtmf = new Dtmf();
+			
+			dtmf.addEventListener(monService);
+			dtmf
+			
+		} catch (OmsException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+	}
+
+}

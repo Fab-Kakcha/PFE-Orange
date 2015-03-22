@@ -1,0 +1,164 @@
+package com.orange.olps.stageFabrice.sip;
+
+import java.io.BufferedWriter;
+import java.io.IOException;
+import java.net.InetSocketAddress;
+
+import org.java_websocket.WebSocket;
+import org.java_websocket.WebSocketImpl;
+import org.java_websocket.framing.Framedata;
+import org.java_websocket.handshake.ClientHandshake;
+import org.java_websocket.server.WebSocketServer;
+import org.apache.log4j.Logger;
+import org.apache.log4j.PropertyConfigurator;
+
+
+//import com.orange.olps.OmsException;
+import com.orange.olps.stageFabrice.sip.OmsCallSip;
+
+import java.io.*;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Properties;
+import java.util.Set;
+
+public class OmsServiceSip {
+
+	private static Logger logger = Logger.getLogger(OmsServiceSip.class);
+	private static final String DEFAULT_OMS_HOST = "127.0.0.1";
+	private static final String DEFAULT_OMS_PORT = "8080";
+	private static final String DEFAULT_WS_PORT = "8887";
+	// private static final String WEBRTC_CONF =
+	// "/opt/application/64poms/current/conf/";
+	private static final String WEBRTC_CONF = "C:\\Users\\JWPN9644\\opt\\application\\64poms\\current\\conf\\";
+	private static String hostVip = "127.0.0.1";
+	private static String portVip = "4670";
+	private static String portWs = "8887";
+	// private static HashMap<WebSocket, Client> clients = new
+	// HashMap<WebSocket, Client>();
+
+	static Properties prop = new Properties();
+	static FileInputStream propFic = null;
+	static BufferedWriter ficSdp = null;
+
+	boolean omsConnected = false;
+	private static String digit = null;
+	private static String diese = "#";
+	private static String number = "96648953";
+	private static String ipAddress = "10.184.50.179";
+
+	private OmsCallSip omsCallSip;
+	
+	public OmsServiceSip() throws OmsException{
+		
+		OmsCallSip omsCall = new OmsCallSip();
+		omsCall.connect(hostVip, portVip);
+		omsCall.listen();
+		
+	}
+	
+	public static void main(String[] args) throws OmsException {
+
+		/*
+		 * Initialisation des parametres depuis le fichier de properties
+		 */
+
+		PropertyConfigurator.configure(WEBRTC_CONF + "log4j.properties");
+
+		try {
+			propFic = new FileInputStream(WEBRTC_CONF + "webRTC.properties");
+		} catch (FileNotFoundException fnfe) {
+			logger.error("Le fichier webRTC.properties n existe pas.");
+			System.exit(2);
+		}
+		try {
+			prop.load(propFic);
+			propFic.close();
+		} catch (IOException ioe) {
+			logger.error("Impossible de lire le fichier de properties.");
+		}
+
+		hostVip = prop.getProperty("oms.host", DEFAULT_OMS_HOST);
+		portVip = prop.getProperty("oms.port", DEFAULT_OMS_PORT);
+		portWs = prop.getProperty("ws.port", DEFAULT_WS_PORT);
+
+		OmsCallSip omsCall = new OmsCallSip();
+		omsCall.connect(hostVip, portVip);
+		omsCall.listen();
+		
+		OmsCallEvent omsCallEvent = new OmsCallEvent(null);
+		OmsMessageEvent omsMessageEvent = new OmsMessageEvent(null);
+		omsMessageEvent.setMessage("say");
+		
+		omsCallEvent.setOmsCallSip(omsCall);
+		
+		omsCall.say("Bienvenue sur OMS", false);
+
+		omsCall.say("Tapez 1 pour jouer un fichier audio, tapez 2 pour un enregistrement vocal"
+				+ ", tapez 3 pour finir d'enregistrer, et tapez # pour quitter", false);
+		
+		do {
+			digit = omsCall.dtmf();
+
+			switch (digit) {
+			case "1":
+				omsCall.say("Vous avez tapez 1", false);
+				omsCall.play("/opt/application/64poms/current/tmp/recordingSip.a8k",false);
+				break;
+			case "2":
+				omsCall.say("Vous avez tapez 2", false);
+				omsCall.enreg();
+				break;
+			case "3":
+				omsCall.say("Vous avez tapez 3", false);
+				omsCall.stopEnreg();
+				break;
+			case "4":
+				String digitArray = "";
+				omsCall.say("Vous avez tapez 4", false);
+				omsCall.say("Entrez un numéro s'il vous plait. Faite * pour finir", false);
+				
+				do{					
+					digit = omsCall.dtmf();
+					if(!digit.equals("*"))
+						digitArray = digitArray + digit;
+					
+				}while(!digit.equals("*"));
+				
+				logger.info(digitArray);
+				break;
+			case "#":
+				omsCall.say("Vous avez tapez #", false);
+				break;
+			default:				
+				omsCall.say("Touche inconnue", false);
+				break;
+
+			}
+		} while (!digit.equals(diese));
+		
+		omsCall.say("Au revoir, et a bientot sur OMS", false);
+
+	} //Fin de la fonction Main
+
+	public static void dort(int temps) {
+		try {
+			Thread.sleep(temps);
+		} catch (InterruptedException ex) {
+			Thread.currentThread().interrupt();
+		}
+	}
+
+	public static void newCall(WebSocket conn) {
+		// Client appelant = new Client(conn, hostVip, portVip);
+		// appelant.run();
+		// clients.put(conn, appelant);
+	}
+
+	public static void logError(String attendu, String recu) {
+		logger.error("ERREUR TEST : Reponse OMS incorrecte\n"
+				+ "        Attendu : " + attendu + "\n        Recu    : "
+				+ recu);
+	}
+
+}

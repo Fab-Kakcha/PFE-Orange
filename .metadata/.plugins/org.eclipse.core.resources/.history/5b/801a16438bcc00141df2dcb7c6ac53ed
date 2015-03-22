@@ -1,0 +1,41 @@
+/**
+ * 
+ */
+package com.orange.olps.stageFabrice.gui;
+
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+
+/**
+ * @author JWPN9644
+ *
+ */
+public class SwingControlDemo {
+	
+	private JFrame mainFrame;
+	private JLabel headerLabel;
+	private JLabel statusLabel;
+	private JPanel controlPanel;
+	
+
+	/**
+	 * @param args
+	 */
+	public static void main(String[] args) {
+		// TODO Auto-generated method stub
+
+	}
+	
+	public SwingControlDemo(){
+		
+		prepareGUI();
+	}
+	
+	private void prepareGUI(){
+		
+		mainFrame = new JFrame("choosing windows");
+		mainFrame.setS(400,400);
+	}
+
+}

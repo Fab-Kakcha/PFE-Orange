@@ -1,0 +1,122 @@
+package com.orange.olps.stageFabrice.sip;
+
+import java.io.IOException;
+import java.net.UnknownHostException;
+import java.util.ArrayList;
+import java.util.Iterator;
+//import java.util.HashMap;
+//import java.util.Iterator;
+import java.util.List;
+import java.util.StringTokenizer;
+
+import org.apache.log4j.Logger;
+import org.java_websocket.WebSocket;
+
+import com.orange.olps.stageFabrice.sip.OmsException;
+import com.orange.olps.stageFabrice.sip.VipConnexion;
+
+public class OmsCallSip extends Thread{
+
+	private static Logger logger = Logger.getLogger(OmsCallSip.class);
+	private VipConnexion connOMS = null;
+	private boolean isRviSyntExist = false;
+	
+	public OmsCallSip(String name){
+		
+		super(name);
+		//this.start();
+		
+	}
+	
+	public void run(){	
+		logger.info("Thread: " + getName() + " running");
+	}
+	
+	
+	public void connect(String hostVip, String portVip) throws OmsException {
+		
+		this.connOMS = new VipConnexion(hostVip, portVip);
+		//String respInfo = this.connOMS.getReponse("info ocam");
+		String rviSip = this.connOMS.getReponse("new t1 sip");
+		if(!rviSip.equals("OK"))
+			throw new OmsException("cannot create rvi sip :" + rviSip);
+		 
+		String rviMedia = this.connOMS.getReponse("new mt1 media");
+		if(!rviMedia.equals("OK"))
+			throw new OmsException("cannot create rvi media " + rviMedia);		 		 
+	}
+	
+	//il faut chaque OmsCall puisse écouter sur des numéros différents
+	public void listen() throws OmsException{ //Call c
+		
+		this.connOMS.getReponse("t1 listen sip:9*@");
+		this.connOMS.getReponse("wait evt=t1.*,mt1.*");
+		
+		//c.setCaller(reponse.getRemote(à écrire comment on récupère le remote dans la réponse)));
+		//c.setCallee(reponse.getLocal(à écrire comment on récupère le local dans la réponse);
+		//c.setCallId(reponse.getCallId());
+	}
+	
+	public void call(){
+		
+	}
+	
+	public void hangUp(){
+		
+	}
+	
+	public void say(String say, boolean interrupt) throws OmsException {
+
+		if (!isRviSyntExist) {
+			String resp1 = this.connOMS.getReponse("new s1 synt");
+			
+			if (!resp1.equals("OK"))
+				throw new OmsException("Error: Cannot create rvi synt " + resp1);
+		}
+		
+		String respSh = connOMS.getReponse("mt1 shutup");
+		if(!respSh.equals("OK"))
+			throw new OmsException("Cannot shutup mt1");
+		
+		String respSay = connOMS.getReponse("s1 say \"" + say + "\"");
+		if (!respSay.equals("OK"))
+			throw new OmsException("Cannot send cmd say to OMS " + respSay);	
+		
+		if(!interrupt){			
+			String resp = connOMS.getReponse("wait evt=mt1.starving");
+			if(!resp.startsWith("OK")){
+				System.out.println("cmd wait evt=mt1.starving failed: " + resp);
+			}
+		}
+
+	}
+	
+	
+	public void play(String filePath, boolean interrupt) throws OmsException {
+
+		if (!isRviSyntExist) {
+			String resp1 = this.connOMS.getReponse("new s1 synt");
+			
+			if (resp1.equals("OK"))
+				throw new OmsException("Error: Cannot create rvi synt " + resp1);
+		}
+		
+		String respSh = connOMS.getReponse("mt1 shutup");
+		if(!respSh.equals("OK"))
+			throw new OmsException("Cannot shutup mt1");
+		
+		String respPlay = connOMS.getReponse("s1 play file=" + filePath); //loop=1
+		if (!respPlay.equals("OK"))
+			throw new OmsException("Cannot execute cmd play file " + respPlay);
+						
+		if(!interrupt){		
+			String resp = connOMS.getReponse("wait evt=mt1.starving");
+			if(!resp.startsWith("OK")){
+				System.out.println("cmd wait evt=mt1.starving failed: " + resp);
+			}
+		}
+		
+	}
+	
+	
+}

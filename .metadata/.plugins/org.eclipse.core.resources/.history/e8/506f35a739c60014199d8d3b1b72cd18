@@ -1,0 +1,12 @@
+package com.orange.olps.stageFabrice.sip;
+
+import java.util.EventObject;s
+
+public class DtmfEvent extends EventObject{
+
+	public DtmfEvent(Object arg0) {
+		super(arg0);
+		// TODO Auto-generated constructor stub
+	}
+
+}

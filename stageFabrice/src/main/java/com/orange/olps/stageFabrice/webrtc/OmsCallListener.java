@@ -1,0 +1,10 @@
+package com.orange.olps.stageFabrice.webrtc;
+
+import java.util.EventListener;
+
+public interface OmsCallListener extends EventListener {
+	
+	
+	void omsCallPerformed(OmsCallEvent callEvt) throws OmsException;
+
+}

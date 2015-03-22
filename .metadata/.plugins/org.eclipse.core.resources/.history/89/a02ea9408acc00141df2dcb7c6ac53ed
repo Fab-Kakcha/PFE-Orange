@@ -1,0 +1,28 @@
+/**
+ * 
+ */
+package com.orange.olps.stageFabrice.gui;
+
+import javax.swing.JFrame;
+
+/**
+ * @author JWPN9644
+ *
+ */
+public class SwingControlDemo {
+	
+	private JFrame mainFrame;
+	private JLabel headerLabel;
+	private JLabel statusLabel;
+	private JPanel controlPanel;
+	
+
+	/**
+	 * @param args
+	 */
+	public static void main(String[] args) {
+		// TODO Auto-generated method stub
+
+	}
+
+}

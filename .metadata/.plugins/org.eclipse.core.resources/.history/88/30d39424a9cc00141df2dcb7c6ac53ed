@@ -1,0 +1,124 @@
+/**
+ * 
+ */
+package com.orange.olps.stageFabrice.gui;
+
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.io.IOException;
+
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+
+import com.orange.olps.stageFabrice.sip.MonServiceSip;
+import com.orange.olps.stageFabrice.sip.OmsException;
+import com.orange.olps.stageFabrice.webrtc.OmsService;
+
+/**
+ * @author JWPN9644
+ *
+ */
+public class SwingControl {
+	
+	private JFrame mainFrame;
+	private JLabel headerLabel;
+	private JPanel controlPanel;
+	private ImageIcon imageIcon;
+	private JLabel statusLabel;
+
+	private boolean isServiceLaunch = false;
+	
+	/**
+	 * @param args
+	 */
+	public static void main(String[] args) {
+		// TODO Auto-generated method stub
+		
+		SwingControl swingControl = new SwingControl();
+		swingControl.showButton();
+	}
+	
+	public SwingControl(){
+		
+		prepareGUI();
+	}
+	
+	private void prepareGUI(){
+		
+		mainFrame = new JFrame("Welcome to OMS's GUI");
+		mainFrame.setSize(400,400);
+		mainFrame.setLayout(new GridLayout(3,7));
+		mainFrame.addWindowListener(new WindowAdapter(){
+			public void windowClosing(WindowEvent windowEvent){
+				if(!isServiceLaunch)
+					System.exit(0);
+			}
+		});
+		
+		headerLabel = new JLabel("", JLabel.CENTER);
+		statusLabel = new JLabel("", JLabel.CENTER);
+		
+		statusLabel.setSize(350,100);
+		controlPanel = new JPanel();
+		controlPanel.setLayout(new FlowLayout());
+		
+		mainFrame.add(headerLabel);
+		mainFrame.add(controlPanel);
+		mainFrame.add(statusLabel);
+		mainFrame.setVisible(true);		
+	}
+	
+	private void showButton(){
+		
+		headerLabel.setText("Choose either SIP or WebRTC");
+		
+		JButton sipButton = new JButton("SIP");
+		JButton webrtcButton = new JButton("WebRTC");
+		
+		sipButton.addActionListener(new ActionListener(){
+			public void actionPerformed(ActionEvent e){
+				//statusLabel.setText("SIP Button clicked ");
+				isServiceLaunch = true;
+				mainFrame.dispatchEvent(new WindowEvent(mainFrame, WindowEvent.WINDOW_CLOSING));
+				
+				try {
+					new MonServiceSip();
+				} catch (OmsException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}				
+			}
+		});
+		
+		
+		webrtcButton.addActionListener(new ActionListener(){
+			public void actionPerformed(ActionEvent e){
+				//statusLabel.setText("WebRTC Button clicked");
+				isServiceLaunch = true;
+				mainFrame.dispatchEvent(new WindowEvent(mainFrame, WindowEvent.WINDOW_CLOSING));
+							
+					try {
+						OmsService oms = null;
+						oms = new OmsService();
+						oms.start(); 
+						OmsService.dort(500);
+						System.out.println("OmsGateway started on port: " + oms.getPort());
+					} catch (InterruptedException | IOException e1) {
+						// TODO Auto-generated catch block
+						System.err.println("Erreur au lancement du serveur");
+						e1.printStackTrace();
+					}					 			
+			}
+		});
+		
+		controlPanel.add(sipButton);
+		controlPanel.add(webrtcButton);
+		mainFrame.setVisible(true);
+	}
+}

@@ -1,0 +1,57 @@
+/**
+ * 
+ */
+package com.orange.olps.stageFabrice.sip;
+
+/**
+ * @author JWPN9644
+ *
+ */
+public class Main {
+
+	/**
+	 * @param args
+	 */
+	public static void main(String[] args) {
+		// TODO Auto-generated method stub
+
+		try {
+			MonService monService = new MonService();
+			//monService.waitDtmf();
+					
+			
+			Dtmf dtmf = new Dtmf();
+			
+			dtmf.addEventListener(monService);
+			dtmf.fireEvent(null);
+			dtmf.removeEventListener(monService);
+			
+		} catch (OmsException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+	}
+
+}
+
+/*
+	public void waitDtmf() throws OmsException{
+		
+		boolean isDigitNull = false;
+		DtmfEvent dtmfEvt = new DtmfEvent(this,null);
+		do {
+			digit = omsCallSip.dtmf();
+			if(digit == null){
+				logger.info("You press hangup button");
+				isDigitNull = true;
+				break;
+			}				
+			//dtmfEvt.setDtmf(digit);
+			dtmfPerformed(dtmfEvt);
+		}while (!digit.equals("#"));
+		
+		if(!isDigitNull)
+			omsCallSip.hangUp();
+	}
+*/

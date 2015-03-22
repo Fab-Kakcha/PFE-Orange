@@ -1,0 +1,149 @@
+package com.orange.olps.stageFabrice.sip;
+
+import org.apache.log4j.Logger;
+
+public class MonService extends OmsServiceSip implements OmsCallListener, OmsMessageListener, DtmfListener{
+
+
+	private static Logger logger = Logger.getLogger(MonService.class);
+	private OmsCallSip omsCallSip;
+	private static String digit = null;
+	private static String ipAddress = "10.184.50.176";
+	private static String filePath = "/opt/application/64poms/current/tmp/recordingSip.a8k";
+
+	
+	public MonService() throws OmsException {
+		super();		
+		omsCallSip = getOmsCallSip();
+		logger.info("Nouvel appel de: "+omsCallSip.getCallDescription().getCaller());
+		//welcomePrompt();
+		// TODO Auto-generated constructor stub
+	}
+	
+	
+	public void welcomePrompt() throws OmsException{
+		
+		omsCallSip.say("Bienvenue sur OMS", false);
+		omsCallSip.say("Pour écouter un fichier audio tapez 1", false);
+		omsCallSip.say("Pour un enregistrement vocal tapez 2", false);
+		omsCallSip.say("Pour finir l'enregistrement vocal tapez 3", false);
+		omsCallSip.say("Pour quitter tapez #", false);		
+	}
+	
+	
+	public void goodByePrompt() throws OmsException {
+		
+		omsCallSip.say("Au revoir. A bientot sur OMS", false);
+	}
+	
+	
+	@Override
+	public void omsCallPerformed(OmsCallEvent callEvt) {
+		// TODO Auto-generated method stub
+		
+		OmsCallSip omsCall = callEvt.getOmsCallSip();
+		logger.info("Nouvel appel de: " + omsCall.getClientIpAddress());
+		
+	}
+
+	@Override
+	public void OmsMessagePerformed(OmsMessageEvent msgEvt) {
+		// TODO Auto-generated method stub
+		
+		String message = msgEvt.getMessage();
+	}
+
+	
+	/*public void waitDtmf() throws OmsException{
+		
+		boolean isDigitNull = false;
+		DtmfEvent dtmfEvt = new DtmfEvent(this,null);
+		do {
+			digit = omsCallSip.dtmf();
+			if(digit == null){
+				logger.info("You press hangup button");
+				isDigitNull = true;
+				break;
+			}				
+			//dtmfEvt.setDtmf(digit);
+			dtmfPerformed(dtmfEvt);
+		}while (!digit.equals("#"));
+		
+		if(!isDigitNull)
+			omsCallSip.hangUp();
+	}*/s
+	
+
+	@Override
+	public void dtmfPerformed(DtmfEvent dtmfEvt) throws OmsException {
+		// TODO Auto-generated method stub
+		
+		String dtmf = dtmfEvt.getDtmf();
+		switch (dtmf) {
+		case "1":
+			try {
+				omsCallSip.say("Vous avez tapez 1", false);
+				omsCallSip.play("/opt/application/64poms/current/tmp/recordingSip.a8k",false);
+			} catch (OmsException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			break;
+		case "2":
+			try {
+				omsCallSip.say("Vous avez tapez 2", false);
+				omsCallSip.enreg(filePath);
+			} catch (OmsException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			break;
+		case "3":
+			try {
+				omsCallSip.say("Vous avez tapez 3", false);
+				omsCallSip.stopEnreg();
+			} catch (OmsException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			break;
+		case "4":
+			try {
+				String digitArray = "003365353535";
+				omsCallSip.say("Vous avez tapez 4", false);
+				omsCallSip.say("Entrez un numéro s'il vous plait. Faite * pour finir", false);
+				
+				/*do{					
+					digit = omsCallSip.dtmf();
+					if(!digit.equals("*"))
+						digitArray = digitArray + digit;
+					
+				}while(!digit.equals("*"));*/
+				
+				//omsCallSip.dial(digitArray, ipAddress);
+				logger.info(digitArray);		
+			} catch (OmsException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			break;
+		case "#":
+			try {
+				omsCallSip.say("Vous avez tapez #", false);
+			} catch (OmsException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			break;
+		default:				
+			try {
+				omsCallSip.say("Touche inconnue", false);
+			} catch (OmsException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			break;
+		}		
+		
+	}
+}

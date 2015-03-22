@@ -1,0 +1,108 @@
+/**
+ * 
+ */
+package com.orange.olps.stageFabrice.gui;
+
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+
+import com.orange.olps.stageFabrice.sip.MonService;
+import com.orange.olps.stageFabrice.sip.OmsDtmf;
+import com.orange.olps.stageFabrice.sip.OmsException;
+
+/**
+ * @author JWPN9644
+ *
+ */
+public class SwingControl {
+	
+	private JFrame mainFrame;
+	private JLabel headerLabel;
+	private JLabel statusLabel;
+	private JPanel controlPanel;	
+
+	/**
+	 * @param args
+	 */
+	public static void main(String[] args) {
+		// TODO Auto-generated method stub
+		
+		SwingControl swingControl = new SwingControl();
+		swingControl.showButton();
+
+	}
+	
+	public SwingControl(){
+		
+		prepareGUI();
+	}
+	
+	private void prepareGUI(){
+		
+		mainFrame = new JFrame("Make your choice");
+		mainFrame.setSize(400,400);
+		mainFrame.setLayout(new GridLayout(3,1));
+		mainFrame.addWindowListener(new WindowAdapter(){
+			public void windowClosing(WindowEvent windowEvent){
+				System.exit(0);
+			}
+		});
+		
+		headerLabel = new JLabel("", JLabel.CENTER);
+		statusLabel = new JLabel("", JLabel.CENTER);
+		
+		statusLabel.setSize(350,100);
+		controlPanel = new JPanel();
+		controlPanel.setLayout(new FlowLayout());
+		
+		mainFrame.add(headerLabel);
+		mainFrame.add(controlPanel);
+		mainFrame.add(statusLabel);
+		mainFrame.setVisible(true);
+		
+	}
+	
+	private void showButton(){
+		
+		headerLabel.setText("Either Sip or Webrtc");
+		
+		JButton sipButton = new JButton("SIP");
+		JButton webrtcButton = new JButton("WebRTC");
+		
+		sipButton.addActionListener(new ActionListener(){
+			public void actionPerformed(ActionEvent e){
+				statusLabel.setText("SIP Button clicked ");
+				
+				try {
+					MonService monService = new MonService();
+					OmsDtmf dtmf = new OmsDtmf();
+					
+				} catch (OmsException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
+				
+				
+			}
+		});
+		
+		webrtcButton.addActionListener(new ActionListener(){
+			public void actionPerformed(ActionEvent e){
+				statusLabel.setText("WebRTC Button clicked");
+			}
+		});
+		
+		controlPanel.add(sipButton);
+		controlPanel.add(webrtcButton);
+		mainFrame.setVisible(true);
+	}
+
+}

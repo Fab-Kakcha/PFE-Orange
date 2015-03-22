@@ -1,0 +1,5 @@
+package com.orange.olps.stageFabrice.webrtc;
+
+public @interface OnMessage {
+
+}

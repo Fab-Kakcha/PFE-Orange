@@ -1,0 +1,27 @@
+/**
+ * The Event source
+ */
+package com.orange.olps.stageFabrice.sip;
+
+import java.util.ArrayList;
+import java.util.List;
+
+/**
+ * @author JWPN9644
+ *
+ */
+
+
+public class Dtmf {
+
+	
+	private List<DtmfListener> listenersArray = new ArrayList<DtmfListener>();
+	
+	public void addEventListener(DtmfListener dtmfListener){
+		
+		listenersArray.add(dtmfListener);		
+	}
+	
+	public void removeEventListener
+	
+}

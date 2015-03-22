@@ -1,0 +1,30 @@
+package com.orange.olps.stageFabrice.sip;
+
+import java.util.EventObject;
+
+public class OmsCallEvent extends EventObject{
+
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+	
+	
+	OmsCall omsCall;
+	
+	public OmsCallEvent(Object arg0, OmsCall omsCall) {
+		super(arg0);
+		this.omsCall = omsCall;
+		// TODO Auto-generated constructor stub
+	}
+	
+	public OmsCallSip getOmsCallSip(){
+		 
+		return omsCallSip;
+	}
+	
+	public void setOmsCallSip(OmsCallSip omsCallSip){
+		
+		this.omsCallSip = omsCallSip;
+	}
+}

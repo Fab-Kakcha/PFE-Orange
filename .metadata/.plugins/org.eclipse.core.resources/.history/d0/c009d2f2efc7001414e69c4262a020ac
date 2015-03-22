@@ -1,0 +1,44 @@
+/**
+ * The Event source
+ */
+package com.orange.olps.stageFabrice.sip;
+
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+
+/**
+ * @author JWPN9644
+ *
+ */
+
+
+public class OmsDtmf {
+
+	
+	private List<DtmfListener> listenersArray = new ArrayList<DtmfListener>();
+	
+	public synchronized void addDtmfListener(DtmfListener dtmfListener){
+		
+		listenersArray.add(dtmfListener);		
+	}
+	
+	public synchronized void removeDtmfListener(DtmfListener dtmfListener){
+		
+		listenersArray.remove(dtmfListener);
+	}
+	
+	public synchronized void fireEvent(String dtmf) throws OmsException {
+		
+		DtmfListener dtmfLis = null;
+		DtmfEvent dtmfEvt = new DtmfEvent(this, dtmf);
+		Iterator<DtmfListener> iter = listenersArray.iterator();
+		
+		while(iter.hasNext()){
+			
+			dtmfLis = iter.next();
+			dtmfLis.dtmfPerformed(dtmfEvt);
+		}
+	}
+	
+}

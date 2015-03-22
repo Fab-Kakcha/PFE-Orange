@@ -1,0 +1,582 @@
+package com.orange.olps.stageFabrice.webrtc;
+
+import java.io.IOException;
+import java.net.UnknownHostException;
+import java.util.ArrayList;
+import java.util.Iterator;
+//import java.util.HashMap;
+//import java.util.Iterator;
+import java.util.List;
+import java.util.StringTokenizer;
+
+import org.apache.log4j.Logger;
+import org.java_websocket.WebSocket;
+
+import com.orange.olps.stageFabrice.webrtc.OmsException;
+
+//import com.orange.olps.stageFabrice.OmsException;
+
+/*
+ * Nouvelle version : Le client est maintenant un thread, ce qui permet
+ * de lancer plusieurs appels en meme temps et donc plusieurs clients en
+ * parallele. Chaque client a une connexion particuliere a OMS
+ */
+
+public class OmsCall extends Thread {
+
+	private static Logger logger = Logger.getLogger(OmsCall.class);
+
+	//OmsCall omsCall;
+	private VipConnexion connOMS = null;
+	private List<OmsCall> listOmsCall = new ArrayList<OmsCall>();
+	private boolean isRviSyntExist = false;
+	private boolean isRviEnregExist = false;
+	private boolean isRviRecogExist = false;
+	private boolean isCaller = false;
+	private boolean isCallee = false;
+	private int clientNumber = 1;
+	private WebSocket conn = null;
+	
+
+	
+	public OmsCall() {
+
+		super();
+	}
+
+	public OmsCall(WebSocket conn) {
+		
+		this.conn = conn;
+	}
+	
+	/**
+	 * 
+	 * @param sdpOfferReceived
+	 *            is the sdp received from OMS. Its contains unexpected
+	 *            characters "\\"
+	 * @return OMS's sdp is return without unexpected character
+	 * @throws IOException
+	 */
+	public String toSdpOms(String sdpOfferReceived) {
+
+		StringTokenizer str = new StringTokenizer(sdpOfferReceived,"\"");
+		str.nextToken();
+		String sdpOms = str.nextToken().replaceAll("\\\\n","\\n").replaceAll("\\\\r","\\r");
+
+		return sdpOms;
+	}
+
+	/**
+	 * 
+	 * @param sdpOms
+	 *            is OMS sdp
+	 * @param type
+	 *            is either "offer" or "answer"
+	 * @return OMS's sdp is adapted to a form that a Browser can recognize
+	 */
+	public String toSdpBrowser(String sdpOms, String type) {
+
+		String sdpToReturn = "{\"sdp\":{\"type\":\"" + type + "\",\"sdp\":\"" + sdpOms.substring(12) + "\"}}";
+
+		return sdpToReturn;
+	}
+	
+	/**
+	 * 
+	 * @param rviWebrtc
+	 * @param sdpNav
+	 * @return
+	 * @throws OmsException
+	 */
+	public Sdp sdpAnswer(String rviWebrtc, String sdpNav) throws OmsException {
+
+			Sdp sdp = new Sdp();
+
+			String sdpRequest = this.getVipConnexion().getReponse(rviWebrtc +
+					" generate type=answer \"content=" + sdpNav + "\"");
+			if (sdpRequest.equals("OK")) {
+
+				String respSdpAnswer = connOMS.getReponse("wait evt="+ rviWebrtc +".answered");
+				if(!respSdpAnswer.startsWith("OK"))
+					throw new OmsException("cmd wait evt answered failed ");
+				
+				logger.info(respSdpAnswer);
+				String sdpOms = toSdpOms(respSdpAnswer);
+				String sdpBrowser = toSdpBrowser(sdpOms, "answer");
+				sdp.setSdp(sdpBrowser);
+				sdp.setType("answer");
+			} else
+				throw new OmsException("cmd " + rviWebrtc + " generate type=answer failed "+ sdpRequest);
+
+			return sdp;
+	}
+
+	/**
+	 * 
+	 * @param say
+	 *            the message to voice to the client
+	 * @throws OmsException
+	 * 
+	 */
+	public void say(String say, boolean interrupt) throws OmsException {
+
+		if (!isRviSyntExist) {
+			String resp1 = this.connOMS.getReponse("new s1 synt");
+			
+			if (resp1.equals("OK")) {
+				String setParam = this.connOMS.getReponse("mt1 setparam bind=s1");
+				if(!setParam.equals("OK"))
+					throw new OmsException("cannot execute mt1 setparam bind=s1");
+				isRviSyntExist = true;
+				
+			} else
+				throw new OmsException("Error: Cannot create rvi synt " + resp1);
+		}
+		
+		String respSh = connOMS.getReponse("mt1 shutup");
+		if(!respSh.equals("OK"))
+			throw new OmsException("Cannot shutup mt1");
+		
+		String respSay = connOMS.getReponse("s1 say \"" + say + "\"");
+		if (!respSay.equals("OK"))
+			throw new OmsException("Cannot send cmd say to OMS " + respSay);	
+		
+		if(!interrupt){			
+			String resp = connOMS.getReponse("wait evt=mt1.starving");
+			if(!resp.startsWith("OK")){
+				System.out.println("cmd wait evt=mt1.starving failed: " + resp);
+			}
+		}
+
+	}
+	
+	/**
+	 * 
+	 * @param say
+	 * @param interrupt
+	 * @throws OmsException
+	 */
+	public void play(String filePath, boolean interrupt) throws OmsException {
+
+		if (!isRviSyntExist) {
+			String resp1 = this.connOMS.getReponse("new s1 synt");
+			
+			if (resp1.equals("OK")) {
+				String setParam = this.connOMS.getReponse("mt1 setparam bind=s1");
+				if(!setParam.equals("OK"))
+					throw new OmsException("cannot execute mt1 setparam bind=s1");
+				isRviSyntExist = true;
+				
+			} else
+				throw new OmsException("Error: Cannot create rvi synt " + resp1);
+		}
+		
+		String respSh = connOMS.getReponse("mt1 shutup");
+		if(!respSh.equals("OK"))
+			throw new OmsException("Cannot shutup mt1");
+		
+		String respPlay = connOMS.getReponse("s1 play file=" + filePath); //loop=1
+		if (!respPlay.equals("OK"))
+			throw new OmsException("Cannot execute cmd play file " + respPlay);
+		
+		if(!interrupt){		
+			String resp = connOMS.getReponse("wait evt=mt1.starving");
+			if(!resp.startsWith("OK")){
+				System.out.println("cmd wait evt=mt1.starving failed: " + resp);
+			}
+		}
+		
+	}
+	
+	/**
+	 * To record a voice in a file
+	 * @param filePathEnreg the file's path 
+	 * @throws OmsException
+	 */
+	public void record(String filePathEnreg) throws OmsException{
+		
+		if(!isRviEnregExist){
+			String respEnreg = this.connOMS.getReponse("new e enreg");
+			if(!respEnreg.equals("OK"))
+				throw new OmsException("cannot create a rvi enreg " + respEnreg);
+			isRviEnregExist = true;
+		}
+		
+		String enreg = this.connOMS.getReponse("e start "+ filePathEnreg);//Start the recording into the file
+		if(!enreg.equals("OK"))
+			throw new OmsException("cannot create an rvi enreg " + enreg);
+		
+		//e stop to stop the recording
+	}
+	
+
+	/**
+	 * To stop the recording of a voice in OMS
+	 * @throws OmsException
+	 */
+	public void stopRecord() throws OmsException{
+		
+		if(isRviEnregExist){
+			String stopEnreg = this.connOMS.getReponse("e stop");
+			if(!stopEnreg.equals("OK"))
+				throw new OmsException("cannot stop the recording: e stop " +  stopEnreg);
+		}
+		else throw new OmsException("the recording rvi does not exist");
+	}
+	
+	
+	/**
+	 * 
+	 * @throws OmsException
+	 */
+	public void recognize() throws OmsException{
+		
+		if(!isRviRecogExist){			
+			String respRecog = this.connOMS.getReponse("new r reco");
+			if(!respRecog.equals("OK"))
+				throw new OmsException("cannot create a rvi reco " + respRecog);
+			isRviRecogExist = true;
+		}
+		
+		String reco = this.connOMS.getReponse("r setparam model=villes.gkz heu=30 abp.silDeb=10 "
+				+ "abp.silFin=25");
+		if(!reco.equals("OK"))
+			throw new OmsException("error with the command r setparam model=villes.gkz");
+		
+		String recoStart = this.connOMS.getReponse("r start");
+		if(!recoStart.equals("OK"))
+			throw new OmsException("cannot start the voice recognition r start "+ recoStart);
+	}
+	
+
+	/**
+	 * 
+	 * @param clientNumber the client (Browser) for which we want to get the status of its rvi
+	 * @return The current status of the webrtc's rvi
+	 * @throws OmsException
+	 */
+	public String rviStatus(int clientNumber) throws OmsException {
+
+		String rviStatus = connOMS.getReponse("mt"+ clientNumber +" status");
+
+		if (rviStatus.startsWith("ERROR")) {
+			logger.error("cannot get the rvi status " + rviStatus);
+			throw new OmsException("cannot get the status of the webrtc rvi "+ rviStatus);
+		}
+
+		return rviStatus;
+	}
+
+	/**
+	 * Deleting all rvi resources created. When a call was made, its deletes for the callee's rvi as well
+	 * @throws OmsException
+	 */
+	public void delResources() throws OmsException{
+			
+		int i;
+		int num = this.getClientNumber();
+		
+		if(this.getIsCaller()){
+			
+			OmsCall call = null;
+			Iterator<OmsCall> iter = this.listOmsCall.iterator();
+			
+			while(iter.hasNext()){			
+				call = iter.next();
+				call.getWebSocket().send("logout");
+			}
+			
+		  for(i=1 ; i <= num ; i++){
+			
+			String delRviWebrtc = this.connOMS.getReponse("delete mt" + i);
+			if (delRviWebrtc.equals("OK"))
+				this.connOMS.getReponse("wait evt=mt"+ i +".mediadisconnected");
+			else
+				throw new OmsException("Error cannot delete webrtc rvi mt"+ i +": "+ delRviWebrtc);
+			
+			String delRviSyn = this.connOMS.getReponse("delete s" + i);
+			if(!delRviSyn.equals("OK"))
+				throw new OmsException("Error cannot delete synt rvi s " + delRviSyn);
+		  }
+		
+			if(isRviEnregExist){
+			
+				String delRviEnreg = this.connOMS.getReponse("delete e");
+				if(!delRviEnreg.equals("OK"))
+					throw new OmsException(" Error cannot delete enreg rvi " + delRviEnreg);			
+			}
+		
+		}else if(this.getIsCallee()){
+			
+			String delRviWebrtc = this.connOMS.getReponse("delete mt" + num);
+			if (delRviWebrtc.equals("OK"))
+				this.connOMS.getReponse("wait evt=mt"+ num +".mediadisconnected");
+			else
+				throw new OmsException("Error cannot delete webrtc rvi mt"+ num +": "+ delRviWebrtc);
+			
+			String delRviSyn = this.connOMS.getReponse("delete s" + num);
+			if(!delRviSyn.equals("OK"))
+				throw new OmsException("Error cannot delete synt rvi s " + delRviSyn);
+			
+		}
+	}
+		
+	/**
+	 * To make the thread sleep
+	 * @param milliseconds time in milliseconds
+	 *  
+	 */
+	public void sleep(int milliseconds) {
+
+		try {
+			Thread.sleep(milliseconds);
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+
+	/**
+	 * Sending a message to the callee telling him he is getting an incoming call
+	 * @param omsCall the callee's identifiers
+	 * @throws OmsException
+	 */
+
+	public void call(OmsCall omsCall) throws OmsException {
+
+		int num = this.getClientNumber();
+		num += 1;
+		this.setClientNumber(num);
+		
+		WebSocket calleeWs = omsCall.getWebSocket();
+		omsCall.setVipConnexion(this.connOMS);
+		omsCall.setClientNumber(this.getClientNumber());
+		omsCall.setIsCallee(true);
+		this.listOmsCall.add(omsCall);
+
+		calleeWs.send("incomingCall");
+	}
+
+	/**
+	 * To answer a call. The callee is straight connected to OMS when he answers
+	 * @param sdp is the callee's sdp
+	 * @throws OmsException
+	 */
+
+	public void answer(String sdp) throws OmsException {
+		// TODO Auto-generated method stub
+		
+		int clientNumber = this.getClientNumber();
+		createNewRvi(clientNumber);
+		Sdp sdpAnswer = this.sdpAnswer("mt"+ clientNumber, sdp);
+		this.conn.send(sdpAnswer.getSdp());
+		
+		String mediaConn = this.connOMS.getReponse("wait evt=mt"+clientNumber+".mediaconnected");
+		if(!mediaConn.startsWith("OK"))
+			throw new OmsException("media is not connected " + mediaConn);
+		
+		String setParam = this.connOMS.getReponse("mt"+clientNumber+" setparam bind=s"+clientNumber);
+		if(!setParam.equals("OK"))
+			throw new OmsException("cannot excute cmd setparam bind=s"+ clientNumber +" " + setParam);
+		
+		String trombonne = this.connOMS.getReponse("mt1 extend trombone mt"+ clientNumber);
+		if(!trombonne.equals("OK"))
+			throw new OmsException("cannot trombonne calls");
+			
+	}
+
+	/**
+	 * To create the callee's rvi when he answers
+	 * @param clientNumber the callee rank in the list of those who has been already called
+	 * @throws OmsException
+	 */
+	public void createNewRvi(int clientNumber) throws OmsException{
+		
+		String respWebrtcCreation = this.connOMS.getReponse("new mt"+ clientNumber +" webrtc");		
+		if (respWebrtcCreation.equals("OK")) {
+			this.connOMS.getReponse("mt"+ clientNumber +" setparam escape_sdp_newline=true");
+		} else 
+			throw new OmsException("Error: Cannot create rvi webrtc "+ respWebrtcCreation);
+		
+		String resp1 = this.connOMS.getReponse("new s"+ clientNumber +" synt");//pas sûr qu'on ait besoin
+		if (!resp1.equals("OK")) 
+			throw new OmsException("Error: Cannot create rvi synt " + resp1);
+	}
+	
+	/**
+	 * To get OMS's sdp and establish a media connection with OMS
+	 * @param sdp is the Browser's sdp
+	 * @throws OmsException
+	 */
+	
+	public void init(String sdp) throws OmsException{
+		
+		Sdp sdpAnswer = this.sdpAnswer("mt1", sdp);
+		this.conn.send(sdpAnswer.getSdp());
+
+		String mediaConn = connOMS.getReponse("wait evt=mt1.mediaconnected");
+		//if(!mediaConn.startsWith("OK"))
+			//throw new OmsException("media is not connected " + mediaConn);
+		
+	}
+	
+	/**
+	 * To connect to OMS at IP address (hostVip) and port (portVip)
+	 * @param hostVip OMS's IP address 
+	 * @param portVip OMS's listening port
+	 * @throws OmsException
+	 */
+	public void connect(String hostVip, String portVip) throws OmsException{
+		
+		try {
+			this.setIsCaller(true);
+			this.connOMS = new VipConnexion(hostVip, portVip);
+			//String respInfo = this.connOMS.getReponse("info ocam");
+			String respWebrtcCreation = this.connOMS.getReponse("new mt1 webrtc");
+			
+			if (respWebrtcCreation.equals("OK")) {
+				this.connOMS.getReponse("mt1 setparam escape_sdp_newline=true");
+			} else 
+				throw new OmsException("Error: Cannot create rvi webrtc "+ respWebrtcCreation);
+		} catch (UnknownHostException e) {
+			throw new OmsException("Cannot connect to the IP address "
+					+ connOMS.getSocket().getLocalAddress());
+		} catch (IOException e) {
+			throw new OmsException("No server is listening at " + hostVip+ ": " + portVip);
+		}		
+	}
+	
+
+	/**
+	 * set the variable VipConnexion to its new value
+	 * 
+	 * @param connOMS
+	 *            the new value of the variable to set
+	 */
+	public void setVipConnexion(VipConnexion connOMS) {
+
+		this.connOMS = connOMS;
+	}
+
+	/**
+	 * 
+	 * @return the VipConnexion of the current OmsClientClient object
+	 */
+	public VipConnexion getVipConnexion() {
+		return this.connOMS;
+	}
+
+	public void setWebSocket(WebSocket Ws){
+		
+		this.conn = Ws;
+	}
+	
+	/**
+	 * 
+	 * @return
+	 */
+	public WebSocket getWebSocket(){
+		
+		return this.conn;
+	}
+	
+	/**
+	 * 
+	 * @param num
+	 */
+	public void setClientNumber(int num){
+		this.clientNumber = num;
+	}
+	
+	/**
+	 * 
+	 * @return
+	 */
+	public int getClientNumber(){
+		return this.clientNumber;
+	}
+	
+	/**
+	 * 
+	 * @param isCaller
+	 */
+	public void setIsCaller(boolean isCaller){
+		this.isCaller = isCaller;
+	}
+	
+	/**
+	 * 
+	 * @param isCallee
+	 */
+	public void setIsCallee(boolean isCallee){
+		this.isCallee = isCallee;
+	}
+	
+	/**
+	 * 
+	 * @return
+	 */
+	public boolean getIsCaller(){
+		return this.isCaller;
+	}
+	
+	/**
+	 * 
+	 * @return
+	 */
+	public boolean getIsCallee(){
+		return this.isCallee;
+	}
+	
+	
+private List<OmsCallListener> listenersArray = new ArrayList<OmsCallListener>();
+	
+	public synchronized void addOmsCallListener(OmsCallListener callListener){
+		
+		listenersArray.add(callListener);		
+	}
+	
+	public synchronized void removeOmsCallListener(OmsCallListener callListener){
+		
+		listenersArray.remove(callListener);
+	}
+	
+	
+	public synchronized void fireEvent(OmsCall omsCall, String ip) throws OmsException{
+		
+		OmsCallListener callLis = null;
+		OmsCallEvent callEvt = new OmsCallEvent(this, omsCall, ip);
+		Iterator<OmsCallListener> iter = listenersArray.iterator();
+		
+		while(iter.hasNext()){
+			
+			callLis = iter.next();
+			callLis.omsCallPerformed(callEvt);
+		}
+	}
+	
+	
+	
+	
+	
+	/**
+	 * close the connection to OMS
+	 * 
+	 * @throws OmsException
+	 */
+	
+	public void closeClient() throws OmsException {
+
+		try {
+			//this.delResources();
+			this.delResources();
+			this.connOMS.getSocket().close();
+			this.listOmsCall.clear();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			throw new OmsException("Error: cannot close the connection to OMS");
+			// e.printStackTrace();
+		}
+
+	}
+}
