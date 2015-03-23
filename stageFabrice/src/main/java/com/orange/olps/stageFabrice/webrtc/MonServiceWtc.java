@@ -78,7 +78,7 @@ public class MonServiceWtc implements OmsMessageListener {
 					call.answer(sdp);
 					logger.info("la méthode answer a reussit");
 				}
-			} catch (OmsException | IOException e) {
+			} catch (OmsException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
@@ -176,6 +176,7 @@ public class MonServiceWtc implements OmsMessageListener {
 				// conf.join(call) ou call.join(conf)
 				//call.join(conf, param);
 			try {
+				
 				conf.join(call, param);
 				logger.info("Conference join succeed");
 			} catch (OmsException e1) {
@@ -223,6 +224,7 @@ public class MonServiceWtc implements OmsMessageListener {
 			try {
 				//quitter la conf (function unjoin retourne vrai si c'est le dernier à quitter la conf)
 				//détruire la conf si c'est le dernier client à quitter la conf
+				conf.unJoin(call);
 				call.closeClient("Au revoir, et a bientot sur OMS");
 			} catch (OmsException | IOException e) {
 				// TODO Auto-generated catch block
