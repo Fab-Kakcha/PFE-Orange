@@ -12,4 +12,4 @@ http://10.184.155.57:8080/docs/webRTC/indexFabrice.html
 
 Lancer une conférence : admin svip confmanager conference dosyntfork start
 
-Supprimer les fichiers à l’adresse : /opt/application/64poms/current/tmp
+Supprimer les fichiers conf\_1.rd and conf\_1.wr dans : /opt/application/64poms/current/tmp
