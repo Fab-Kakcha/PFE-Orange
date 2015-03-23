@@ -78,7 +78,7 @@ public class MonServiceWtc implements OmsMessageListener {
 					call.answer(sdp);
 					logger.info("la méthode answer a reussit");
 				}
-			} catch (OmsException e) {
+			} catch (OmsException | IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
