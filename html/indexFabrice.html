@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html>
+<meta charset="UTF-8">
+<head>
+<title>PeerConnection Audio Only Demo 1</title>
+<script src="base/adapter.js"></script>
+<link href="css/monCSS.css" rel="stylesheet">
+<!--<link href="css/bootstrap-theme.css" rel="stylesheet">
+<link href="css/bootstrap.min.css" rel="stylesheet">-->
+
+<!-- <style>
+button {
+	font: 18px sans-serif;
+padding: 8px;
+}
+</style>-->
+</head>
+<!-- <body onload=connect();> -->
+
+<body>
+<div id="form" class="btn-group">
+<form name="saisie">
+Serveur OmsGateway : <input type="text" value="127.0.0.1:8887" name="serveurPort"><br>
+</form>
+</div>
+
+<div id="audio" class="btn-group">
+<h2>Local-Audio</h2>
+<audio id="audio1" autoplay="autoplay" muted="muted" controls="controls"></audio>
+<h2>Remote-Audio</h2>
+<audio id="audio2" autoplay="autoplay" controls="controls"></audio>
+</div>
+<br><br>
+
+<div class="btn-group">
+<!-- <button id="connexion" disabled onclick="connect()">Connect to AS</button>-->
+<button class="active" id="connexionToOMS" onclick="connectToOMS()">Connect</button>
+<button id="deconnexiondOMS" class="disabled" onclick="disconnect()">Disconnect</button>
+</div>
+<br><br>
+
+<div class="btn-group">
+<!--<button id="conf" class="enabled" onclick="showForm()">conference</button>-->
+<button id="conf" class="disabled" onclick="conference()">conference</button>
+</div>
+</div>
+
+<div id="userName">
+<form id="form" name="form" method="post">
+User Name: <input id="name" name="name" type="text" placeholder="your username" required>
+<input id="submit" type="submit" value="OK" onclick="checkEmpty()">
+</form>
+</div>
+
+<br><br>
+
+<div class="btn-group">
+<button id="say" class="disabled" onclick="say()">say</button>
+<button id="play" class="disabled" onclick="playFile()">play</button>
+<button id="recording" class="disabled" onclick="recordingVoice()">recording</button>
+<button id="stoprecording" class="disabled" onclick="stopRecording()">stop recording</button>
+<!-- <button id="joinconf" class="disabled" onclick="joinConf()">join conf</button> -->
+</div>
+
+
+<script>
+
+function showForm(){
+
+	document.getElementById("userName").style.display = "block";
+}
+
+function checkEmpty(){
+
+	var login = document.getElementById("name").value;
+	if(login == ""){
+
+		alert("Name must be filled out");
+		//document.getElementById("userName").style.display = "none";
+	}
+	else{
+
+		//conference(login);
+		document.getElementById("userName").style.display = "none";
+	}
+}
+
+//Client websocket
+
+/*
+Test d'appel initialise par le navigateur. Il se connecte a l'AS et envoie son SDP
+L'AS envoie le SDP a OMS qui retourne le sien
+L'AS retourne le SDP au navigateur et les 2 interlocuteurs s'envoient du STUN puis document 
+etablissent la communication media
+*/
+
+var streamLocal;
+var dtmfSender;
+var serveurWs;
+var socket;
+var socketAS;
+var active = "active";
+var disabled = "disabled";
+
+function createWebSocket(host) {
+	if(window.MozWebSocket) {
+		window.WebSocket=window.MozWebSocket;
+	}
+	if(!window.WebSocket) {
+		alert('Votre navigateur ne supporte pas les webSocket!');
+		return false;
+	} else {
+		socket = new WebSocket(host);
+		//socket.onopen = function() {
+			//trace("Connexion au serveur " + serveurWs);
+			//alert("Message to sent...");
+			//socket.send("newCall");
+			//alert("New call");
+		//}
+		socket.onclose = function() { 
+			//trace("Déconnexion"); 
+
+			buttonState(active, disabled, disabled, disabled, disabled, disabled, disabled);
+
+			alert("connexion to AS is closed");
+
+			var video =  document.getElementById("audio2");
+			video.muted = true;
+			video.autoplay = false;
+			window.location.reload(true);
+
+		}
+		socket.onerror = function() { trace("Une erreur est survenue"); }
+		socket.onmessage = function(evt){
+			if (evt.data == "FabriceConnected") {
+				document.getElementById("outgoingCall").disabled = true; 
+				alert("Fabrice is connected")
+			} else if(evt.data == "FabriceNotConnected"){
+				alert("Fabrice is not connected");
+				socket.close();
+			}else if(evt.data == "incomingCall"){ 
+
+				buttonState(disabled, disabled, disabled, disabled, disabled, disabled, disabled);
+			}
+			else {
+				var signal = JSON.parse(evt.data);
+				if (signal.sdp) { //distinguer sdp offer ou answer
+					trace ("Reception de SDP" + signal.sdp.sdp);
+
+					buttonState(disabled, active, active, active, active, disabled, active);
+
+					pc.setRemoteDescription(new RTCSessionDescription(signal.sdp));
+					//setTimeout(function(){window.close();},6000);
+					//window.close();
+				}
+				else {
+					if (signal.candidate) {
+						trace ("Reception de CANDIDATES");
+						pc.addIceCandidate(new RTCIceCandidate(signal.candidate));
+					} else {
+						trace ("Reception de data : " + evt.data);
+					}
+				}
+			}
+		}
+	}
+}
+
+
+function buttonState(p1, p2, p3, p4, p5, p6, p7){
+
+	document.getElementById("connexionToOMS").className = p1;
+	document.getElementById("deconnexiondOMS").className = p2;
+
+	document.getElementById("say").className = p3;
+	document.getElementById("play").className = p4;
+	document.getElementById("recording").className = p5;
+	document.getElementById("stoprecording").className = p6;
+	document.getElementById("conf").className = p7;
+
+	//document.getElementById("connexionToOMS").disabled = true;
+
+}
+
+var pc;
+var servers = null;
+var pc_constraints = {"optional": []};
+var configuration = { "iceServers": [{ "url": "stun:stun.example.org" }] };
+
+pc = new RTCPeerConnection(servers,pc_constraints);
+
+function connectToOMS() {
+
+	serveurWs = document.saisie.serveurPort.value;
+	createWebSocket("ws://" + serveurWs);
+	//createWebSocket("ws://127.0.0.1:8887");
+
+
+	socket.onopen = function() {
+		trace("Connexion au serveur " + serveurWs);
+		//socket.send("newCall");
+	}
+
+	//pc = new RTCPeerConnection(servers,pc_constraints);
+	trace("getStream");
+
+	// Handler sur la reception d'un flux media
+    pc.onaddstream = function (evt) {
+		trace("onaddstream");
+		
+		// Attache le flux du distant au casque local
+		attachMediaStream(audio2, evt.stream);
+    };
+	
+	// Handler sur la reception des candidates. La derniere == null. 
+    pc.onicecandidate = function (evt) {
+		if (evt.candidate == null) {
+			trace("On envoie le sdp complet");
+ 			var localSDP = pc.localDescription;
+			socket.send(JSON.stringify({ "sdp": localSDP })); //envoie du sdp	
+		}
+	};
+
+	call();
+
+	//buttonState(disabled, active, active, active, active, active, disabled);
+}
+
+
+function conference(){
+
+	socket.send(JSON.stringify({ "cmd":"joinConf","param":"" }));
+	buttonState(disabled, active, disabled, active, active, disabled, disabled);
+}
+
+function disconnect(){
+
+	socket.send(JSON.stringify({"cmd":"disconnect","param":" "}));
+
+	socket.close();
+}
+
+function playFile() {
+
+	buttonState(disabled, active, disabled, active, disabled, active, disabled);
+
+	//socket.send(JSON.stringify({"cmd":"play","param":"/var/opt/data/flat/64poms/files/logs/20150210/bonjour.a8k"}));
+	socket.send(JSON.stringify({"cmd":"play","param":"/var/opt/data/flat/64poms/files/logs/20150210/recording.a8k"}));
+}
+
+function say() {
+
+	buttonState(disabled, active, disabled, disabled, active, active, disabled);
+
+	socket.send(JSON.stringify({"cmd":"say","param":""}));
+}
+
+function recordingVoice() {
+
+	buttonState(disabled, active, disabled, disabled, disabled, enabled, disabled);
+
+	socket.send(JSON.stringify({"cmd":"record","param":"/var/opt/data/flat/64poms/files/logs/20150210/recording.a8k"}));
+}
+
+
+function stopRecording(){
+
+	buttonState(disabled, active, disabled, active, active, disabled, disabled);
+
+	socket.send(JSON.stringify({"cmd":"stopRecord","param":" "}));
+}
+
+
+function call() {
+
+    // On demande le flux local au navigateur 
+	// On l'envoie au correspondant
+	// On définit un dtmfSender pour envoyer des dtmfs
+	// Et on l'attache au bon curseur local
+    
+	navigator.getUserMedia({ "audio": true, "video": false }, 
+   		function (stream) {
+			trace("Lit le flux local et l'envoie au correspondant");
+			pc.addStream(stream);
+			trace ("createOffer");
+			
+			// Attache le flux local au casque local. On s'entend parler
+			attachMediaStream(audio1, stream);
+			trace("On attache le flux local au curseur du haut : audio1");
+			//myStream = stream;
+			pc.createOffer(gotDescription, function(error) {
+					trace("Erreur createOffer")} );
+
+	        function gotDescription(desc) {
+				trace ("On envoie le SDP");
+	            pc.setLocalDescription(desc);
+	        }
+   		}, 
+		function(evt){
+           	trace("ERREUR : Impossible de lire le media local" + evt);
+       	}
+    );
+}
+
+
+</script>
+</body>
+</html>
