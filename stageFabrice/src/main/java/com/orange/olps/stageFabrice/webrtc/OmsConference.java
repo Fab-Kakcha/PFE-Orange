@@ -3,6 +3,9 @@
  */
 package com.orange.olps.stageFabrice.webrtc;
 
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -25,15 +28,14 @@ public class OmsConference {
 	private WebSocket websock = null;
 	private String confName = null;
 	private int nbOfPartInConf; //Total number of participant in the conf
-	private int partNumber; // The
+	private List<OmsCall> listOmsCallInConf = new ArrayList<OmsCall>();
 	
 	
-	public OmsConference(String name, String hostVipConf, String portVipConf) throws OmsException{
+	public OmsConference(String name, String hostVipConf, String portVipConf) throws OmsException, IOException{
 		
 		confName = name;
 		nbOfPartInConf = 0;
 		connOMSConf = new VipConnexion(hostVipConf, portVipConf);
-		logger.info(connOMSConf.toString());
 		String respCreation = connOMSConf.getReponse("<conference> <create requestid=\"req1\" conferenceid=\"" + 
 		confName + "\" /></conference>" );
 		
@@ -44,12 +46,30 @@ public class OmsConference {
 	public void join(OmsCall omsCall, String param) throws OmsException{
 		
 		String repJoin;
+		int num = 0;
 		connOMSCall = omsCall.getVipConnexion();
 		websock = omsCall.getWebSocket();
-		int num = getNbOfPartInConf();
-		num += 1;
-		setPartNumber(num);
-		setNbOfPartInConf(num);
+		
+		if(listOmsCallInConf.isEmpty()){
+
+			listOmsCallInConf.add(num, omsCall);
+			omsCall.setPartNumberConf(num);
+			setNbOfPartInConf(num+1);
+		}else{
+			int size = listOmsCallInConf.size();
+			num = listOmsCallInConf.get(size-1).getPartNumberConf();
+			listOmsCallInConf.add(size, omsCall);
+			num += 1;
+			omsCall.setPartNumberConf(num);
+			setNbOfPartInConf(getNbOfPartInConf() + 1);
+		}
+		
+		//num +=1;
+		//int num = getNbOfPartInConf();
+		//num += 1;
+		//listOmsCallInConf.add(num, omsCall);
+		//omsCall.setPartNumberConf(num);
+		//setNbOfPartInConf(num);
 		
 		if(param.equalsIgnoreCase("mute")){
 			logger.info("m muted");
@@ -57,10 +77,8 @@ public class OmsConference {
 			confName +"\"  participantid=\""+ num +  "\" confrole=\"mute\" /></conference>");
 		}
 		else
-			//logger.info(connOMSConf.toString());
 			repJoin = connOMSConf.getReponse("<conference><join  requestid=\"req1\" conferenceid=\""+
 		confName+"\"  participantid=\""+ num + "\" /></conference>");
-			logger.info(num);
 		
 		if(repJoin.indexOf("OK") != -1 ){
 			
@@ -112,17 +130,42 @@ public class OmsConference {
 			throw new OmsException("mediaintput :  NO MATCH "+repJoin);	
 		
 	   }
-		else if(repJoin.indexOf("406") != -1){
-			
+		else if(repJoin.indexOf("406") != -1){			
 			websock.send("Conference does not yet exist");
 			throw new OmsException("Error cannot join the conference : "+repJoin);
 		}
-		else 
-			throw new OmsException("Unknow error " + repJoin);
+		else if(repJoin.indexOf("411") != -1)
+			throw new OmsException("Delete files conf_1.rd and conf_1.wr at /opt/application/64poms/current/tmp");
+		else if(repJoin.indexOf("408") != -1)
+			throw new OmsException("Error cannot join the conference : "+repJoin);
 	}
 	
 	
-	public void destroyConference() throws OmsException{
+	public void unJoin(OmsCall omsCall) throws OmsException{
+		
+		int num = omsCall.getPartNumberConf();
+		String conf = getConfName();
+		
+		String unJoinrep=getConfVipConnexion().getReponse("<conference><unjoin conferenceid=\""+conf+"\" requestid=\""
+		+ num + "\" participantid=\""+ num + "\"/></conference>");
+		if (unJoinrep.indexOf("OK")==-1)
+			throw new OmsException("unjoining failed : " + unJoinrep);
+		
+		int numPart = getNbOfPartInConf() - 1;
+		setNbOfPartInConf(numPart);
+		
+		if(numPart == 0){
+			
+			destroyConference(omsCall);
+			logger.info("Conference destroyed");
+		}
+		
+	}
+	
+	public void destroyConference(OmsCall omsCall) throws OmsException{
+		
+		connOMSCall = omsCall.getVipConnexion();
+		listOmsCallInConf.clear();
 		
 		String repStatus = connOMSConf.getReponse("<conference><status requestid=\"req2\" conferenceid=\""+ 
 		confName+"\" /></conference>");
@@ -145,13 +188,13 @@ public class OmsConference {
 				
 				String rep1= connOMSCall.getReponse("wait evt=mt1.*" );
 				
-				/*if (rep1.indexOf("OK")!=-1){
-					connOMSCall.getReponse("mt1 shutup");
-					connOMSCall.getReponse("delete mt1");
+				//if (rep1.indexOf("OK")!=-1){
+					//connOMSCall.getReponse("mt1 shutup");
+					//connOMSCall.getReponse("delete mt1");
 					connOMSCall.getReponse("delete e1");
-					connOMSCall.getReponse("delete s");
-					connOMSCall.getReponse("delete s1");
-					}*/
+					//connOMSCall.getReponse("delete s");
+					//connOMSCall.getReponse("delete s1");
+					//}
 			}else
 				throw new OmsException("cannot destroy conference because: " + destroyConf);
 		}else
@@ -167,13 +210,6 @@ public class OmsConference {
 		return nbOfPartInConf;
 	}
 	
-	public void setPartNumber(int num){
-		partNumber = num;
-	}
-	
-	public int getPartNumber(){
-		return partNumber;
-	}
 	
 	public VipConnexion getConfVipConnexion(){		
 		return connOMSConf;
