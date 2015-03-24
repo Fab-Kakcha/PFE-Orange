@@ -37,7 +37,13 @@ public class OmsCall extends Thread {
 	private WebSocket conn = null;
 	private String ipAddress;
 	private int partNumberConf;
+	
+	private String[] hosPortVip;
 
+	
+	public String[] getHostPortVip(){
+		return hosPortVip;
+	}
 	
 	public void setPartNumberConf(int num){
 		
@@ -55,7 +61,7 @@ public class OmsCall extends Thread {
 	}
 
 	public OmsCall(WebSocket conn, String ipAddress) {
-		
+		 
 		this.conn = conn;
 		this.ipAddress = ipAddress;
 	}
@@ -70,6 +76,11 @@ public class OmsCall extends Thread {
 		
 		try {
 			this.setIsCaller(true);
+			
+			hosPortVip = new String[2];
+			hosPortVip[0] = hostVip;
+			hosPortVip[1] = portVip;
+			
 			this.connOMS = new VipConnexion(hostVip, portVip);
 			//String respInfo = this.connOMS.getReponse("info ocam");
 			String respWebrtcCreation = this.connOMS.getReponse("new mt1 webrtc");
