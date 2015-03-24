@@ -13,6 +13,17 @@ import org.java_websocket.WebSocket;
 
 public class MonServiceWtc implements OmsMessageListener {
 
+	
+	public static void main(String[] args) {
+		
+		try {
+			 new OmsService();
+		} catch (InterruptedException | IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}		
+	}
+	
 	private static Logger logger = Logger.getLogger(MonServiceWtc.class);
 	boolean isAnswer = false;
 	private String hostVip;
@@ -24,15 +35,7 @@ public class MonServiceWtc implements OmsMessageListener {
 	String filePath ="/var/opt/data/flat/64poms/files/logs/20150210/bonjour.a8k";
 	String filePathEnreg ="/var/opt/data/flat/64poms/files/logs/20150210/recording.a8k";
 	
-	public static void main(String[] args) {
-		
-		try {
-			 new OmsService();
-		} catch (InterruptedException | IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}		
-	}
+	
 
 	/**
 	 * To get OMS's IP address and port from OmsService class
