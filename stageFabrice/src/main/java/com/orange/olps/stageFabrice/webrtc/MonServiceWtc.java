@@ -71,14 +71,13 @@ public class MonServiceWtc implements OmsMessageListener {
 				if (!isAnswer) {
 					call.connect(hostVip, portVip);
 					call.init(sdp);
-					call.say("Bienvenue sur le serveur de conference", false);
-					call.say("Pour entrer dans la conference", false);
-					call.say("Tapez conference", false);
+					call.say("Bienvenue sur le serveur de conference. Pour entrer dans la conference. "
+							+ "Tapez conference", true);
 				} else {
 					call.answer(sdp);
 					logger.info("la méthode answer a reussit");
 				}
-			} catch (OmsException | IOException e) {
+			} catch (OmsException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
@@ -145,8 +144,9 @@ public class MonServiceWtc implements OmsMessageListener {
 			case ("record"):
 				// Le client demande a ce que l'appel soit enregistre. 
 				try {
-					call.record(param);
-				} catch (OmsException e) {
+					//call.record(param);
+					conf.recordConf();
+				} catch (OmsException | IOException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
@@ -155,6 +155,7 @@ public class MonServiceWtc implements OmsMessageListener {
 				// Le client demande a arreter l'enregistrement. 
 				try {
 					call.stopRecord();
+					//conf.stopRecordConf();
 				} catch (OmsException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
@@ -178,7 +179,6 @@ public class MonServiceWtc implements OmsMessageListener {
 			try {
 				
 				conf.join(call, param);
-				logger.info("Conference join succeed");
 			} catch (OmsException e1) {
 				// TODO Auto-generated catch block
 				e1.printStackTrace();
@@ -225,7 +225,7 @@ public class MonServiceWtc implements OmsMessageListener {
 				//quitter la conf (function unjoin retourne vrai si c'est le dernier à quitter la conf)
 				//détruire la conf si c'est le dernier client à quitter la conf
 				conf.unJoin(call);
-				call.closeClient("Au revoir, et a bientot sur OMS");
+				call.closeClient();
 			} catch (OmsException | IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
