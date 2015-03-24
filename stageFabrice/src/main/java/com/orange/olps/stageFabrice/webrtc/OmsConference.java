@@ -5,6 +5,8 @@ package com.orange.olps.stageFabrice.webrtc;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -28,9 +30,20 @@ public class OmsConference {
 	private WebSocket websock = null;
 	private String confName = null;
 	private int nbOfPartInConf; //Total number of participant in the conf
-	private List<OmsCall> listOmsCallInConf = new ArrayList<OmsCall>();
+	private List<OmsCall> listOmsCall = new ArrayList<OmsCall>(); // To dealt with the connection and reconnection
+	//of a user in the conf.
+	private List<OmsCall> listOmsCallInConf = new ArrayList<OmsCall>(); // To send particular msg to users 
+	//currently in the conf
+	private List<Integer> arrayList = new ArrayList<Integer>();
 	
-	
+	/**
+	 * 
+	 * @param name
+	 * @param hostVipConf
+	 * @param portVipConf
+	 * @throws OmsException
+	 * @throws IOException
+	 */
 	public OmsConference(String name, String hostVipConf, String portVipConf) throws OmsException, IOException{
 		
 		confName = name;
@@ -43,33 +56,40 @@ public class OmsConference {
 			throw new OmsException("Error cannot create the conference : "+ respCreation);		
 	}
 	
+	/**
+	 * 
+	 * @param omsCall
+	 * @param param
+	 * @throws OmsException
+	 */
 	public void join(OmsCall omsCall, String param) throws OmsException{
 		
 		String repJoin;
-		int num = 0;
+		int num = 1;
 		connOMSCall = omsCall.getVipConnexion();
 		websock = omsCall.getWebSocket();
 		
+		/* To deal with the connection and reconnexion of a client into the same conference*/
 		if(listOmsCallInConf.isEmpty()){
 
-			listOmsCallInConf.add(num, omsCall);
+			listOmsCallInConf.add(omsCall);
 			omsCall.setPartNumberConf(num);
-			setNbOfPartInConf(num+1);
 		}else{
-			int size = listOmsCallInConf.size();
-			num = listOmsCallInConf.get(size-1).getPartNumberConf();
-			listOmsCallInConf.add(size, omsCall);
-			num += 1;
+	
+			Iterator<OmsCall> ite = listOmsCallInConf.iterator();		
+			while(ite.hasNext()){
+		
+				arrayList.add(ite.next().getPartNumberConf());
+			}
+			
+			num = Collections.max(arrayList) + 1;			
+			listOmsCallInConf.add(omsCall);
 			omsCall.setPartNumberConf(num);
-			setNbOfPartInConf(getNbOfPartInConf() + 1);
 		}
 		
-		//num +=1;
-		//int num = getNbOfPartInConf();
-		//num += 1;
-		//listOmsCallInConf.add(num, omsCall);
-		//omsCall.setPartNumberConf(num);
-		//setNbOfPartInConf(num);
+		String respSh = connOMSCall.getReponse("mt1 shutup");
+		if(!respSh.equals("OK"))
+			throw new OmsException("Cannot shutup mt1");
 		
 		if(param.equalsIgnoreCase("mute")){
 			logger.info("m muted");
@@ -141,6 +161,11 @@ public class OmsConference {
 	}
 	
 	
+	/**
+	 * 
+	 * @param omsCall
+	 * @throws OmsException
+	 */
 	public void unJoin(OmsCall omsCall) throws OmsException{
 		
 		int num = omsCall.getPartNumberConf();
@@ -150,22 +175,31 @@ public class OmsConference {
 		+ num + "\" participantid=\""+ num + "\"/></conference>");
 		if (unJoinrep.indexOf("OK")==-1)
 			throw new OmsException("unjoining failed : " + unJoinrep);
+			
+		Iterator<OmsCall> ite = listOmsCallInConf.iterator();
+		int num2;
+		while(ite.hasNext()){
+			num2 = ite.next().getPartNumberConf();
+			if(num2 == num)
+				ite.remove();
+		}
 		
-		int numPart = getNbOfPartInConf() - 1;
-		setNbOfPartInConf(numPart);
-		
-		if(numPart == 0){
+		if(listOmsCallInConf.size() == 0){
 			
 			destroyConference(omsCall);
 			logger.info("Conference destroyed");
-		}
-		
+		}	
 	}
 	
+	/**
+	 * 
+	 * @param omsCall
+	 * @throws OmsException
+	 */
 	public void destroyConference(OmsCall omsCall) throws OmsException{
 		
 		connOMSCall = omsCall.getVipConnexion();
-		listOmsCallInConf.clear();
+		listOmsCall.clear();
 		
 		String repStatus = connOMSConf.getReponse("<conference><status requestid=\"req2\" conferenceid=\""+ 
 		confName+"\" /></conference>");
@@ -193,13 +227,19 @@ public class OmsConference {
 					//connOMSCall.getReponse("delete mt1");
 					connOMSCall.getReponse("delete e1");
 					//connOMSCall.getReponse("delete s");
-					//connOMSCall.getReponse("delete s1");
+					connOMSCall.getReponse("delete s2");
 					//}
 			}else
 				throw new OmsException("cannot destroy conference because: " + destroyConf);
 		}else
 			throw new OmsException("Conference does not exist : "+ repStatus);
 		
+	}
+	
+	
+	public void recordConf(){
+		
+		return;
 	}
 	
 	public void setNbOfPartInConf(int num){
