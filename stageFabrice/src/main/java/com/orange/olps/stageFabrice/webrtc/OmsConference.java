@@ -40,6 +40,7 @@ public class OmsConference {
 	private List<Integer> arrayList = new ArrayList<Integer>();
 	private OmsCall omsCallRecord = null;
 	private Random randomGenerator;
+	private String filePath = "";
 	
 	/**
 	 * 
@@ -346,14 +347,18 @@ public class OmsConference {
 			//String mediaOutput = mediaInputOutput[1];
 			
 			//String mediaInputPath = "/opt/application/64poms/current/tmp/" + mediaInputOutput[0];
-			String mediaOutputPath = "/opt/application/64poms/current/tmp/" + mediaInputOutput[1];
+			//String respSay = connOMSCall.getReponse("s2 say \"cat /opt/application/64poms/"
+				//	+ "current/tmp"+ mediaOutput + "\"");
 			
-			logger.info(mediaInputOutput[0].getClass());
-			logger.info(mediaInputOutput[0].getClass().getName());
 			
+			String mediaOutputPath = "/opt/application/64poms/current/tmp" + mediaInputOutput[1];
+			logger.info(mediaOutputPath);
 			InputStream inputStream = new FileInputStream(mediaOutputPath);
+			logger.info("1");
 			Reader reader = new InputStreamReader(inputStream);
+			logger.info("2");
 			int data = reader.read();
+			logger.info("3");
 			while(data != -1){
 				
 				System.out.println("I am still reading");
@@ -364,8 +369,19 @@ public class OmsConference {
 	}
 	
 	
-	public void stopRecordConf(){
+	public void stopRecordConf() throws OmsException, IOException{
+			
+		int num = 0;
+		String conf = getConfName();
 		
+		String unJoinrep=getConfVipConnexion().getReponse("<conference><unjoin conferenceid=\""+conf+"\" requestid=\""
+		+ num + "\" participantid=\""+ num + "\"/></conference>");
+		
+		if (unJoinrep.indexOf("OK")==-1)
+			throw new OmsException("unjoining failed : " + unJoinrep);
+		
+		omsCallRecord.delResources();
+		omsCallRecord.closeClient();
 		
 	}
 	
