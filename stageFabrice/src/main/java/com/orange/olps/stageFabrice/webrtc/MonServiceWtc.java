@@ -179,8 +179,7 @@ public class MonServiceWtc implements OmsMessageListener {
 				// Param sert pour muteOn ou muteOff
 				// conf.join(call) ou call.join(conf)
 				//call.join(conf, param);
-			try {
-				
+			try {				
 				conf.join(call, param);
 			} catch (OmsException e1) {
 				// TODO Auto-generated catch block
