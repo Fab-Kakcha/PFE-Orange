@@ -25,10 +25,8 @@ public class OmsService extends WebSocketServer {
 	private static final String DEFAULT_WS_PORT = "8887";
 	private static final String DEFAULT_CONF_PORT = "10000";
 	
-	// private static final String WEBRTC_CONF =
-	// "/opt/application/64poms/current/conf/";
+	private static final String WEBRTC_CONF = "/opt/testlab/utils/stageFabrice/src/main/java/";
 	//private static final String WEBRTC_CONF = "C:\\Users\\JWPN9644\\opt\\application\\64poms\\current\\conf\\";
-	private static final String WEBRTC_CONF = "/home/fabrice/Documents/propertiesFiles/";
 	protected static String hostVip = "127.0.0.1";
 	protected static String portVip = "4670";
 	private static String portWs = "8887";
@@ -121,14 +119,13 @@ public class OmsService extends WebSocketServer {
 		portWs = prop.getProperty("ws.port", DEFAULT_WS_PORT);
 		portVipConf = prop.getProperty("conf.port", DEFAULT_CONF_PORT);
 			
-		// Demarrage de la conference
 		try {
+			// Demarrage de la conference
 			conf = new OmsConference("conf1", hostVip, portVipConf);
 		} catch (OmsException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-
 		// enregistrement de la conférence
 		// prévoir de demarrer l'enregistrement a l'arrivee d'un participant
 		// et arreter a la sortie du dernier
@@ -142,9 +139,9 @@ public class OmsService extends WebSocketServer {
 		
 		start();
 		dort(500);
-		logger.info("OmsGateway started on port: " + getPort());
+		logger.info("OmsGateway started on port: " + getPort() + " " + this.getAddress().getAddress());
 		monServiceWtc = new MonServiceWtc(hostVip,portVip, conf);
-		System.out.println("Fait chier");
+		
 	}
 
 	@Override
