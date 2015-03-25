@@ -139,7 +139,7 @@ public class OmsService extends WebSocketServer {
 		
 		start();
 		dort(500);
-		logger.info("OmsGateway started on port: " + getPort() + " " + this.getAddress().getAddress());
+		logger.info("OmsGateway started on port: " + getPort());
 		monServiceWtc = new MonServiceWtc(hostVip,portVip, conf);
 		
 	}
