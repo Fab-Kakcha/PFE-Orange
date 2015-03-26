@@ -242,7 +242,7 @@ function disconnect(){
 
 function playFile() {
 
-	buttonState(disabled, active, disabled, active, disabled, active, disabled);
+	buttonState(disabled, active, disabled, disabled, active, disabled, disabled);
 
 	//socket.send(JSON.stringify({"cmd":"play","param":"/var/opt/data/flat/64poms/files/logs/20150210/bonjour.a8k"}));
 	socket.send(JSON.stringify({"cmd":"play","param":"/var/opt/data/flat/64poms/files/logs/20150210/recording.a8k"}));
