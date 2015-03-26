@@ -74,20 +74,27 @@ public class OmsCall extends Thread {
 	 */
 	public void connect(String hostVip, String portVip) throws OmsException{
 		
-		this.setIsCaller(true);
-		
-		hosPortVip = new String[2];
-		hosPortVip[0] = hostVip;
-		hosPortVip[1] = portVip;
-		
-		this.connOMS = new VipConnexion(hostVip, portVip);
-		//String respInfo = this.connOMS.getReponse("info ocam");
-		String respWebrtcCreation = this.connOMS.getReponse("new mt1 webrtc");
-		
-		if (respWebrtcCreation.equals("OK")) {
-			this.connOMS.getReponse("mt1 setparam escape_sdp_newline=true");
-		} else 
-			throw new OmsException("Error: Cannot create rvi webrtc "+ respWebrtcCreation);		
+		try {
+			this.setIsCaller(true);
+			
+			hosPortVip = new String[2];
+			hosPortVip[0] = hostVip;
+			hosPortVip[1] = portVip;
+			
+			this.connOMS = new VipConnexion(hostVip, portVip);
+			//String respInfo = this.connOMS.getReponse("info ocam");
+			String respWebrtcCreation = this.connOMS.getReponse("new mt1 webrtc");
+			
+			if (respWebrtcCreation.equals("OK")) {
+				this.connOMS.getReponse("mt1 setparam escape_sdp_newline=true");
+			} else 
+				throw new OmsException("Error: Cannot create rvi webrtc "+ respWebrtcCreation);
+		} catch (UnknownHostException e) {
+			throw new OmsException("Cannot connect to the IP address "
+					+ connOMS.getSocket().getLocalAddress());
+		} catch (IOException e) {
+			throw new OmsException("No server is listening at " + hostVip+ ": " + portVip);
+		}		
 	}
 	
 	/**
@@ -209,9 +216,9 @@ public class OmsCall extends Thread {
 			String resp1 = this.connOMS.getReponse("new s1 synt");
 			
 			if (resp1.equals("OK")) {
-				String setParam = this.connOMS.getReponse("mt1 setparam bind=s1");
-				if(!setParam.equals("OK"))
-					throw new OmsException("cannot execute mt1 setparam bind=s1");
+				//String setParam = this.connOMS.getReponse("mt1 setparam bind=s1");
+				//if(!setParam.equals("OK"))
+					//throw new OmsException("cannot execute mt1 setparam bind=s1");
 				isRviSyntExist = true;
 				
 			} else
@@ -222,6 +229,10 @@ public class OmsCall extends Thread {
 		if(!respSh.equals("OK"))
 			throw new OmsException("Cannot shutup mt1");
 		
+		String setParam = this.connOMS.getReponse("mt1 setparam bind=s1");
+		if(!setParam.equals("OK"))
+			throw new OmsException("cannot execute mt1 setparam bind=s1");
+		
 		String respPlay = connOMS.getReponse("s1 play file=" + filePath); //loop=1
 		if (!respPlay.equals("OK"))
 			throw new OmsException("Cannot execute cmd play file " + respPlay);
@@ -231,8 +242,7 @@ public class OmsCall extends Thread {
 			if(!resp.startsWith("OK")){
 				System.out.println("cmd wait evt=mt1.starving failed: " + resp);
 			}
-		}
-		
+		}		
 	}
 	
 	/**
@@ -355,13 +365,13 @@ public class OmsCall extends Thread {
 		
 		}else if(this.getIsCallee()){*/
 			
-			String delRviWebrtc = this.connOMS.getReponse("delete mt" + num);
+			String delRviWebrtc = this.getVipConnexion().getReponse("delete mt" + num);
 			if (delRviWebrtc.equals("OK"))
-				this.connOMS.getReponse("wait evt=mt"+ num +".mediadisconnected");
+				this.getVipConnexion().getReponse("wait evt=mt"+ num +".mediadisconnected");
 			else
 				throw new OmsException("Error cannot delete webrtc rvi mt"+ num +": "+ delRviWebrtc);
 			
-			String delRviSyn = this.connOMS.getReponse("delete s" + num);
+			String delRviSyn = this.getVipConnexion().getReponse("delete s" + num);
 			if(!delRviSyn.equals("OK"))
 				throw new OmsException("Error cannot delete synt rvi s " + delRviSyn);
 			
