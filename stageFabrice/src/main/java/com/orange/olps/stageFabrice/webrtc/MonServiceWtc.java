@@ -138,7 +138,8 @@ public class MonServiceWtc implements OmsMessageListener {
 				break;
 			case "play":
 				try {
-					call.play(param, true);
+					conf.playEnregConf(call);
+					//call.play(param, true);
 				} catch (OmsException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
@@ -157,9 +158,9 @@ public class MonServiceWtc implements OmsMessageListener {
 			case ("stopRecord"):
 				// Le client demande a arreter l'enregistrement. 
 				try {
-					call.stopRecord();
-					//conf.stopRecordConf();
-				} catch (OmsException e) {
+					//call.stopRecord();
+					conf.stopRecordConf();
+				} catch (OmsException | IOException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
