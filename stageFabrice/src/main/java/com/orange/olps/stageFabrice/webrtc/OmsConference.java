@@ -5,6 +5,7 @@ package com.orange.olps.stageFabrice.webrtc;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -44,7 +45,7 @@ public class OmsConference {
 	private List<Integer> arrayList = new ArrayList<Integer>();
 	private OmsCall omsCallRecord = null;
 	private Random randomGenerator;
-	private String enregFilePath = "/opt/application/64poms/current/tmp/enregFile.raw";
+	private String enregFilePath = "/opt/application/64poms/current/tmp/enregFile.a8k";
 	
 	/**
 	 * 
@@ -295,23 +296,32 @@ public class OmsConference {
 				//String mediaOutputPath = "/opt/application/64poms/current/tmp/conf_1.wr";
 				String mediaOutputPath = "/opt/application/64poms/current/tmp" + mediaOutput;
 				logger.info(mediaOutputPath);
-				InputStream inputStream = new FileInputStream(mediaOutputPath);
-				BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
+				InputStream inputStream = new FileInputStream(new File(mediaOutputPath));
+				//BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
 				
 				//System.out.println("2");
-				String line = reader.readLine();
+				byte[] buf =  new byte[1024];
+				int bytes_read;
+				
+				//String line = reader.readLine();
+				
 				//System.out.println("3");
-				OutputStream outputStream = new FileOutputStream(enregFilePath);
-				OutputStreamWriter outputWritter = new OutputStreamWriter(outputStream);
-				Writer writer = new BufferedWriter(outputWritter);
+				OutputStream outputStream = new FileOutputStream(new File(enregFilePath), true);
+				//OutputStreamWriter outputWritter = new OutputStreamWriter(outputStream);
+				//Writer writer = new BufferedWriter(outputWritter);
 				
 				//while(line != null){
-				while(System.currentTimeMillis() < endTime){									
-					writer.write(line);
+				
+				while(System.currentTimeMillis() < endTime){
+					
+					bytes_read = inputStream.read(buf);
+					outputStream.write(buf, 0, bytes_read);
+					
+					//writer.write(line);
 					System.out.println("2");
-					line = reader.readLine();
-					System.out.println("3");
-					System.out.println(line);
+					//line = reader.readLine();
+					//System.out.println("3");
+					System.out.println(bytes_read);
 				}				
 					//data = reader.read();
 				//}
@@ -319,8 +329,8 @@ public class OmsConference {
 				//writer.write("begin");
 				//writer.write(line);
 				
-				reader.close();
-				writer.close();
+				inputStream.close();
+				outputStream.close();
 				logger.info("Copy finish");
 				/*String respSay = connOMSCall.getReponse("s2 say \"cat /opt/application/64poms/"
 									+ "current/tmp"+ mediaOutput + "\"");*/			
@@ -351,8 +361,7 @@ public class OmsConference {
 		
 		if (unJoinrep.indexOf("OK")==-1)
 			throw new OmsException("unjoining failed : " + unJoinrep);
-		
-		logger.info(unJoinrep);
+
 		omsCallRecord.getVipConnexion().close();
 		logger.info("Recorder disconnects");
 	}
@@ -361,14 +370,15 @@ public class OmsConference {
 	public void playEnregConf(OmsCall omsCall) throws OmsException{
 		
 		omsCall.play(enregFilePath, false);
+		//omsCall.getVipConnexion().getReponse("s2 say \"cat "+ enregFilePath + "\"");
+		
 	}
 	
 	public int getNbOfPartInConf(){
 		//return nbOfPartInConf;
 		return listOmsCallInConf.size();
 	}
-	
-	
+		
 	public VipConnexion getConfVipConnexion(){		
 		return connOMSConf;
 	}
