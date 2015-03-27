@@ -41,6 +41,7 @@ public class OmsConference {
 	private OmsCall omsCallRecord = null;
 	private Random randomGenerator;
 	private String enregFile = "/opt/application/64poms/current/tmp/enregFile";
+	private boolean destroyConf = false;
 	
 	/**
 	 * 
@@ -185,22 +186,30 @@ public class OmsConference {
 		
 		int num = omsCall.getPartNumberConf();
 		String conf = getConfName();
-		
-		String unJoinrep=getConfVipConnexion().getReponse("<conference><unjoin conferenceid=\""+conf+"\" requestid=\""
-		+ num + "\" participantid=\""+ num + "\"/></conference>");
-		if (unJoinrep.indexOf("OK")==-1)
-			throw new OmsException("unjoining failed : " + unJoinrep);
+		String unJoinRep;
+		boolean unjoin = false;
 			
 		Iterator<OmsCall> ite = listOmsCallInConf.iterator();
 		int num2;
 		while(ite.hasNext()){
 			num2 = ite.next().getPartNumberConf();
-			if(num2 == num)
+			if(num2 == num){			
+				unJoinRep=getConfVipConnexion().getReponse("<conference><unjoin conferenceid=\""+conf+"\" requestid=\""
+						+ num + "\" participantid=\""+ num + "\"/></conference>");
+						if (unJoinRep.indexOf("OK")==-1)
+							throw new OmsException("unjoining failed : " + unJoinRep);
 				ite.remove();
+				unjoin = true;
+			}			
 		}
 		
-		if(listOmsCallInConf.size() == 0){			
+		if(!unjoin){
+			logger.info("participant "+ num + " already unjoined");
+		}
+		
+		if(listOmsCallInConf.size() == 0 && !destroyConf){			
 			destroyConference(omsCall);
+			destroyConf = true;
 			logger.info("Conference destroyed");
 		}	
 	}
@@ -252,10 +261,9 @@ public class OmsConference {
 	
 	
 	public void recordConf() throws OmsException, IOException{
-		
-		
+			
 		if(listOmsCallInConf.isEmpty()){		
-			throw new OmsException("Caanot start recording the conf (No one in the conf)");
+			throw new OmsException("Cannot start recording the conf (No one in the conf)");
 		}
 		else{			
 			randomGenerator = new Random();
@@ -388,6 +396,7 @@ public class OmsConference {
 		String enregFileRaw = enregFile + ".raw";
 		String enregFileWav = enregFile + ".wav";
 		String enregFilea8k = enregFile + ".a8k";
+		String testAnimaux = "/opt/application/64poms/current/tmp/Animaux.a8k";
 		
 		File fWav = new File(enregFileWav);
 		if(fWav.exists()){
@@ -416,8 +425,8 @@ public class OmsConference {
 		if(returnCode != 0)		
 			throw new OmsException("sox command failed " + returnCode);
 		
-		omsCall.play(enregFilea8k, false);
-		//omsCall.getVipConnexion().getReponse("s2 say \"cat "+ enregFilePath + "\"");		
+		unJoin(omsCall);
+		omsCall.play(enregFilea8k, false);//Ne peux pas lire le fichier alors qu'on est dans la conférence
 	}
 	
 	public int getNbOfPartInConf(){
