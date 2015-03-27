@@ -179,7 +179,6 @@ function buttonState(p1, p2, p3, p4, p5, p6, p7){
 	document.getElementById("conf").className = p7;
 
 	//document.getElementById("connexionToOMS").disabled = true;
-
 }
 
 var pc;
@@ -230,7 +229,7 @@ function connectToOMS() {
 function conference(){
 
 	socket.send(JSON.stringify({ "cmd":"joinConf","param":"" }));
-	buttonState(disabled, active, disabled, active, active, disabled, disabled);
+	buttonState(disabled, active, disabled, disabled, active, disabled, disabled);
 }
 
 function disconnect(){
@@ -242,7 +241,7 @@ function disconnect(){
 
 function playFile() {
 
-	buttonState(disabled, active, disabled, disabled, active, disabled, disabled);
+	buttonState(disabled, active, active, disabled, disabled, disabled, active);
 
 	//socket.send(JSON.stringify({"cmd":"play","param":"/var/opt/data/flat/64poms/files/logs/20150210/bonjour.a8k"}));
 	socket.send(JSON.stringify({"cmd":"play","param":"/var/opt/data/flat/64poms/files/logs/20150210/recording.a8k"}));
@@ -250,7 +249,7 @@ function playFile() {
 
 function say() {
 
-	buttonState(disabled, active, disabled, disabled, active, active, disabled);
+	buttonState(disabled, active, disabled, active, disabled, disabled, active);
 
 	socket.send(JSON.stringify({"cmd":"say","param":""}));
 }
@@ -265,7 +264,7 @@ function recordingVoice() {
 
 function stopRecording(){
 
-	buttonState(disabled, active, disabled, active, active, disabled, disabled);
+	buttonState(disabled, active, active, active, active, disabled, disabled);
 
 	socket.send(JSON.stringify({"cmd":"stopRecord","param":" "}));
 }
