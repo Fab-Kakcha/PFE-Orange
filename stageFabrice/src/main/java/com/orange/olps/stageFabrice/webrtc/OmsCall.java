@@ -521,18 +521,12 @@ public class OmsCall extends Thread {
 		this.isCallee = isCallee;
 	}
 	
-	/**
-	 * 
-	 * @return
-	 */
+
 	public boolean getIsCaller(){
 		return this.isCaller;
 	}
 	
-	/**
-	 * 
-	 * @return
-	 */
+
 	public boolean getIsCallee(){
 		return this.isCallee;
 	}
@@ -552,32 +546,3 @@ public class OmsCall extends Thread {
 		this.listOmsCall.clear();
 	}
 }
-
-
-/*
-  private List<OmsCallListener> listenersArray = new ArrayList<OmsCallListener>();
-	
-	public synchronized void addOmsCallListener(OmsCallListener callListener){
-		
-		listenersArray.add(callListener);		
-	}
-	
-	public synchronized void removeOmsCallListener(OmsCallListener callListener){
-		
-		listenersArray.remove(callListener);
-	}
-	
-	
-	public synchronized void fireEvent(OmsCall omsCall, String ip) throws OmsException{
-		
-		OmsCallListener callLis = null;
-		OmsCallEvent callEvt = new OmsCallEvent(this, omsCall, ip);
-		Iterator<OmsCallListener> iter = listenersArray.iterator();
-		
-		while(iter.hasNext()){
-			
-			callLis = iter.next();
-			callLis.omsCallPerformed(callEvt);
-		}
-	}
- */
