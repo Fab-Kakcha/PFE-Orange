@@ -140,7 +140,7 @@ public class MonServiceWtc implements OmsMessageListener {
 				try {
 					conf.playEnregConf(call);
 					//call.play(param, true);
-				} catch (OmsException e) {
+				} catch (OmsException | IOException | InterruptedException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
