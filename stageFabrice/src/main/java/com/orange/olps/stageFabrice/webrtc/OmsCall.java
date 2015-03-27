@@ -74,27 +74,20 @@ public class OmsCall extends Thread {
 	 */
 	public void connect(String hostVip, String portVip) throws OmsException{
 		
-		try {
-			this.setIsCaller(true);
-			
-			hosPortVip = new String[2];
-			hosPortVip[0] = hostVip;
-			hosPortVip[1] = portVip;
-			
-			this.connOMS = new VipConnexion(hostVip, portVip);
-			//String respInfo = this.connOMS.getReponse("info ocam");
-			String respWebrtcCreation = this.connOMS.getReponse("new mt1 webrtc");
-			
-			if (respWebrtcCreation.equals("OK")) {
-				this.connOMS.getReponse("mt1 setparam escape_sdp_newline=true");
-			} else 
-				throw new OmsException("Error: Cannot create rvi webrtc "+ respWebrtcCreation);
-		} catch (UnknownHostException e) {
-			throw new OmsException("Cannot connect to the IP address "
-					+ connOMS.getSocket().getLocalAddress());
-		} catch (IOException e) {
-			throw new OmsException("No server is listening at " + hostVip+ ": " + portVip);
-		}		
+		this.setIsCaller(true);
+		
+		hosPortVip = new String[2];
+		hosPortVip[0] = hostVip;
+		hosPortVip[1] = portVip;
+		
+		this.connOMS = new VipConnexion(hostVip, portVip);
+		//String respInfo = this.connOMS.getReponse("info ocam");
+		String respWebrtcCreation = this.connOMS.getReponse("new mt1 webrtc");
+		
+		if (respWebrtcCreation.equals("OK")) {
+			this.connOMS.getReponse("mt1 setparam escape_sdp_newline=true");
+		} else 
+			throw new OmsException("Error: Cannot create rvi webrtc "+ respWebrtcCreation);		
 	}
 	
 	/**

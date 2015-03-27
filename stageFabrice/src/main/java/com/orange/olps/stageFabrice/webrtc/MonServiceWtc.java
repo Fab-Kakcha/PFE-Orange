@@ -149,7 +149,7 @@ public class MonServiceWtc implements OmsMessageListener {
 				// Le client demande a ce que l'appel soit enregistre. 
 				try {
 					//call.record(param);
-					conf.recordConf();
+					conf.record();
 				} catch (OmsException | IOException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
