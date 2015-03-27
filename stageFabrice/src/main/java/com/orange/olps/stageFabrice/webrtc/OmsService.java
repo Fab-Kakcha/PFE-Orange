@@ -122,6 +122,7 @@ public class OmsService extends WebSocketServer {
 		try {
 			// Demarrage de la conference
 			conf = new OmsConference("conf1", hostVip, portVipConf);
+			conf.create();
 		} catch (OmsException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
