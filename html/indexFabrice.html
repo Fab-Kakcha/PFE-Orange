@@ -62,8 +62,26 @@ User Name: <input id="name" name="name" type="text" placeholder="your username" 
 <!-- <button id="joinconf" class="disabled" onclick="joinConf()">join conf</button> -->
 </div>
 
+<p id="recordConf"> </p>
+<p id="timer"> </p>
+
 
 <script>
+
+//var count = 15;
+//var counter = setInterval(timer, 1000);
+
+/*function timer(){
+
+	count = count -1;
+	if(count > 0){
+		document.getElementById("timer").innerHTML = count;
+	}else{
+		document.getElementById("timer").style.display = none;
+		clearInterval(counter);
+	}
+}*/
+
 
 function showForm(){
 
@@ -132,12 +150,30 @@ function createWebSocket(host) {
 		}
 		socket.onerror = function() { trace("Une erreur est survenue"); }
 		socket.onmessage = function(evt){
-			if (evt.data == "FabriceConnected") {
-				document.getElementById("outgoingCall").disabled = true; 
-				alert("Fabrice is connected")
-			} else if(evt.data == "FabriceNotConnected"){
-				alert("Fabrice is not connected");
-				socket.close();
+			if (evt.data == "stopRecordConf") {
+				buttonState(disabled, active, active, active, active, disabled, disabled);
+				document.getElementById("timer").style.display = "none";
+				document.getElementById("recordConf").innerHTML = "Conf is no longer recorded";
+				document.getElementById("recordConf").style.color = "blue";
+			} else if(evt.data == "recordConf"){
+				
+				document.getElementById("recordConf").innerHTML = "Conf is being recorded";
+				document.getElementById("recordConf").style.color = "red";
+				
+				var count = 15;
+				var counter = setInterval(
+					function timer(){
+
+				count = count -1;
+				if(count >= 0){
+					document.getElementById("timer").innerHTML = count;
+				}else{
+					document.getElementById("timer").innerHTML = "0";
+					//clearInterval(counter);
+					}
+				}
+					, 1000);
+				
 			}else if(evt.data == "incomingCall"){ 
 
 				buttonState(disabled, disabled, disabled, disabled, disabled, disabled, disabled);
@@ -147,7 +183,7 @@ function createWebSocket(host) {
 				if (signal.sdp) { //distinguer sdp offer ou answer
 					trace ("Reception de SDP" + signal.sdp.sdp);
 
-					buttonState(disabled, active, active, active, active, disabled, active);
+					buttonState(disabled, active, disabled, disabled, disabled, disabled, active);
 
 					pc.setRemoteDescription(new RTCSessionDescription(signal.sdp));
 					//setTimeout(function(){window.close();},6000);
@@ -228,8 +264,9 @@ function connectToOMS() {
 
 function conference(){
 
-	socket.send(JSON.stringify({ "cmd":"joinConf","param":"" }));
 	buttonState(disabled, active, disabled, disabled, active, disabled, disabled);
+	socket.send(JSON.stringify({ "cmd":"joinConf","param":"" }));
+	
 }
 
 function disconnect(){
@@ -241,6 +278,7 @@ function disconnect(){
 
 function playFile() {
 
+	document.getElementById("recordConf").style.display = "none";
 	buttonState(disabled, active, active, disabled, disabled, disabled, active);
 
 	//socket.send(JSON.stringify({"cmd":"play","param":"/var/opt/data/flat/64poms/files/logs/20150210/bonjour.a8k"}));
