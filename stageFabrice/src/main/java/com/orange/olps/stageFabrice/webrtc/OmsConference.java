@@ -231,6 +231,7 @@ public class OmsConference {
 			destroyConference(omsCall);
 			destroyConf = true;
 			logger.info("Conference destroyed");
+			System.exit(0);			
 		}
 	}
 
