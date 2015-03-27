@@ -20,6 +20,13 @@ public class VipConnexion extends Connexion {
 	private PrintWriter out = null;
 	private BufferedReader in = null;
 
+	
+	/**
+	 * To create a socket connection with OMS
+	 * @param serveur OMS's IP address
+	 * @param portStr OMS's port
+	 * @throws OmsException
+	 */
 	public VipConnexion(String serveur, String portStr) throws OmsException{
 		
 		try{
@@ -44,6 +51,7 @@ public class VipConnexion extends Connexion {
 			throw new OmsException("Cannot connect to OMS serveur at " + serveur);
 		}
 	}
+	
 	
 	public String getReponse(String question) throws OmsException {
 
@@ -76,6 +84,10 @@ public class VipConnexion extends Connexion {
 		out.flush();
 	}
 	
+	/**
+	 * 
+	 * @return
+	 */
 	public Socket getSocket(){
 		
 		return this.socket;

@@ -48,16 +48,16 @@ public class OmsConference {
 
 	/**
 	 * 
-	 * @param name
-	 * @param hostVipConf
-	 * @param portVipConf
+	 * @param name conference name
+	 * @param hostVipConf OMS's IP address
+	 * @param portVipConf OMS's listening port for the conference
 	 * @throws OmsException
 	 * @throws IOException
 	 */
-	public OmsConference(String name, String hostVipConf, String portVipConf)
+	public OmsConference(String hostVipConf, String portVipConf)
 			throws OmsException, IOException {
 
-		confName = name;
+		///confName = name;
 		connOMSConf = new VipConnexion(hostVipConf, portVipConf);
 		/*
 		 * String respCreation = connOMSConf.getReponse(
@@ -68,15 +68,16 @@ public class OmsConference {
 		 * OmsException("Error cannot create the conference : "+ respCreation);
 		 */
 	}
-
+	
 	/**
-	 * To create a conference
+	 * To create the conference 
+	 * @param name conference's name
 	 * @throws OmsException
 	 */
-	public void create() throws OmsException {
+	
+	public void create(String name) throws OmsException {
 
-		String confName = getConfName();
-
+		confName = name;
 		String respCreation = connOMSConf
 				.getReponse("<conference> <create requestid=\"req1\" conferenceid=\""
 						+ confName + "\" /></conference>");
@@ -87,7 +88,7 @@ public class OmsConference {
 	}
 
 	/**
-	 * To add a OMS call in the conference
+	 * To add a OMS call into the conference
 	 * @param omsCall OMS call
 	 * @param param
 	 * @throws OmsException

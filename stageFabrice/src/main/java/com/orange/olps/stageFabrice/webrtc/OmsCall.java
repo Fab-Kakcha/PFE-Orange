@@ -496,13 +496,17 @@ public class OmsCall extends Thread {
 		this.connOMS = connOMS;
 	}
 
+	/**
+	 * To get the connection to OMS
+	 * @return the connection to OMS
+	 */
 	public VipConnexion getVipConnexion() {
 		return this.connOMS;
 	}
 	
 	/**
-	 * 
-	 * @return
+	 * To get the client websocket
+	 * @return websocket of the clientSSSS
 	 */
 	public WebSocket getWebSocket(){	
 		return this.conn;
@@ -510,7 +514,7 @@ public class OmsCall extends Thread {
 	
 	/**
 	 * To get the client IP address 
-	 * @return
+	 * @return IP address of the client
 	 */
 	public String getIpAddress(){	
 		return ipAddress;
