@@ -45,7 +45,7 @@ public class OmsConference {
 	private List<Integer> arrayList = new ArrayList<Integer>();
 	private OmsCall omsCallRecord = null;
 	private Random randomGenerator;
-	private String enregFilePath = "/opt/application/64poms/current/tmp/enregFile.a8k";
+	private String enregFile = "/opt/application/64poms/current/tmp/enregFile";
 	
 	/**
 	 * 
@@ -271,14 +271,16 @@ public class OmsConference {
 				
 				String mediaInput = "/" + mat2.group(1);
 				String mediaInputPath = "/opt/application/64poms/current/tmp" + mediaInput;
-				logger.info(mediaInputPath);
-				OutputStream outputStream = new FileOutputStream(mediaInputPath);
-				OutputStreamWriter outputWritter = new OutputStreamWriter(outputStream);
-				Writer writer = new BufferedWriter(outputWritter);
-				writer.write("begin");
-				
-				System.out.println("1");			
-				writer.close();
+				OutputStream outputStream = new FileOutputStream(new File(mediaInputPath));
+				//OutputStreamWriter outputWritter = new OutputStreamWriter(outputStream);
+				//Writer writer = new BufferedWriter(outputWritter);
+				//writer.write("begin");
+				String string = "Hello";
+				byte[] buf =  new byte[1024];
+				buf = string.getBytes();
+				outputStream.write(buf, 0, buf.length);
+							
+				outputStream.close();
 				//String respEnreg = connOMSCall.getReponse("new e1 enreg");				
 				//String startRec = connOMSCall.getReponse("e1 start /opt/application/64poms/current/tmp"+ 
 					//mediaInput + "");
@@ -295,7 +297,6 @@ public class OmsConference {
 				String mediaOutput = "/" + mat1.group(1) + "";
 				//String mediaOutputPath = "/opt/application/64poms/current/tmp/conf_1.wr";
 				String mediaOutputPath = "/opt/application/64poms/current/tmp" + mediaOutput;
-				logger.info(mediaOutputPath);
 				InputStream inputStream = new FileInputStream(new File(mediaOutputPath));
 				//BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
 				
@@ -303,25 +304,30 @@ public class OmsConference {
 				byte[] buf =  new byte[1024];
 				int bytes_read;
 				
-				//String line = reader.readLine();
+				//String line = reader.readLine();			
+				String enregFileRaw = enregFile + ".raw";
+				File fRaw = new File(enregFileRaw);
+				if(fRaw.exists()){
+					fRaw.delete();
+					System.out.println(enregFileRaw + " deleted");
+					fRaw.createNewFile();
+				}
 				
-				//System.out.println("3");
-				OutputStream outputStream = new FileOutputStream(new File(enregFilePath), true);
+				//OutputStream outputStream = new FileOutputStream(new File(enregFileRaw), true);
+				OutputStream outputStream = new FileOutputStream(fRaw, true);
 				//OutputStreamWriter outputWritter = new OutputStreamWriter(outputStream);
 				//Writer writer = new BufferedWriter(outputWritter);
 				
 				//while(line != null){
-				
 				while(System.currentTimeMillis() < endTime){
 					
 					bytes_read = inputStream.read(buf);
 					outputStream.write(buf, 0, bytes_read);
 					
 					//writer.write(line);
-					System.out.println("2");
 					//line = reader.readLine();
 					//System.out.println("3");
-					System.out.println(bytes_read);
+					//System.out.println(bytes_read);
 				}				
 					//data = reader.read();
 				//}
@@ -367,11 +373,43 @@ public class OmsConference {
 	}
 	
 	
-	public void playEnregConf(OmsCall omsCall) throws OmsException{
+	public void playEnregConf(OmsCall omsCall) throws OmsException, IOException, InterruptedException{
 		
-		omsCall.play(enregFilePath, false);
-		//omsCall.getVipConnexion().getReponse("s2 say \"cat "+ enregFilePath + "\"");
+		Process p;
+		int returnCode;
+		String enregFileRaw = enregFile + ".raw";
+		String enregFileWav = enregFile + ".wav";
+		String enregFilea8k = enregFile + ".a8k";
 		
+		File fWav = new File(enregFileWav);
+		if(fWav.exists()){
+			fWav.delete();
+			System.out.println(enregFileWav + " deleted");
+			//fWav.createNewFile();
+		}
+		
+		File fa8k = new File(enregFilea8k);
+		if(fa8k.exists()){
+			fa8k.delete();
+			System.out.println(enregFilea8k + " deleted");
+		}
+		
+		//String cmd = new String("sox -t al -r 8000 -b 8 -c 1"+enregFile+".raw "+enregFile+".wav");
+		String cmd1 = new String("sox -t al -r 8000 -b 8 -c 1 " + enregFileRaw + " " + enregFileWav);
+		String cmd2 = new String("sox -t wav " + enregFileWav + " -t raw -r8000 -e a-law -b 8 -c 1 " + enregFilea8k);
+		//sox -t wav CON1100528_G711A_sortante.wav  -t raw -r8000 -e a-law -b 8 -c 1 toto.a8K
+		p = Runtime.getRuntime().exec(cmd1);
+		returnCode = p.waitFor();
+		if(returnCode != 0)		
+			throw new OmsException("sox command failed " + returnCode);
+		
+		p = Runtime.getRuntime().exec(cmd2);
+		returnCode = p.waitFor();
+		if(returnCode != 0)		
+			throw new OmsException("sox command failed " + returnCode);
+		
+		omsCall.play(enregFilea8k, false);
+		//omsCall.getVipConnexion().getReponse("s2 say \"cat "+ enregFilePath + "\"");		
 	}
 	
 	public int getNbOfPartInConf(){
