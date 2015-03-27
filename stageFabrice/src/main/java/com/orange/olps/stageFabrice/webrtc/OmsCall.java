@@ -74,20 +74,27 @@ public class OmsCall extends Thread {
 	 */
 	public void connect(String hostVip, String portVip) throws OmsException{
 		
-		this.setIsCaller(true);
-		
-		hosPortVip = new String[2];
-		hosPortVip[0] = hostVip;
-		hosPortVip[1] = portVip;
-		
-		this.connOMS = new VipConnexion(hostVip, portVip);
-		//String respInfo = this.connOMS.getReponse("info ocam");
-		String respWebrtcCreation = this.connOMS.getReponse("new mt1 webrtc");
-		
-		if (respWebrtcCreation.equals("OK")) {
-			this.connOMS.getReponse("mt1 setparam escape_sdp_newline=true");
-		} else 
-			throw new OmsException("Error: Cannot create rvi webrtc "+ respWebrtcCreation);		
+		try {
+			this.setIsCaller(true);
+			
+			hosPortVip = new String[2];
+			hosPortVip[0] = hostVip;
+			hosPortVip[1] = portVip;
+			
+			this.connOMS = new VipConnexion(hostVip, portVip);
+			//String respInfo = this.connOMS.getReponse("info ocam");
+			String respWebrtcCreation = this.connOMS.getReponse("new mt1 webrtc");
+			
+			if (respWebrtcCreation.equals("OK")) {
+				this.connOMS.getReponse("mt1 setparam escape_sdp_newline=true");
+			} else 
+				throw new OmsException("Error: Cannot create rvi webrtc "+ respWebrtcCreation);
+		} catch (UnknownHostException e) {
+			throw new OmsException("Cannot connect to the IP address "
+					+ connOMS.getSocket().getLocalAddress());
+		} catch (IOException e) {
+			throw new OmsException("No server is listening at " + hostVip+ ": " + portVip);
+		}		
 	}
 	
 	/**
@@ -221,6 +228,8 @@ public class OmsCall extends Thread {
 		String respSh = connOMS.getReponse("mt1 shutup");
 		if(!respSh.equals("OK"))
 			throw new OmsException("Cannot shutup mt1");
+		
+		sleep(700);
 		
 		String setParam = this.connOMS.getReponse("mt1 setparam bind=s1");
 		if(!setParam.equals("OK"))
