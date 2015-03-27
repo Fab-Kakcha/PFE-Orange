@@ -22,6 +22,11 @@ import com.orange.olps.stageFabrice.webrtc.OmsException;
  * parallele. Chaque client a une connexion particuliere a OMS
  */
 
+/**
+ * @author JWPN9644
+ * 
+ */
+
 public class OmsCall extends Thread {
 
 	private static Logger logger = Logger.getLogger(OmsCall.class);
@@ -39,27 +44,20 @@ public class OmsCall extends Thread {
 	private int partNumberConf;
 	
 	private String[] hosPortVip;
-
 	
-	public String[] getHostPortVip(){
-		return hosPortVip;
-	}
-	
-	public void setPartNumberConf(int num){
-		
-		partNumberConf = num;
-	}
-	
-	public int getPartNumberConf(){
-		
-		return partNumberConf;
-	}
-	
+	/**
+	 * 
+	 */
 	public OmsCall() {
 
 		super();
 	}
 
+	/**
+	 * 
+	 * @param conn client websocket
+	 * @param ipAddress client IP address
+	 */
 	public OmsCall(WebSocket conn, String ipAddress) {
 		 
 		this.conn = conn;
@@ -67,14 +65,12 @@ public class OmsCall extends Thread {
 	}
 	
 	/**
-	 * To connect to OMS at IP address (hostVip) and port (portVip)
+	 * To connect to OMS
 	 * @param hostVip OMS's IP address 
 	 * @param portVip OMS's listening port
 	 * @throws OmsException
 	 */
 	public void connect(String hostVip, String portVip) throws OmsException{
-		
-		this.setIsCaller(true);
 		
 		hosPortVip = new String[2];
 		hosPortVip[0] = hostVip;
@@ -93,12 +89,11 @@ public class OmsCall extends Thread {
 	/**
 	 * 
 	 * @param sdpOfferReceived
-	 *            is the sdp received from OMS. Its contains unexpected
-	 *            characters "\\"
+	 *            is the sdp received from OMS. Its contains unexpected characters "\\"
 	 * @return OMS's sdp is return without unexpected character
 	 * @throws IOException
 	 */
-	public String toSdpOms(String sdpOfferReceived) {
+	private String toSdpOms(String sdpOfferReceived) {
 
 		StringTokenizer str = new StringTokenizer(sdpOfferReceived,"\"");
 		str.nextToken();
@@ -109,13 +104,11 @@ public class OmsCall extends Thread {
 
 	/**
 	 * 
-	 * @param sdpOms
-	 *            is OMS sdp
-	 * @param type
-	 *            is either "offer" or "answer"
+	 * @param sdpOms is OMS sdp
+	 * @param type is either "offer" or "answer"
 	 * @return OMS's sdp is adapted to a form that a Browser can recognize
 	 */
-	public String toSdpBrowser(String sdpOms, String type) {
+	private String toSdpBrowser(String sdpOms, String type) {
 
 		String sdpToReturn = "{\"sdp\":{\"type\":\"" + type + "\",\"sdp\":\"" + sdpOms.substring(12) + "\"}}";
 
@@ -129,7 +122,7 @@ public class OmsCall extends Thread {
 	 * @return
 	 * @throws OmsException
 	 */
-	public Sdp sdpAnswer(String rviWebrtc, String sdpNav) throws OmsException {
+	private Sdp sdpAnswer(String rviWebrtc, String sdpNav) throws OmsException {
 
 			Sdp sdp = new Sdp();
 
@@ -151,14 +144,14 @@ public class OmsCall extends Thread {
 
 			return sdp;
 	}
-
+	
 	/**
-	 * 
-	 * @param say
-	 *            the message to voice to the client
+	 * To synthesize a message
+	 * @param say the message to synthesize
+	 * @param interrupt true if the message can be interrupted
 	 * @throws OmsException
-	 * 
 	 */
+	
 	public void say(String say, boolean interrupt) throws OmsException {
 
 		if (!isRviSyntExist) {
@@ -198,11 +191,19 @@ public class OmsCall extends Thread {
 	}
 	
 	/**
-	 * 
+	 * To play a file
 	 * @param say
 	 * @param interrupt
 	 * @throws OmsException
 	 */
+	
+	/**
+	 * To play an audio file
+	 * @param filePath the audio file to play
+	 * @param interrupt true if the play file can be interrupted
+	 * @throws OmsException
+	 */
+	
 	public void play(String filePath, boolean interrupt) throws OmsException {
 
 		if (!isRviSyntExist) {
@@ -222,7 +223,7 @@ public class OmsCall extends Thread {
 		if(!respSh.equals("OK"))
 			throw new OmsException("Cannot shutup mt1");
 		
-		sleep(700);
+		sleep(600);
 		
 		String setParam = this.connOMS.getReponse("mt1 setparam bind=s1");
 		if(!setParam.equals("OK"))
@@ -241,7 +242,7 @@ public class OmsCall extends Thread {
 	}
 	
 	/**
-	 * To record a voice in a file
+	 * To record a voice into a file
 	 * @param filePathEnreg the file's path 
 	 * @throws OmsException
 	 */
@@ -263,7 +264,7 @@ public class OmsCall extends Thread {
 	
 
 	/**
-	 * To stop the recording of a voice in OMS
+	 * To stop the recording
 	 * @throws OmsException
 	 */
 	public void stopRecord() throws OmsException{
@@ -278,7 +279,7 @@ public class OmsCall extends Thread {
 	
 	
 	/**
-	 * 
+	 * Voice recognition 
 	 * @throws OmsException
 	 */
 	public void recognize() throws OmsException{
@@ -300,16 +301,15 @@ public class OmsCall extends Thread {
 			throw new OmsException("cannot start the voice recognition r start "+ recoStart);
 	}
 	
-
 	/**
-	 * 
-	 * @param clientNumber the client (Browser) for which we want to get the status of its rvi
-	 * @return The current status of the webrtc's rvi
+	 * To get the status of the webrtc rvi
+	 * @return the rvi webrtc status
 	 * @throws OmsException
 	 */
-	public String rviStatus(int clientNumber) throws OmsException {
+	
+	public String rviStatus() throws OmsException {
 
-		String rviStatus = connOMS.getReponse("mt"+ clientNumber +" status");
+		String rviStatus = connOMS.getReponse("mt1 status");
 
 		if (rviStatus.startsWith("ERROR")) {
 			logger.error("cannot get the rvi status " + rviStatus);
@@ -323,10 +323,17 @@ public class OmsCall extends Thread {
 	 * Deleting all rvi resources created. When a call was made, its deletes for the callee's rvi as well
 	 * @throws OmsException
 	 */
+	
+	/**
+	 * To delete all the rvi resources
+	 * @throws OmsException
+	 */
+	
 	public void delResources() throws OmsException{
 			
-		int i;
-		int num = this.getNbOfClientConnected();
+		//int i;
+		//int num = this.getNbOfClientConnected();
+		int num =1;
 		
 		/*if(this.getIsCaller()){
 			
@@ -374,7 +381,7 @@ public class OmsCall extends Thread {
 	}
 		
 	/**
-	 * To make the thread sleep
+	 * To sleep the thread
 	 * @param milliseconds time in milliseconds
 	 *  
 	 */
@@ -389,36 +396,37 @@ public class OmsCall extends Thread {
 	}
 
 	/**
-	 * Sending a message to the callee telling him he is getting an incoming call
+	 * To call someone
 	 * @param omsCall the callee's identifiers
 	 * @throws OmsException
 	 */
-
+	
 	public void call(OmsCall omsCall) throws OmsException {
 
-		int num = this.getNbOfClientConnected();
-		num += 1;
-		this.setNbOfClientConnected(num);
+		//int num = this.getNbOfClientConnected();
+		//num += 1;
+		//this.setNbOfClientConnected(num);
 		
 		WebSocket calleeWs = omsCall.getWebSocket();
 		omsCall.setVipConnexion(this.connOMS);
-		omsCall.setNbOfClientConnected(this.getNbOfClientConnected());
-		omsCall.setIsCallee(true);
+		//omsCall.setNbOfClientConnected(this.getNbOfClientConnected());
+		//omsCall.setIsCallee(true);
 		this.listOmsCall.add(omsCall);
 
 		calleeWs.send("incomingCall");
 	}
-
+	
 	/**
-	 * To answer a call. The callee is straight connected to OMS when he answers
-	 * @param sdp is the callee's sdp
+	 * To answer a call with its sdp
+	 * @param sdp the callee's sdp
 	 * @throws OmsException
 	 */
 
 	public void answer(String sdp) throws OmsException {
 		// TODO Auto-generated method stub
 		
-		int clientNumber = this.getNbOfClientConnected();
+		//int clientNumber = this.getNbOfClientConnected();
+		int clientNumber =0;
 		createNewRvi(clientNumber);
 		Sdp sdpAnswer = this.sdpAnswer("mt"+ clientNumber, sdp);
 		this.conn.send(sdpAnswer.getSdp());
@@ -442,7 +450,7 @@ public class OmsCall extends Thread {
 	 * @param clientNumber the callee rank in the list of those who has been already called
 	 * @throws OmsException
 	 */
-	public void createNewRvi(int clientNumber) throws OmsException{
+	private void createNewRvi(int clientNumber) throws OmsException{
 		
 		String respWebrtcCreation = this.connOMS.getReponse("new mt"+ clientNumber +" webrtc");		
 		if (respWebrtcCreation.equals("OK")) {
@@ -456,8 +464,8 @@ public class OmsCall extends Thread {
 	}
 	
 	/**
-	 * To get OMS's sdp and establish a media connection with OMS
-	 * @param sdp is the Browser's sdp
+	 * Exchanging one's sdp before connecting to OMS
+	 * @param sdp 
 	 * @throws OmsException
 	 */
 	
@@ -471,42 +479,78 @@ public class OmsCall extends Thread {
 			//throw new OmsException("media is not connected " + mediaConn);		
 	}
 	
+	/**
+	 * To close the connection to OMS
+	 * @throws OmsException
+	 * @throws IOException 
+	 */
+	
+	public void closeClient() throws OmsException, IOException {
+	
+		this.delResources();
+		this.connOMS.getSocket().close();
+		this.listOmsCall.clear();
+	}
 
 	public void setVipConnexion(VipConnexion connOMS) {
-
 		this.connOMS = connOMS;
 	}
 
 	public VipConnexion getVipConnexion() {
 		return this.connOMS;
 	}
-
-	public void setWebSocket(WebSocket Ws){
-		
-		this.conn = Ws;
-	}
 	
-	public WebSocket getWebSocket(){
-		
+	/**
+	 * 
+	 * @return
+	 */
+	public WebSocket getWebSocket(){	
 		return this.conn;
 	}
 	
-	public String getIpAddress(){
-		
+	/**
+	 * To get the client IP address 
+	 * @return
+	 */
+	public String getIpAddress(){	
 		return ipAddress;
 	}
-
-	public void setNbOfClientConnected(int num){
+	
+	/**
+	 * To get OMS's IP address and port
+	 * @return IP address and port of OMS
+	 */
+	public String[] getHostPortVip(){
+		return hosPortVip;
+	}
+	
+	/**
+	 * To set a number for the client in the conference
+	 * @param num number for the client
+	 */
+	public void setPartNumberConf(int num){	
+		partNumberConf = num;
+	}
+	
+	/**
+	 * To get the number for the client in the conference
+	 * @return the number for the client
+	 */
+	public int getPartNumberConf(){	
+		return partNumberConf;
+	}
+	
+	/*public void setNbOfClientConnected(int num){
 		this.nbOfClientConnected = num;
 	}
 	
 
 	public int getNbOfClientConnected(){
 		return this.nbOfClientConnected;
-	}
+	}*/
 	
 
-	public void setIsCaller(boolean isCaller){
+	/*public void setIsCaller(boolean isCaller){
 		this.isCaller = isCaller;
 	}
 	
@@ -522,20 +566,6 @@ public class OmsCall extends Thread {
 
 	public boolean getIsCallee(){
 		return this.isCallee;
-	}
+	}*/
 	
-	
-	/**
-	 * close the connection to OMS
-	 * 
-	 * @throws OmsException
-	 * @throws IOException 
-	 */
-	
-	public void closeClient() throws OmsException, IOException {
-	
-		this.delResources();
-		this.connOMS.getSocket().close();
-		this.listOmsCall.clear();
-	}
 }

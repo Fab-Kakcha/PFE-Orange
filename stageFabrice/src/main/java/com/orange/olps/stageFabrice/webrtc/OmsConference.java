@@ -24,6 +24,8 @@ import org.java_websocket.WebSocket;
  * @author JWPN9644
  * 
  */
+
+
 public class OmsConference {
 
 	private static Pattern pat1 = Pattern.compile("mediaoutput=\"([^ \t\"]+)");
@@ -68,7 +70,7 @@ public class OmsConference {
 	}
 
 	/**
-	 * 
+	 * To create a conference
 	 * @throws OmsException
 	 */
 	public void create() throws OmsException {
@@ -85,8 +87,8 @@ public class OmsConference {
 	}
 
 	/**
-	 * 
-	 * @param omsCall
+	 * To add a OMS call in the conference
+	 * @param omsCall OMS call
 	 * @param param
 	 * @throws OmsException
 	 */
@@ -193,8 +195,8 @@ public class OmsConference {
 	}
 
 	/**
-	 * 
-	 * @param omsCall
+	 * To remove a OMS call from the conference
+	 * @param omsCall a OMS call 
 	 * @throws OmsException
 	 */
 	public void unJoin(OmsCall omsCall) throws OmsException {
@@ -235,8 +237,8 @@ public class OmsConference {
 	}
 
 	/**
-	 * 
-	 * @param omsCall
+	 * To destroy a conference
+	 * @param omsCall destroyer of the conference
 	 * @throws OmsException
 	 */
 	public void destroyConference(OmsCall omsCall) throws OmsException {
@@ -287,7 +289,7 @@ public class OmsConference {
 	}
 
 	/**
-	 * 
+	 * To record a conference for some time
 	 * @throws OmsException
 	 * @throws IOException
 	 */
@@ -421,7 +423,7 @@ public class OmsConference {
 	}
 
 	/**
-	 * 
+	 * To stop recording the conference
 	 * @throws OmsException
 	 * @throws IOException
 	 */
@@ -448,8 +450,8 @@ public class OmsConference {
 	}
 
 	/**
-	 * 
-	 * @param omsCall
+	 * To play the audio recorded file
+	 * @param omsCall wants to play the file
 	 * @throws OmsException
 	 * @throws IOException
 	 * @throws InterruptedException
@@ -496,15 +498,27 @@ public class OmsConference {
 		omsCall.play(enregFilea8k, false);
 	}
 
+	/**
+	 * To get the number of participant in the conference
+	 * @return total number of participants in the conference
+	 */
 	public int getNbOfPartInConf() {
 		// return nbOfPartInConf;
 		return listOmsCallInConf.size();
 	}
 
+	/**
+	 * To get the connection to OMS for the conference
+	 * @return the connection to OMS
+	 */
 	public VipConnexion getConfVipConnexion() {
 		return connOMSConf;
 	}
 
+	/**
+	 * To get the conference id or name
+	 * @return conference's name
+	 */
 	public String getConfName() {
 		return confName;
 	}
