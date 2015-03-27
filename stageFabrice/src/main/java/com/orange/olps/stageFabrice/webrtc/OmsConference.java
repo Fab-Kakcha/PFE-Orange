@@ -36,13 +36,8 @@ public class OmsConference {
 	private VipConnexion connOMSCall = null;
 	private WebSocket websock = null;
 	private String confName = null;
-	private List<OmsCall> listOmsCallInConf = new ArrayList<OmsCall>(); // To
-																		// send
-																		// particular
-																		// msg
-																		// to
-																		// users
-	// currently in the conf
+	private List<OmsCall> listOmsCallInConf = new ArrayList<OmsCall>();
+
 	private List<Integer> arrayList = new ArrayList<Integer>();
 	private OmsCall omsCallRecord = null;
 	private Random randomGenerator;
@@ -72,6 +67,10 @@ public class OmsConference {
 		 */
 	}
 
+	/**
+	 * 
+	 * @throws OmsException
+	 */
 	public void create() throws OmsException {
 
 		String confName = getConfName();
@@ -287,6 +286,11 @@ public class OmsConference {
 
 	}
 
+	/**
+	 * 
+	 * @throws OmsException
+	 * @throws IOException
+	 */
 	public void record() throws OmsException, IOException {
 
 		if (listOmsCallInConf.isEmpty()) {
@@ -416,6 +420,11 @@ public class OmsConference {
 		}
 	}
 
+	/**
+	 * 
+	 * @throws OmsException
+	 * @throws IOException
+	 */
 	public void stopRecordConf() throws OmsException, IOException {
 
 		int num = 0;
@@ -438,6 +447,13 @@ public class OmsConference {
 		logger.info("Recorder disconnects");
 	}
 
+	/**
+	 * 
+	 * @param omsCall
+	 * @throws OmsException
+	 * @throws IOException
+	 * @throws InterruptedException
+	 */
 	public void playEnregConf(OmsCall omsCall) throws OmsException,
 			IOException, InterruptedException {
 
