@@ -121,9 +121,7 @@ public class MonService extends OmsService implements OmsMessageListener {
 			break;
 		default:
 			// Le message est de type inconnu
-			// logger.error("Type de message inconnu : " + message);
-			logger.error("Format de message inconnu : " + message
-					+ ". Ce n'est pas du JSON");
+			logger.error("Format de message inconnu : " + message + ". Ce n'est pas du JSON");
 		}
 	}
 
