@@ -72,7 +72,7 @@ public class MonService extends OmsService implements OmsMessageListener {
 		portVipConf = prop.getProperty("conf.port", DEFAULT_CONF_PORT);
 		
 		addEventListener(this);
-		System.out.println ("Le service démarre");
+		logger.info("Service  started on port: " + getPort());
 		this.start();
 		
 		try {

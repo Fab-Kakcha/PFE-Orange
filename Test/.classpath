@@ -6,6 +6,6 @@
 	<classpathentry kind="lib" path="/home/fabrice/Documents/Stage PFE Orange/Lib/gson-2.3.jar"/>
 	<classpathentry kind="lib" path="/home/fabrice/Documents/Stage PFE Orange/Lib/java_websocket.jar"/>
 	<classpathentry kind="lib" path="/home/fabrice/Documents/Stage PFE Orange/Lib/log4j-1.2.9.jar"/>
-	<classpathentry kind="lib" path="/home/fabrice/PFE-Orange/api-oms-webrtc.jar"/>
+	<classpathentry kind="lib" path="/home/fabrice/PFE-Orange/Test/src/lib/api-oms-webrtc.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
