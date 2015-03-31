@@ -17,9 +17,9 @@ import java.io.*;
 import java.util.HashMap;
 import java.util.Properties;
 
-public class OmsService extends WebSocketServer {
+public class OmsServiceEx extends WebSocketServer {
 
-	private static Logger logger = Logger.getLogger(OmsService.class);
+	private static Logger logger = Logger.getLogger(OmsServiceEx.class);
 	private static final String DEFAULT_OMS_HOST = "127.0.0.1";
 	private static final String DEFAULT_OMS_PORT = "8080";
 	private static final String DEFAULT_WS_PORT = "8887";
@@ -101,7 +101,7 @@ public class OmsService extends WebSocketServer {
 	
 	}*/
 
-	public OmsService() throws InterruptedException, IOException {
+	public OmsServiceEx() throws InterruptedException, IOException {
 
 		//public OmsService(MonServicewtc monServiceWtc) throws InterruptedException, IOException
 		super(new InetSocketAddress(new Integer(portWs).intValue()));

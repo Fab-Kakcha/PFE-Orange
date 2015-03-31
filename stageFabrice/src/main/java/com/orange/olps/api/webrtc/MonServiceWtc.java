@@ -56,7 +56,7 @@ public class MonServiceWtc implements OmsMessageListener {
 			
 		try {
 			//MonServiceWtc monServiceWtc = new MonServiceWtc(hostVip, hostVip, null);
-			 new OmsService();
+			 new OmsServiceEx();
 		} catch (InterruptedException | IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
