@@ -12,8 +12,8 @@ public class OmsMessageEvent extends EventObject{
 	private String msg;
 	private OmsCall omsCall;
 
-	public OmsMessageEvent(Object source, OmsCall omsCall, String msg) {
-		super(source);
+	public OmsMessageEvent(OmsCall omsCall, String msg) {
+		super(msg);
 		this.omsCall = omsCall;
 		this.msg = msg;
 		// TODO Auto-generated constructor stub

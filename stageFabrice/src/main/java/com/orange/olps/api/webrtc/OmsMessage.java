@@ -102,7 +102,7 @@ public class OmsMessage {
 	public synchronized void fireEvent(OmsCall call, String msg) throws OmsException{
 		
 		OmsMessageListener msgLis = null;
-		OmsMessageEvent msgEvt = new OmsMessageEvent(this, call, msg);
+		OmsMessageEvent msgEvt = new OmsMessageEvent(call, msg);
 		Iterator<OmsMessageListener> iter = listenersArray.iterator();
 		
 		while(iter.hasNext()){
