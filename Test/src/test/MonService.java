@@ -40,6 +40,9 @@ public class MonService extends OmsService implements OmsMessageListener {
 	private static final String DEFAULT_WS_PORT = "8887";
 	private static final String DEFAULT_CONF_PORT = "10000";
 	
+	boolean isAnswer = false;
+	private OmsConference conf;
+	
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
 		MonService srv = new MonService();
@@ -71,9 +74,17 @@ public class MonService extends OmsService implements OmsMessageListener {
 		addEventListener(this);
 		System.out.println ("Le service démarre");
 		this.start();
+		
+		try {
+			conf = new OmsConference(hostVip, portVipConf);
+			conf.create("conf1");
+		} catch (OmsException | IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 	
-	public void omsMessagePerformed(OmsMessageEvent msgEvt) throws OmsException {
+	public void omsMessagePerformed(OmsMessageEvent msgEvt) {
 		// TODO Auto-generated method stub
 
 		OmsCall call = msgEvt.getOmsCall();

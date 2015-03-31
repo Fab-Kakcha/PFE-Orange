@@ -86,7 +86,7 @@ public class MonServiceWtc implements OmsMessageListener {
 	 * To perform an action when a message is received on webSocket
 	 */
 	@Override
-	public void omsMessagePerformed(OmsMessageEvent msgEvt) throws OmsException {
+	public void omsMessagePerformed(OmsMessageEvent msgEvt) {
 		// TODO Auto-generated method stub
 
 		OmsCall call = msgEvt.getOmsCall();
