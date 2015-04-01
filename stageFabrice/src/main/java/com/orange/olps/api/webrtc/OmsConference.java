@@ -58,6 +58,10 @@ public class OmsConference implements Runnable {
 		running = false;
 	}
 	
+	private void activate(){
+		running = true;
+	}
+	
 	/**
 	 * To initiate a connection with OMS to do a conference
 	 * @param hostVipConf OMS's IP address
@@ -310,7 +314,7 @@ public class OmsConference implements Runnable {
 	 */
 	public void startRecording() throws OmsException, IOException {
 
-		
+		activate();
 		t = new Thread(this);
 		t.start();
 		
