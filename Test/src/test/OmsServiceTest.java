@@ -226,7 +226,7 @@ public class OmsServiceTest extends WebSocketServer {
 				break;
 			case "play":
 				try {
-					conf.playRecord(call);
+					conf.playRecording();
 					//call.play(param, true);
 				} catch (OmsException | IOException | InterruptedException e) {
 					// TODO Auto-generated catch block
