@@ -285,7 +285,7 @@ public class OmsConference implements Runnable {
 							+ confName + "\" /></conference>");
 
 			if (destroyConf.indexOf("OK") != -1) {
-
+				
 				String rep1 = connOMSCall.getReponse("wait evt=mt1.*");
 
 				// if (rep1.indexOf("OK")!=-1){
@@ -483,7 +483,7 @@ public class OmsConference implements Runnable {
 	 * @throws IOException
 	 * @throws InterruptedException
 	 */
-	public void playRecord(OmsCall omsCall) throws OmsException,
+	public void playRecording() throws OmsException,
 			IOException, InterruptedException {
 
 		Process p;
@@ -611,6 +611,103 @@ public class OmsConference implements Runnable {
 		deleteRecorder();
 	}
 
+	
+	/**
+	 * 
+	 * @param omsCall
+	 * @throws OmsException
+	 */
+	public void mute(OmsCall omsCall) throws OmsException{
+		
+		int num = omsCall.getPartNumberConf();
+		VipConnexion confVip = getVipConnexion();
+		String muteRep=confVip.getReponse("<conference><mute requestid=\"req4\" conferenceid=\""+getName()+"\" participantid=\"" 
+		+ num + "\"/></conference>");
+		if (muteRep.indexOf("OK")!=-1){
+			logger.info("mutting successful"); 
+			}
+		else
+			throw new OmsException("Error: cannot mute participant :" + num);
+	}
+	
+	/**
+	 * 
+	 * @param omsCall
+	 * @throws OmsException
+	 */
+	public void unmute(OmsCall omsCall) throws OmsException{
+		
+		int num = omsCall.getPartNumberConf();
+		VipConnexion confVip = getVipConnexion();
+		String muteRep=confVip.getReponse("<conference><unmute requestid=\"req5\" conferenceid=\""+getName()+"\" participantid=\"" 
+		+ num + "\"/></conference>");
+		if (muteRep.indexOf("OK")==-1)
+			throw new OmsException("Error: cannot unmute participant :" + num);
+	}
+	
+	
+	/**
+	 * 
+	 * @throws OmsException
+	 */
+	public void muteAll() throws OmsException{
+		
+		VipConnexion confVip = getVipConnexion();
+		String muteAllRep=confVip.getReponse("<conference><muteall requestid=\"req6\" conferenceid=\""+ 
+		getName()+"\"/></conference>");
+		if (muteAllRep.indexOf("OK") == -1)
+			throw new OmsException("Error: cannot mute all the paricipants");			
+	}
+	
+	/**
+	 * 
+	 * @throws OmsException
+	 */
+	public void unmuteAll() throws OmsException{
+		
+		VipConnexion confVip = getVipConnexion();
+		String muteAllRep=confVip.getReponse("<conference><unmuteall requestid=\"req6\" conferenceid=\""+ 
+		getName()+"\"/></conference>");
+		if (muteAllRep.indexOf("OK") == -1)
+			throw new OmsException("Error: cannot unmute all the paricipants");			
+	}
+		
+	/**
+	 * 
+	 * @throws OmsException
+	 */
+	/*public void play() throws OmsException{
+		
+		//String enregFilea8k = enregFile + ".a8k";
+		String url = "http://10.184.155.57:8080/docs/webRTC/doc/Animaux.a8k";
+		String testAnimaux = "/opt/application/64poms/current/tmp/Animaux.wav";
+		VipConnexion confVip = getVipConnexion();
+		
+		String subs = confVip.getReponse("<conference><subscribe requestid=\"101\" conferenceid=\""+
+						getName()+"\"><event type=\"playterminated\"/></subscribe></conference>");
+		
+		logger.info(subs);
+		String rep = confVip.getReponse("<conference><play requestid=\"req5\" conferenceid=\""+ 
+				getName()+"\"><prompt url=\""+ testAnimaux +"\"/></play></conference>");
+		
+		if (rep.indexOf("OK")==-1)
+			throw new OmsException("Error: cannot play file to participants :" + rep);
+	}*/
+		
+	/**
+	 * 
+	 * @throws OmsException
+	 */
+	public void status() throws OmsException{
+		
+		VipConnexion confVip = getVipConnexion();
+		String rep = confVip.getReponse("<conference><status requestid=\"req6\" conferenceid=\""+ 
+				getName()+"\"/></conference>");
+		
+		if (rep.indexOf("OK")==-1)
+			throw new OmsException("Error: cannot get the status :" + rep);
+	}
+	
 	/**
 	 * To get the number of participant in the conference
 	 * @return total number of participants in the conference
