@@ -51,12 +51,10 @@ public class OmsService extends WebSocketServer {
 				+ " : " + message );
 		
 		//logger.info("NAV ==> AS : " + message );
-		OmsCall call = calls.get(conn);
-		
+		OmsCall call = calls.get(conn);		
 		OmsMessageEvent msgEvent = new OmsMessageEvent(call, message);
 		Iterator<OmsMessageListener> i = _listeners.iterator();
 		while(i.hasNext())  {
-			System.out.println("on a trouvé un listener à qui envoyer");
 			((OmsMessageListener) i.next()).omsMessagePerformed(msgEvent);
 		}
 	}
