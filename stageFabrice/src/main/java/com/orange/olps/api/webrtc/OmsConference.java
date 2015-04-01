@@ -1,11 +1,11 @@
 /**
- * 
+ * This Java's Class is about making conference in OMS.
  */
+
 package com.orange.olps.api.webrtc;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -58,9 +58,12 @@ public class OmsConference implements Runnable {
 		running = false;
 	}
 	
+	private void activate(){
+		running = true;
+	}
+	
 	/**
-	 * 
-	 * @param name conference name
+	 * To initiate a connection with OMS to do a conference
 	 * @param hostVipConf OMS's IP address
 	 * @param portVipConf OMS's listening port for the conference
 	 * @throws OmsException
@@ -286,7 +289,7 @@ public class OmsConference implements Runnable {
 							+ confName + "\" /></conference>");
 
 			if (destroyConf.indexOf("OK") != -1) {
-
+				
 				String rep1 = connOMSCall.getReponse("wait evt=mt1.*");
 
 				// if (rep1.indexOf("OK")!=-1){
@@ -311,7 +314,7 @@ public class OmsConference implements Runnable {
 	 */
 	public void startRecording() throws OmsException, IOException {
 
-		
+		activate();
 		t = new Thread(this);
 		t.start();
 		
@@ -484,7 +487,7 @@ public class OmsConference implements Runnable {
 	 * @throws IOException
 	 * @throws InterruptedException
 	 */
-	public void playRecord(OmsCall omsCall) throws OmsException,
+	public void playRecording() throws OmsException,
 			IOException, InterruptedException {
 
 		Process p;
@@ -577,9 +580,9 @@ public class OmsConference implements Runnable {
 				
 				while(bytes_read != -1){			
 					outputStream.write(buf, 0, bytes_read);
-					Thread.sleep((long)10);
+					Thread.sleep((long)17);
 					bytes_read = inputStream.read(buf, 0, 160);
-					System.out.println("In the loop: " + bytes_read);
+					//System.out.println("In the loop: " + bytes_read);
 				}
 				
 				outputStream.close();
@@ -612,6 +615,103 @@ public class OmsConference implements Runnable {
 		deleteRecorder();
 	}
 
+	
+	/**
+	 * 
+	 * @param omsCall
+	 * @throws OmsException
+	 */
+	public void mute(OmsCall omsCall) throws OmsException{
+		
+		int num = omsCall.getPartNumberConf();
+		VipConnexion confVip = getVipConnexion();
+		String muteRep=confVip.getReponse("<conference><mute requestid=\"req4\" conferenceid=\""+getName()+"\" participantid=\"" 
+		+ num + "\"/></conference>");
+		if (muteRep.indexOf("OK")!=-1){
+			logger.info("mutting successful"); 
+			}
+		else
+			throw new OmsException("Error: cannot mute participant :" + num);
+	}
+	
+	/**
+	 * 
+	 * @param omsCall
+	 * @throws OmsException
+	 */
+	public void unmute(OmsCall omsCall) throws OmsException{
+		
+		int num = omsCall.getPartNumberConf();
+		VipConnexion confVip = getVipConnexion();
+		String muteRep=confVip.getReponse("<conference><unmute requestid=\"req5\" conferenceid=\""+getName()+"\" participantid=\"" 
+		+ num + "\"/></conference>");
+		if (muteRep.indexOf("OK")==-1)
+			throw new OmsException("Error: cannot unmute participant :" + num);
+	}
+	
+	
+	/**
+	 * 
+	 * @throws OmsException
+	 */
+	public void muteAll() throws OmsException{
+		
+		VipConnexion confVip = getVipConnexion();
+		String muteAllRep=confVip.getReponse("<conference><muteall requestid=\"req6\" conferenceid=\""+ 
+		getName()+"\"/></conference>");
+		if (muteAllRep.indexOf("OK") == -1)
+			throw new OmsException("Error: cannot mute all the paricipants");			
+	}
+	
+	/**
+	 * 
+	 * @throws OmsException
+	 */
+	public void unmuteAll() throws OmsException{
+		
+		VipConnexion confVip = getVipConnexion();
+		String muteAllRep=confVip.getReponse("<conference><unmuteall requestid=\"req6\" conferenceid=\""+ 
+		getName()+"\"/></conference>");
+		if (muteAllRep.indexOf("OK") == -1)
+			throw new OmsException("Error: cannot unmute all the paricipants");			
+	}
+		
+	/**
+	 * 
+	 * @throws OmsException
+	 */
+	/*public void play() throws OmsException{
+		
+		//String enregFilea8k = enregFile + ".a8k";
+		String url = "http://10.184.155.57:8080/docs/webRTC/doc/Animaux.a8k";
+		String testAnimaux = "/opt/application/64poms/current/tmp/Animaux.wav";
+		VipConnexion confVip = getVipConnexion();
+		
+		String subs = confVip.getReponse("<conference><subscribe requestid=\"101\" conferenceid=\""+
+						getName()+"\"><event type=\"playterminated\"/></subscribe></conference>");
+		
+		logger.info(subs);
+		String rep = confVip.getReponse("<conference><play requestid=\"req5\" conferenceid=\""+ 
+				getName()+"\"><prompt url=\""+ testAnimaux +"\"/></play></conference>");
+		
+		if (rep.indexOf("OK")==-1)
+			throw new OmsException("Error: cannot play file to participants :" + rep);
+	}*/
+		
+	/**
+	 * 
+	 * @throws OmsException
+	 */
+	public void status() throws OmsException{
+		
+		VipConnexion confVip = getVipConnexion();
+		String rep = confVip.getReponse("<conference><status requestid=\"req6\" conferenceid=\""+ 
+				getName()+"\"/></conference>");
+		
+		if (rep.indexOf("OK")==-1)
+			throw new OmsException("Error: cannot get the status :" + rep);
+	}
+	
 	/**
 	 * To get the number of participant in the conference
 	 * @return total number of participants in the conference
@@ -644,9 +744,8 @@ public class OmsConference implements Runnable {
 	public void run(){
 		// TODO Auto-generated method stub
 		
-		if (listOmsCallInConf.isEmpty()) {
+		if (!listOmsCallInConf.isEmpty()) {
 
-		} else {
 			randomGenerator = new Random();
 			omsCallRecord = new OmsCall();
 
@@ -709,7 +808,6 @@ public class OmsConference implements Runnable {
 						buf = new byte[ARRAY_SIZE];
 						int bytes_read;
 						
-						// String line = reader.readLine();
 						String enregFileRaw = enregFile + ".raw";
 						File fRaw = new File(enregFileRaw);
 						if (fRaw.exists()) {
@@ -722,11 +820,10 @@ public class OmsConference implements Runnable {
 						while(running){
 							
 							bytes_read = inputStream.read(buf);
-							System.out.println(bytes_read);
+							//System.out.println(bytes_read);
 							if(bytes_read == -1)
 								break;							
-							outputStream.write(buf, 0, bytes_read);
-							
+							outputStream.write(buf, 0, bytes_read);							
 						}
 						
 						inputStream.close();

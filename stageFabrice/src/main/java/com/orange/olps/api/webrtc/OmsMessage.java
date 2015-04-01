@@ -1,14 +1,19 @@
+/**
+ * This Java's Class deals with the format of message exchange between OMS and the Browser. Messages are JSON,
+ * and the format is {"cmd":"anything","param":"anyhting else"} 
+ */
+
 package com.orange.olps.api.webrtc;
-
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-
-import org.apache.log4j.Logger;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonSyntaxException;
+
+/**
+ * @author JWPN9644
+ * 
+ */
+
 
 public class OmsMessage {
 
@@ -21,12 +26,12 @@ public class OmsMessage {
 	private Msg msg = null;
 	private CmdParam cmdParam = null;
 	
-	private static Logger logger = Logger.getLogger(OmsMessage.class);
+	//private static Logger logger = Logger.getLogger(OmsMessage.class);
 
-	
-	public OmsMessage() {		
-	}
-
+	/**
+	 * To determine whether the message is an sdp offer or a command
+	 * @param m the message receives from the Browser
+	 */
 	public OmsMessage(String m){
 		message=m;
 		final Gson gson = new GsonBuilder().create();
@@ -54,39 +59,57 @@ public class OmsMessage {
 		}
 	}
 
+	/**
+	 * To get the sdp
+	 * @return sdp
+	 */
 	public String getSdp() {
 		return msg.getSdp().getSdp();
 	}
 
-	public String getType() {
+	
+	/*public String getType() {
 		return msg.getSdp().getType();
-	}
+	}*/
 
-	public boolean isSdp() {
+	private boolean isSdp() {
 		return isSdp;
 	}
 
-	public boolean isCmd() {
+	private boolean isCmd() {
 		return isCmd;
 	}
 
-	public boolean isJson() {
+	private boolean isJson() {
 		return isJson;
 	}
 	
-	public String getTypeMsg(){	
+	/**
+	 * To get the type of message sends by a Browser, either a sdp or a command
+	 * @return either a sdp or a command
+	 */
+	public String getType(){	
 		return typeMsg;
 	}
 	
+	/**
+	 * To get the command sends by a Browser
+	 * @return a commande
+	 */
 	public String getCmd(){
 		return cmdParam.getCmd();
 	}
+	
+	/**
+	 * To get the parameter sends by the Browser
+	 * @return parameter
+	 */
 	public String getParam(){
 		return cmdParam.getParam();
 	}
 	
 	
-	private List<OmsMessageListener> listenersArray = new ArrayList<OmsMessageListener>();
+	/*private List<OmsMessageListener> listenersArray = new ArrayList<OmsMessageListener>();
 	
 	public synchronized void addOmsMessageListener(OmsMessageListener msgListener){
 		
@@ -110,7 +133,7 @@ public class OmsMessage {
 			msgLis = iter.next();
 			msgLis.omsMessagePerformed(msgEvt);
 		}
-	}
+	}*/
 	
 }
 

@@ -15,9 +15,10 @@ import org.apache.log4j.PropertyConfigurator;
 import com.orange.olps.api.webrtc.*;
 
 /**
- * @author fabrice
- *
+ * @author JWPN9644
+ * 
  */
+
 public class MonService extends OmsService implements OmsMessageListener {
 
 	/**
@@ -45,12 +46,12 @@ public class MonService extends OmsService implements OmsMessageListener {
 	
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
-		MonService srv = new MonService();
-		
+		MonService srv = new MonService();		
 	}
 
 	public MonService() {
 		
+		super(Integer.parseInt(portWs));
 		PropertyConfigurator.configure(WEBRTC_CONF + "log4j.properties");
 
 		try {
@@ -72,8 +73,8 @@ public class MonService extends OmsService implements OmsMessageListener {
 		portVipConf = prop.getProperty("conf.port", DEFAULT_CONF_PORT);
 		
 		addEventListener(this);
-		logger.info("Service  started on port: " + getPort());
 		this.start();
+		logger.info("Service  started on port: " + getPort());	
 		
 		try {
 			conf = new OmsConference(hostVip, portVipConf);
@@ -91,10 +92,10 @@ public class MonService extends OmsService implements OmsMessageListener {
 
 		String message = msgEvt.getMessage();
 		//logger.info("Nouveau message: " + message);
-		//logger.info("Reçu de: " + call + " à l'adresse ip: "
+		//logger.info("ReÃ§u de: " + call + " Ã  l'adresse ip: "
 			//	+ call.getIpAddress());
 		OmsMessage msg = new OmsMessage(message);
-		String typeMesg = msg.getTypeMsg();
+		String typeMesg = msg.getType();
 
 		switch (typeMesg) {
 		case "sdp":
@@ -108,7 +109,7 @@ public class MonService extends OmsService implements OmsMessageListener {
 							+ "Tapez conference", true);
 				} else {
 					call.answer(sdp);
-					logger.info("la méthode answer a reussit");
+					logger.info("la mÃ©thode answer a reussit");
 				}
 			} catch (OmsException | IOException e) {
 				// TODO Auto-generated catch block
@@ -167,8 +168,8 @@ public class MonService extends OmsService implements OmsMessageListener {
 				break;
 			case "play":
 				try {
-					conf.playRecord(call);
-					//call.play(param, true);
+					conf.playRecording();
+					//conf.play();
 				} catch (OmsException | IOException | InterruptedException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
@@ -195,7 +196,7 @@ public class MonService extends OmsService implements OmsMessageListener {
 				}
 				break;
 			case ("joinConf"):
-				// Le client demande a entrer dans la conférennce ouverte dans le constructeur
+				// Le client demande a entrer dans la confÃ©rennce ouverte dans le constructeur
 				// Elle est enregistree dans /tmp/conf1.wav
 				// Il aurait pu la creer lui-meme
 				// Param sert pour muteOn ou muteOff
@@ -230,8 +231,8 @@ public class MonService extends OmsService implements OmsMessageListener {
 				break;
 			case "disconnect":
 			try {
-				//quitter la conf (function unjoin retourne vrai si c'est le dernier à quitter la conf)
-				//détruire la conf si c'est le dernier client à quitter la conf
+				//quitter la conf (function unjoin retourne vrai si c'est le dernier Ã  quitter la conf)
+				//dÃ©truire la conf si c'est le dernier client Ã  quitter la conf
 				conf.delete(call);
 				call.delete();
 			} catch (OmsException | IOException e) {

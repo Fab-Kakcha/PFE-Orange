@@ -136,7 +136,7 @@ function createWebSocket(host) {
 			//alert("New call");
 		//}
 		socket.onclose = function() { 
-			//trace("Déconnexion"); 
+			//trace("DÃ©connexion"); 
 
 			buttonState(active, disabled, disabled, disabled, disabled, disabled, disabled);
 
@@ -153,12 +153,14 @@ function createWebSocket(host) {
 			if (evt.data == "stopRecordConf") {
 				buttonState(disabled, active, active, active, active, disabled, disabled);
 				document.getElementById("timer").style.display = "none";
+				document.getElementById("recordConf").style.display = "block";
 				document.getElementById("recordConf").innerHTML = "Recording ended";
 				document.getElementById("recordConf").style.color = "blue";
 			} else if(evt.data == "recordConf"){
 				
 				buttonState(disabled, active, disabled, disabled, disabled, active, disabled);
 
+				document.getElementById("recordConf").style.display = "block";
 				document.getElementById("recordConf").innerHTML = "Recording started";
 				document.getElementById("recordConf").style.color = "red";
 				
@@ -314,7 +316,7 @@ function call() {
 
     // On demande le flux local au navigateur 
 	// On l'envoie au correspondant
-	// On définit un dtmfSender pour envoyer des dtmfs
+	// On dÃ©finit un dtmfSender pour envoyer des dtmfs
 	// Et on l'attache au bon curseur local
     
 	navigator.getUserMedia({ "audio": true, "video": false }, 

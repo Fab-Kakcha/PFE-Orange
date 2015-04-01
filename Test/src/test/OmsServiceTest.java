@@ -164,7 +164,7 @@ public class OmsServiceTest extends WebSocketServer {
 		OmsCall call = calls.get(conn);
 			
 		OmsMessage msg = new OmsMessage(message);
-		String typeMesg = msg.getTypeMsg();
+		String typeMesg = msg.getType();
 
 		switch (typeMesg) {
 		case "sdp":
