@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>PeerConnection Audio Only Demo 1</title>
+<script src="adapter.js"></script>
+<style>
+button {
+	font: 18px sans-serif;
+padding: 8px;
+}
+</style>
+<link href="css/styling.Css" rel="stylesheet">
+</head>
+<body>
+<div id="up">
+<form class ="saisie" name="saisie">
+Serveur OmsGateway : <input type="text" value="10.184.155.222:8887" name="serveurPort"><br> 
+</form> 
+
+<div id="welcome">
+<center>
+<h1>HELLO,</h1>
+<h2>Welcome to the conference Service</h2>
+</center>
+</div>
+<h2>Local-Audio</h2>
+<audio id="audio1" autoplay muted="false"></audio>
+<h2>Remote-Audio</h2>
+<audio id="audio2" autoplay="autoplay" controls="controls"></audio>
+<br><br>
+</div>
+<button  class ="button" id="connexion" onclick="connect()">Connexion</button>
+
+<img src="points.png" id="point1"  height="150" width="150"> </img>
+<button  class ="button" id="ajoutConference" disabled onclick="div_show()">ajoutConference</button>
+<img src="points.png" id="point2"  height="150" width="150"> </img>
+<button  class ="button" id="deconnect" disabled onclick="deconnect()">Log out</button>
+<button  class ="button" id="muted" disabled onclick="mute()">Mute</button>
+<button  class ="button" id="unmuted" disabled onclick="unmute()">Unmute</button>
+
+<br>
+<div id="ParticipantId">
+	<div id="EnterName">
+<!-- Contact Us Form -->
+		<form id="form" method="post" name="form">
+			<img id="close" src="close.png" onclick ="div_hide()">
+			<div  class="keypress" id="keypress" >
+
+			<input id="name" name="name" placeholder="Pseudonyme" type="text">
+			<select name="mode">    			 
+				<option value="unmute">Mode Normal</option>    
+				<option value="mute">Mode Discret</option>     		
+			</select>
+			
+			<input id="submit" type="button" value="OK" class="btn_submit" onclick="check_empty()"/>
+			</div>
+			 <script src="https://code.jquery.com/jquery-1.10.2.js"></script>
+		</form>
+	</div>
+</div>
+<div class="loader" id="loader"   >Loading...</div>
+
+<div id="listOfPeopleConnected" class="listOfPeopleConnected">
+	<div id="online"> List of Participants </div>
+</div>
+</div>
+ <script src="https://code.jquery.com/jquery-1.10.2.js"></script>
+<script>
+/*
+<button id="call" onclick="call()">Call</button>
+<button id="send" onclick="sendMsg()">Send</button>
+*/
+
+//Client websocket
+$( document ).ready(function() {
+hide_element();
+});
+	
+
+$('#keypress').keypress(function (e) {                                       
+       if (e.which == 13) {
+            e.preventDefault();
+            document.getElementById('submit').click();   
+       }
+});
+
+function checkSubmit(e)
+{
+   if(e && e.keyCode == 13)
+   {
+   		e.preventDefault();
+      document.getElementById('submit').click();
+   }
+}
+ function show_element(){
+    	document.getElementById('loader').style.display = "block";
+}
+
+function hide_element(){
+	$('#loader').stop( true, true ).fadeOut();
+}
+function check_empty() {
+if (document.getElementById('name').value == "" ) {
+alert("Veuillez renseigner votre pseudo");
+} else {
+show_element();
+
+var e = document.forms['form'].elements['mode'];
+var mode = e.options[e.selectedIndex].value;
+var login=document.getElementById("name").value;
+/*if(loginToCheck==login){
+	alert(" Ce pseudo est dejà utilisé, Veuillez choisir un autre")
+
+	}*/
+
+AjoutConference(mode,login);
+
+console.log(mode);
+if(mode!="mute")
+socket.send(JSON.stringify({"cmd":"login","param":login}));
+else
+socket.send(JSON.stringify({"cmd":"secretParticipant","param":login}));
+//socket.send(RegisterName" + document.getElementById("name").value);
+$("#submit").prop("disabled", true);
+}
+}
+function div_show() {
+document.getElementById('ParticipantId').style.display = "block";
+
+}
+//Function to Hide Popup
+function div_hide(){
+document.getElementById('ParticipantId').style.display = "none";
+}
+var streamLocal;
+var dtmfSender;
+var serveurWs;
+var socket;
+var ListArray=new Array();
+function createWebSocket(host) { 
+	if(window.MozWebSocket) {
+		window.WebSocket=window.MozWebSocket;
+	}
+	if(!window.WebSocket) {
+		alert('Votre navigateur ne supporte pas les webSocket!');
+		return false;
+	} else {
+		socket = new WebSocket(host);
+	/*	socket.onopen = function() { 
+			trace("Connexion au serveur " + serveurWs); 
+			socket.send(JSON.stringify({"cmd":"newCall");
+		}*/
+		socket.onclose = function() { 
+			trace("Déconnexion"); 
+			document.getElementById("connexion").disabled = false;
+		
+			socket.send("Id :"+ParticipantId);
+		}
+		socket.onerror = function() { trace("Une erreur est survenue"); }
+		socket.onmessage = function(evt){
+			if (evt.data == "ThierryConnected") {
+				document.getElementById("thierry").disabled = false;
+			} 
+			else if (evt.data=="hangup"){
+			alert("you're out of the conference!");
+			attachMediaStream(audio2, null);
+			console.log("Hanging up.");
+			$('div#listOfPeopleConnected li').prop('style').visibility="none";
+			$('div#listOfPeopleConnected li').remove();
+			ListArray.length=0;
+			pc.close();
+			document.getElementById("connexion").disabled = false;
+			document.getElementById("ajoutConference").disabled = false;
+			document.getElementById("submit").disabled = false;
+			document.getElementById("muted").disabled = true;
+			document.getElementById("unmuted").disabled = true;
+			document.getElementById("deconnect").disabled = true;
+			document.getElementById("submit").disabled = false;
+   			pc= null;
+			}
+
+			else if (evt.data=="m connected"){
+				
+				document.getElementById("ajoutConference").disabled = true;
+				document.getElementById("deconnect").disabled = false;
+				document.getElementById("muted").disabled = false;
+				document.getElementById("unmuted").disabled = false;
+				div_hide();
+				//$('div#listOfPeopleConnected li').prop('style').visibility="visible";
+				document.getElementById('loader').style.display = "none";
+				
+				alert("you are in the conference");
+
+			}
+			else if (evt.data=="login Already exists"){
+				alert("this login is already used. Please retry with another login");
+
+				div_hide();
+				document.getElementById('loader').style.display = "none";
+				$("#submit").prop("disabled", false);
+			}
+			else if (evt.data.indexOf("ShowName")!=-1){
+
+				var NameOfParticipant= evt.data.substring(8);
+				if(ListArray.indexOf(NameOfParticipant)==-1){
+				ListArray.push(NameOfParticipant);
+				
+				var ParticipantNode = document.createTextNode(NameOfParticipant);
+			
+				var Node=document.createElement("LI"); 
+				var liste= document.getElementById("listOfPeopleConnected");
+				Node.appendChild(ParticipantNode);
+				liste.appendChild(Node);
+				
+			}
+				
+			}
+				
+			else if (evt.data.indexOf("DeleteName")!=-1){
+				
+				var NameOfParticipant= evt.data.substring(10);
+		
+				if (ListArray.indexOf(NameOfParticipant) !=-1) {
+				
+  				var liste= document.getElementById("listOfPeopleConnected");
+  				console.log(ListArray.indexOf(NameOfParticipant));
+  				$('div#listOfPeopleConnected li:contains(' + NameOfParticipant + ')').remove();
+  				ListArray.splice(ListArray.indexOf(NameOfParticipant), 1);
+  				
+				}
+				
+				}
+
+		 	else if (evt.data=="Conference does not yet exist"){
+		 		alert(evt.data+". Click Ok and try later on");
+		 		div_hide();
+		 		document.getElementById('loader').style.display = "none";
+		 		$("#submit").prop("disabled", false);
+
+		 	}
+
+				
+			else {
+				var signal = JSON.parse(evt.data);
+				if (signal.sdp) {
+					trace ("Reception de SDP" + signal.sdp.sdp);
+					pc.setRemoteDescription(new RTCSessionDescription(signal.sdp));
+				} else {
+					if (signal.candidate) {
+						trace ("Reception de CANDIDATES");
+						pc.addIceCandidate(new RTCIceCandidate(signal.candidate));
+					} else {
+						trace ("Reception de data : " + evt.data);
+					}
+				}
+			}
+		}
+	}
+}
+
+function mute(){
+	
+	socket.send(JSON.stringify({"cmd":"mute"}));
+}
+function unmute(){
+	socket.send(JSON.stringify({"cmd":"unmute"}));
+}
+function sendMsg() {
+	socket.send("Claude");
+}
+function AjoutConference(mode,Login) {
+
+	socket.send(JSON.stringify({"cmd":"joinConf","param":mode , "SecondParam":Login}));
+	
+}
+function deconnect(){
+	socket.send(JSON.stringify({"cmd":"deconnect"}));
+	document.getElementById("connexion").disabled = false;
+	document.getElementById("muted").disabled = true;
+	document.getElementById("unmuted").disabled = true;
+	document.getElementById("submit").disabled = false;
+	document.getElementById("deconnect").disabled = true;
+
+}
+
+
+
+// Connexion su serveur
+// Initialisation du PC et des handlers
+
+function connect() {
+	serveurWs = document.saisie.serveurPort.value;
+	createWebSocket("ws://" + serveurWs);
+	
+	pc = new RTCPeerConnection(servers,pc_constraints);
+	trace("getStream");
+	socket.onopen = function() { 
+			trace("Connexion au serveur " + serveurWs); 
+			socket.send(JSON.stringify({"cmd":"newCallConf"}));
+	}
+	// Handler sur la reception d'un flux media
+    pc.onaddstream = function (evt) {
+		trace("onaddstream");
+		
+		// Attache le flux du distant au casque local
+		attachMediaStream(audio2, evt.stream);
+		trace("Attache le flux du distant au casque local");
+    };
+	
+	// Handler sur la reception des candidates. La derniere == null. 
+    pc.onicecandidate = function (evt) {
+		if (evt.candidate == null) {
+			trace("On envoie le sdp complet");
+ 			var localSDP = pc.localDescription;
+ 			
+			socket.send(JSON.stringify({ "sdp": localSDP }));    	
+			
+		}
+	};
+	
+	document.getElementById("connexion").disabled = true;
+	document.getElementById("ajoutConference").disabled = false;
+	
+	call();
+}
+
+	
+var pc;
+var servers = null;
+var pc_constraints = {"optional": []};
+var configuration = { "iceServers": [{ "url": "stun:stun.example.org" }] };
+
+// Appel du distant
+
+function call() {
+
+    // On demande le flux local au navigateur 
+	// On l'envoie au correspondant
+	// On définit un dtmfSender pour envoyer des dtmfs
+	// Et on l'attache au bon curseur local
+    
+	navigator.getUserMedia({ "audio": true}, 
+   		function (stream) {
+			trace("Lit le flux local et l'envoie au correspondant");
+			pc.addStream(stream);
+			trace ("createOffer");
+			
+			// Attache le flux local au casque local. On s'entend parler
+			attachMediaStream(audio1, stream);
+			trace("On attache le flux local au curseur du haut : audio1");
+
+			var audioTracks = stream.getAudioTracks();
+			var track = audioTracks[0];
+			trace ("audioTracks : " + track);
+			trace ("audioTracks id: " + track.id);
+			pc.createOffer(
+				gotDescription, 
+				function(error) {
+					trace("Erreur createOffer")
+				}
+			);
+	        function gotDescription(desc) {
+				trace ("On envoie le SDP");
+	            pc.setLocalDescription(desc);
+	        }
+   		}, 
+		function(evt){
+           	trace("ERREUR : Impossible de lire le media local" + evt);
+       	}
+    );
+}
+
+
+</script>
+</body>
+</html>
