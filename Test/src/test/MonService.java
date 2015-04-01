@@ -168,8 +168,8 @@ public class MonService extends OmsService implements OmsMessageListener {
 				break;
 			case "play":
 				try {
-					conf.playRecord(call);
-					//call.play(param, true);
+					conf.playRecording();
+					//conf.play();
 				} catch (OmsException | IOException | InterruptedException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
