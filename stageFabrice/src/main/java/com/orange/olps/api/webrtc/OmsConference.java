@@ -1,11 +1,11 @@
 /**
- * 
+ * This Java's Class is about making conference in OMS.
  */
+
 package com.orange.olps.api.webrtc;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -59,8 +59,7 @@ public class OmsConference implements Runnable {
 	}
 	
 	/**
-	 * 
-	 * @param name conference name
+	 * To initiate a connection with OMS to do a conference
 	 * @param hostVipConf OMS's IP address
 	 * @param portVipConf OMS's listening port for the conference
 	 * @throws OmsException
@@ -577,9 +576,9 @@ public class OmsConference implements Runnable {
 				
 				while(bytes_read != -1){			
 					outputStream.write(buf, 0, bytes_read);
-					Thread.sleep((long)10);
+					Thread.sleep((long)17);
 					bytes_read = inputStream.read(buf, 0, 160);
-					System.out.println("In the loop: " + bytes_read);
+					//System.out.println("In the loop: " + bytes_read);
 				}
 				
 				outputStream.close();
@@ -644,9 +643,8 @@ public class OmsConference implements Runnable {
 	public void run(){
 		// TODO Auto-generated method stub
 		
-		if (listOmsCallInConf.isEmpty()) {
+		if (!listOmsCallInConf.isEmpty()) {
 
-		} else {
 			randomGenerator = new Random();
 			omsCallRecord = new OmsCall();
 
@@ -709,7 +707,6 @@ public class OmsConference implements Runnable {
 						buf = new byte[ARRAY_SIZE];
 						int bytes_read;
 						
-						// String line = reader.readLine();
 						String enregFileRaw = enregFile + ".raw";
 						File fRaw = new File(enregFileRaw);
 						if (fRaw.exists()) {
@@ -722,11 +719,10 @@ public class OmsConference implements Runnable {
 						while(running){
 							
 							bytes_read = inputStream.read(buf);
-							System.out.println(bytes_read);
+							//System.out.println(bytes_read);
 							if(bytes_read == -1)
 								break;							
-							outputStream.write(buf, 0, bytes_read);
-							
+							outputStream.write(buf, 0, bytes_read);							
 						}
 						
 						inputStream.close();
