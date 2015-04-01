@@ -4,9 +4,10 @@
 package com.orange.olps.api.webrtc;
 
 /**
- * @author fabrice
- *
+ * @author JWPN9644
+ * 
  */
+
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -36,8 +37,8 @@ public class OmsService extends WebSocketServer {
 		_listeners.remove(listener);
 	}
 
-	public OmsService() {
-		super( new InetSocketAddress( 8886 ) );
+	public OmsService(int port) {
+		super( new InetSocketAddress( port ) );
 		WebSocketImpl.DEBUG = false;
 		
 		calls = new HashMap<WebSocket, OmsCall>();
@@ -46,9 +47,10 @@ public class OmsService extends WebSocketServer {
 
 	@Override
 	public void onMessage( WebSocket conn, String message ) {
-		System.out.println("Reception : " + conn.getRemoteSocketAddress().getAddress().getHostAddress() + " : " + message );
+		System.out.println("Reception : " + conn.getRemoteSocketAddress().getAddress().getHostAddress() 
+				+ " : " + message );
 		
-		logger.info("NAV ==> AS : " + message );
+		//logger.info("NAV ==> AS : " + message );
 		OmsCall call = calls.get(conn);
 		
 		OmsMessageEvent msgEvent = new OmsMessageEvent(call, message);
@@ -64,8 +66,7 @@ public class OmsService extends WebSocketServer {
 		
 		String ipAddress = conn.getRemoteSocketAddress().getAddress().getHostAddress();
 		logger.info("NOUVEAU CLIENT : " + ipAddress);
-			
-		
+					
 		// Arrivee d'un appel. On ne connait que conn
 		// On instancie un OmsCall et on le stocke dans la table des OmsCall
 		OmsCall call = new OmsCall(conn, ipAddress);
