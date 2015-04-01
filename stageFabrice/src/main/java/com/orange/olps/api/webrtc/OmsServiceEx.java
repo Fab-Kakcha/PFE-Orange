@@ -206,7 +206,7 @@ public class OmsServiceEx extends WebSocketServer {
 		logger.info("NAV ==> AS : " + message );
 		OmsCall call = calls.get(conn);
 			
-		try {
+		/*try {
 			OmsMessage msg = new OmsMessage();		
 			msg.addOmsMessageListener(monServiceWtc);
 			//msg.addOmsMessageListener(new OmsMessageListener());
@@ -215,7 +215,7 @@ public class OmsServiceEx extends WebSocketServer {
 		} catch (OmsException e1) {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
-		}
+		}*/
 	}
 
 	public void onFragment(WebSocket conn, Framedata fragment) {

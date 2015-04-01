@@ -96,7 +96,7 @@ public class MonServiceWtc implements OmsMessageListener {
 		//logger.info("Reçu de: " + call + " à l'adresse ip: "
 			//	+ call.getIpAddress());
 		OmsMessage msg = new OmsMessage(message);
-		String typeMesg = msg.getTypeMsg();
+		String typeMesg = msg.getType();
 
 		switch (typeMesg) {
 		case "sdp":
@@ -171,7 +171,7 @@ public class MonServiceWtc implements OmsMessageListener {
 				break;
 			case "play":
 				try {
-					conf.playRecord(call);
+					conf.playRecording();
 					//call.play(param, true);
 				} catch (OmsException | IOException | InterruptedException e) {
 					// TODO Auto-generated catch block
