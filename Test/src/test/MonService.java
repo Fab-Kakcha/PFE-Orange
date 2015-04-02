@@ -96,12 +96,11 @@ public class MonService extends OmsService implements OmsMessageListener {
 			//	+ call.getIpAddress());
 		OmsMessage msg = new OmsMessage(message);
 		String typeMesg = msg.getType();
-
+		try{
 		switch (typeMesg) {
 		case "sdp":
 			// Le message est du sdp
 			String sdp = msg.getSdp();
-			try {
 				if (!isAnswer) {
 					call.connect(hostVip, portVip);
 					call.init(sdp);
@@ -111,10 +110,6 @@ public class MonService extends OmsService implements OmsMessageListener {
 					call.answer(sdp);
 					logger.info("la mÃ©thode answer a reussit");
 				}
-			} catch (OmsException | IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
 			break;
 		case "cmd":
 			// Le message est une commande
@@ -124,12 +119,16 @@ public class MonService extends OmsService implements OmsMessageListener {
 			// Le message est de type inconnu
 			logger.error("Format de message inconnu : " + message + ". Ce n'est pas du JSON");
 		}
+		}catch(OmsException | IOException e){
+			e.printStackTrace();
+		}
 	}
 
 	public void traiteCmd(OmsCall call, OmsMessage msg) {
 
 		String cmd = msg.getCmd();
 		String param = msg.getParam();
+		try{
 		switch (cmd) {
 			case "logout":
 				//c.send("logout");
@@ -150,50 +149,25 @@ public class MonService extends OmsService implements OmsMessageListener {
 					webSock.send(param+"NotConnected");
 				}*/
 				break;
-			case "createConf":
-			try {
+			case "createConf":			
 				conf.create(param);
-			} catch (OmsException e2) {
-				// TODO Auto-generated catch block
-				e2.printStackTrace();
-			}
 				break;
-			case "say":
-				try {
-					call.say("Vous avez cliquez sur say", true);
-				} catch (OmsException e1) {
-					// TODO Auto-generated catch block
-					e1.printStackTrace();
-				}
+			case "say":			
+				call.say("Vous avez cliquez sur say", true);
 				break;
-			case "play":
-				try {
+			case "play":				
 					conf.playRecording();
 					//conf.play();
-				} catch (OmsException | IOException | InterruptedException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
 				break;
 			case ("record"):
 				// Le client demande a ce que l'appel soit enregistre. 
-				try {
 					//call.record(param);
 					conf.startRecording();
-				} catch (OmsException | IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
 				break;
 			case ("stopRecord"):
 				// Le client demande a arreter l'enregistrement. 
-				try {
 					//call.stopRecord();
 					conf.stopRecording();
-				} catch (OmsException | IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
 				break;
 			case ("joinConf"):
 				// Le client demande a entrer dans la confÃ©rennce ouverte dans le constructeur
@@ -202,47 +176,30 @@ public class MonService extends OmsService implements OmsMessageListener {
 				// Param sert pour muteOn ou muteOff
 				// conf.join(call) ou call.join(conf)
 				//call.join(conf, param);
-			try {				
 				conf.add(call, param);
-			} catch (OmsException e1) {
-				// TODO Auto-generated catch block
-				e1.printStackTrace();
-			}
 				break;
 			case ("dtmf"):
 				// Le client saisit une pseudo dtmf. En fait, il clique sur un bouton
 				switch (Integer.parseInt(param)){
 					case 1:
-					try {
 						call.say("vous pouvez ecouter les offres 1", false);
-					} catch (OmsException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
 						break;
 					default :
-					try {
 						call.say("Je ne vous ai pas entendu.", false);
-					} catch (OmsException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
 				}
 				break;
 			case "disconnect":
-			try {
 				//quitter la conf (function unjoin retourne vrai si c'est le dernier Ã  quitter la conf)
 				//dÃ©truire la conf si c'est le dernier client Ã  quitter la conf
 				conf.delete(call);
 				call.delete();
-			} catch (OmsException | IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}				
 				break;
 			default :
 				// La commande n'est pas connue
 				logger.error("Commande et param inconnus. cmd: " + cmd + " param: "+ param);
+		}
+		} catch(OmsException | IOException | InterruptedException e){
+			e.printStackTrace();
 		}
 	}
 	
