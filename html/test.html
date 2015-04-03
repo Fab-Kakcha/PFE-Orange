@@ -1,110 +1,127 @@
 <!DOCTYPE html>
 <html>
+<meta charset="UTF-8">
 <head>
 <title>PeerConnection Audio Only Demo 1</title>
-<script src="adapter.js"></script>
-<style>
+<script src="base/adapter.js"></script>
+<link href="css/monCSS.css" rel="stylesheet">
+<!--<link href="css/bootstrap-theme.css" rel="stylesheet">
+<link href="css/bootstrap.min.css" rel="stylesheet">-->
+
+<!-- <style>
 button {
 	font: 18px sans-serif;
 padding: 8px;
 }
-</style>
-<link href="css/styling.Css" rel="stylesheet">
+</style>-->
 </head>
+<!-- <body onload=connect();> -->
+
 <body>
-<div id="up">
-<form class ="saisie" name="saisie">
-	<div class="Serveur">Serveur OmsGateway :</div>
- 	<input type="text" value="10.184.155.222:8887" name="serveurPort"><br> 
-</form> 
-<div id="welcome">
-<center>
-<h1>HELLO,</h1>
-<h2>Welcome to the conference Service</h2>
-</center>
+<div id="form" class="btn-group">
+<form name="saisie">
+Serveur OmsGateway : <input type="text" value="10.184.48.159:8887" name="serveurPort"><br>
+</form>
 </div>
+
+<div id="audio" class="btn-group">
 <h2>Local-Audio</h2>
-<audio id="audio1" autoplay muted="false"></audio>
+<audio id="audio1" autoplay="autoplay" muted="muted" controls="controls"></audio>
 <h2>Remote-Audio</h2>
 <audio id="audio2" autoplay="autoplay" controls="controls"></audio>
+</div>
 <br><br>
+
+<div class="btn-group">
+<!-- <button id="connexion" disabled onclick="connect()">Connect to AS</button>-->
+<button class="active" id="connexionToOMS" onclick="connectToOMS()">Connect</button>
+<button id="deconnexiondOMS" class="disabled" onclick="disconnect()">Disconnect</button>
 </div>
+<br><br>
 
-
-<button  class ="button" id="connexion" onclick="connect()">Connexion</button>
-<img src="points.png" id="point1"  height="150" width="150"> </img>
-<button  class ="button" id= "createConference" disabled onclick="div_show()">createConference</button>
-<img src="points.png" id="point2"  height="150" width="150"> </img>
-<button  class ="button" id="destroyConference" disabled onclick="destroyConference()">destroyConference</button>
-
-<br>
-
-<div id="ParticipantId">
-	<div id="EnterName">
-<!-- Contact Us Form -->
-		<form id="form" method="post" name="form">
-			<img id="close" src="close.png" onclick ="div_hide()">
-			<div  class="keypress" id="keypress" >
-			<input id="name" name="name" placeholder="Pseudonyme" type="text">
-			<input id="submit" type="button" value="OK" class="btn_submit" onclick="check_empty()"/>
-			</div>
-			 <script src="https://code.jquery.com/jquery-1.10.2.js"></script>
-		</form>
-	</div>
-</div>
-<div id="listOfPeopleConnected" class="listOfPeopleConnected">
-	<div id="online" >List of Participants</div>
+<div class="btn-group">
+<!--<button id="conf" class="enabled" onclick="showForm()">conference</button>-->
+<button id="createConf" class="disabled" onclick="createConference()">create conf</button>
+<button id="conf" class="disabled" onclick="conference()">conference</button>
 </div>
 </div>
- <script src="https://code.jquery.com/jquery-1.10.2.js"></script>
+
+<div id="userName">
+<form id="form" name="form" method="post">
+User Name: <input id="name" name="name" type="text" placeholder="your username" required>
+<input id="submit" type="submit" value="OK" onclick="checkEmpty()">
+</form>
+</div>
+
+<br><br>
+
+<div class="btn-group">
+<button id="say" class="disabled" onclick="say()">say</button>
+<button id="play" class="disabled" onclick="playFile()">play</button>
+<button id="recording" class="disabled" onclick="recordingConf()">recording</button>
+<button id="stoprecording" class="disabled" onclick="stopRecordingConf()">stop recording</button>
+<!-- <button id="joinconf" class="disabled" onclick="joinConf()">join conf</button> -->
+</div>
+
+<p id="recordConf"> </p>
+<p id="timer"> </p>
+
+
 <script>
-/*
-<button id="call" onclick="call()">Call</button>
-<button id="send" onclick="sendMsg()">Send</button>
-*/
+
+//var count = 15;
+//var counter = setInterval(timer, 1000);
+
+/*function timer(){
+
+	count = count -1;
+	if(count > 0){
+		document.getElementById("timer").innerHTML = count;
+	}else{
+		document.getElementById("timer").style.display = none;
+		clearInterval(counter);
+	}
+}*/
+
+
+function showForm(){
+
+	document.getElementById("userName").style.display = "block";
+}
+
+function checkEmpty(){
+
+	var login = document.getElementById("name").value;
+	if(login == ""){
+
+		alert("Name must be filled out");
+		//document.getElementById("userName").style.display = "none";
+	}
+	else{
+
+		//conference(login);
+		document.getElementById("userName").style.display = "none";
+	}
+}
 
 //Client websocket
-$('#keypress').keypress(function (e) {                                       
-       if (e.which == 13) {
-            e.preventDefault();
-            document.getElementById('submit').click();   
-       }
-});
-function checkSubmit(e)
-{
-   if(e && e.keyCode == 13)
-   {
-   		e.preventDefault();
-      document.getElementById('submit').click();
-   }
-}
 
-function check_empty() {
-if (document.getElementById('name').value == "" ) {
-alert("Veuillez renseigner votre pseudo");
-} else {
+/*
+Test d'appel initialise par le navigateur. Il se connecte a l'AS et envoie son SDP
+L'AS envoie le SDP a OMS qui retourne le sien
+L'AS retourne le SDP au navigateur et les 2 interlocuteurs s'envoient du STUN puis document 
+etablissent la communication media
+*/
 
-alert("Form Submitted Successfully...");
-createConference();
-div_hide();
-var login=document.getElementById("name").value;
-socket.send(JSON.stringify({"cmd":"login","param":login}));
-//socket.send(RegisterName" + document.getElementById("name").value);
-}
-}
-function div_show() {
-document.getElementById('ParticipantId').style.display = "block";
-}
-//Function to Hide Popup
-function div_hide(){
-document.getElementById('ParticipantId').style.display = "none";
-}
 var streamLocal;
 var dtmfSender;
 var serveurWs;
 var socket;
-var ListArray=new Array();
-function createWebSocket(host) { 
+var socketAS;
+var active = "active";
+var disabled = "disabled";
+
+function createWebSocket(host) {
 	if(window.MozWebSocket) {
 		window.WebSocket=window.MozWebSocket;
 	}
@@ -113,79 +130,74 @@ function createWebSocket(host) {
 		return false;
 	} else {
 		socket = new WebSocket(host);
-	/*	socket.onopen = function() { 
-			trace("Connexion au serveur " + serveurWs); 
-			socket.send(JSON.stringify({"cmd":"newCall");
-		}*/
+		//socket.onopen = function() {
+			//trace("Connexion au serveur " + serveurWs);
+			//alert("Message to sent...");
+			//socket.send("newCall");
+			//alert("New call");
+		//}
 		socket.onclose = function() { 
-			trace("Déconnexion"); 
-			document.getElementById("connexion").disabled = false;
-			document.getElementById("createConference").disabled = true;
-			document.getElementById("destroyConference").disabled = true;
-			socket.send("Id :"+ParticipantId);
+			//trace("Déconnexion"); 
+
+			buttonState(active, disabled, disabled, disabled, disabled, disabled, disabled, disabled);
+
+			//alert("connexion to AS is closed");
+
+			var video =  document.getElementById("audio2");
+			video.muted = true;
+			video.autoplay = false;
+			window.location.reload(true);
+
 		}
 		socket.onerror = function() { trace("Une erreur est survenue"); }
 		socket.onmessage = function(evt){
-			if (evt.data == "ThierryConnected") {
-				document.getElementById("thierry").disabled = false;
-			} 
-			else if (evt.data=="hangup"){
-			alert("m hanging up");
-			attachMediaStream(audio2, null);
-			console.log("Hanging up.");
-			$('div#listOfPeopleConnected li').remove();
-			ListArray.length=0;
-			pc.close();
-			
-			
-   			pc= null;
-   			
-			}
-			else if (evt.data=="m connected"){
-				alert("m connected");
+			if (evt.data == "stopRecordConf") {
+				buttonState(disabled, active, active, active, active, disabled, disabled);
+				document.getElementById("timer").style.display = "none";
+				document.getElementById("recordConf").style.display = "block";
+				document.getElementById("recordConf").innerHTML = "Recording ended";
+				document.getElementById("recordConf").style.color = "blue";
+			} else if(evt.data == "recordConf"){
 				
-			}
-			else if (evt.data.indexOf("ShowName")!=-1){
+				buttonState(disabled, active, disabled, disabled, disabled, active, disabled);
 
-				var NameOfParticipant= evt.data.substring(8);
-				alert(NameOfParticipant);
-				if(ListArray.indexOf(NameOfParticipant)==-1){
-				ListArray.push(NameOfParticipant);
+				document.getElementById("recordConf").style.display = "block";
+				document.getElementById("recordConf").innerHTML = "Recording started";
+				document.getElementById("recordConf").style.color = "red";
 				
-				var ParticipantNode = document.createTextNode(NameOfParticipant);
-			
-				var Node=document.createElement("LI"); 
-				var liste= document.getElementById("listOfPeopleConnected");
-				Node.appendChild(ParticipantNode);
-				liste.appendChild(Node);
-			}
-				else 
-					alert("ElementAlreadyExist");
-			}
-				
-			else if (evt.data.indexOf("DeleteName")!=-1){
-				
-				var NameOfParticipant= evt.data.substring(10);
-		
-				if (ListArray.indexOf(NameOfParticipant) !=-1) {
-				alert(NameOfParticipant);
-  				var liste= document.getElementById("listOfPeopleConnected");
-  				console.log(ListArray.indexOf(NameOfParticipant));
-  				$('div#listOfPeopleConnected li:contains(' + NameOfParticipant + ')').remove();
-  				ListArray.splice(ListArray.indexOf(NameOfParticipant), 1);
-  				
+				/*var count = 15;
+				var counter = setInterval(
+					function timer(){
+
+				count = count -1;
+				if(count >= 0){
+					//document.getElementById("timer").innerHTML = count;
+				}else{
+					//document.getElementById("timer").innerHTML = "0";
+					//clearInterval(counter);
+					}
 				}
+					, 1000);*/
 				
-				}
-				
+			}else if(evt.data == "incomingCall"){}
+
+				//buttonState(disabled, disabled, disabled, disabled, disabled, disabled, disabled);
+			}else if(evt.data == "confCreated"){
+
+					buttonState(disabled, active, disabled, disabled, disabled, disabled, active, disabled);
+			}
 			else {
-				;
 				var signal = JSON.parse(evt.data);
-				if (signal.sdp) {
-
+				if (signal.sdp) { //distinguer sdp offer ou answer
 					trace ("Reception de SDP" + signal.sdp.sdp);
+
+					buttonState(disabled, active, disabled, disabled, disabled, disabled, active,active);
+
 					pc.setRemoteDescription(new RTCSessionDescription(signal.sdp));
-				} else {
+					//setTimeout(function(){window.close();},6000);
+					//window.close();
+				}
+				else {
 					if (signal.candidate) {
 						trace ("Reception de CANDIDATES");
 						pc.addIceCandidate(new RTCIceCandidate(signal.candidate));
@@ -198,47 +210,50 @@ function createWebSocket(host) {
 	}
 }
 
-function sendMsg() {
-	socket.send("Claude");
-}
-function createConference() {
 
-	socket.send(JSON.stringify({"cmd":"CreateConf","param":"hello"}));
-	alert("here");
-}
-function destroyConference() {
+function buttonState(p1, p2, p3, p4, p5, p6, p7, p8){
 
-    console.log("Hang up.");
-  //  socket.send(JSON.stringify({"cmd":"CreateConf","param":"hello"}));    
-	socket.send(JSON.stringify({"cmd":"destroyConference"}));
-	document.getElementById("connexion").disabled = false;
-	document.getElementById("createConference").disabled = false;
-	document.getElementById("destroyConference").disabled = true;
- 	
- 	
+	document.getElementById("connexionToOMS").className = p1;
+	document.getElementById("deconnexiondOMS").className = p2;
+
+	document.getElementById("say").className = p3;
+	document.getElementById("play").className = p4;
+	document.getElementById("recording").className = p5;
+	document.getElementById("stoprecording").className = p6;
+	document.getElementById("conf").className = p7;
+	document.getElementById("createConf").className = p8;
+
+	//document.getElementById("connexionToOMS").disabled = true;
 }
 
+var pc;
+var servers = null;
+var pc_constraints = {"optional": []};
+var configuration = { "iceServers": [{ "url": "stun:stun.example.org" }] };
 
-// Connexion su serveur
-// Initialisation du PC et des handlers
+pc = new RTCPeerConnection(servers,pc_constraints);
 
-function connect() {
+function connectToOMS() {
+
 	serveurWs = document.saisie.serveurPort.value;
 	createWebSocket("ws://" + serveurWs);
-	
-	pc = new RTCPeerConnection(servers,pc_constraints);
-	trace("getStream");
-	socket.onopen = function() { 
-			trace("Connexion au serveur " + serveurWs); 
-			socket.send(JSON.stringify({"cmd":"newCall"}));
+	//createWebSocket("ws://127.0.0.1:8887");
+
+
+	socket.onopen = function() {
+		trace("Connexion au serveur " + serveurWs);
+		//socket.send("newCall");
 	}
+
+	//pc = new RTCPeerConnection(servers,pc_constraints);
+	trace("getStream");
+
 	// Handler sur la reception d'un flux media
     pc.onaddstream = function (evt) {
 		trace("onaddstream");
 		
 		// Attache le flux du distant au casque local
 		attachMediaStream(audio2, evt.stream);
-		trace("Attache le flux du distant au casque local");
     };
 	
 	// Handler sur la reception des candidates. La derniere == null. 
@@ -246,26 +261,68 @@ function connect() {
 		if (evt.candidate == null) {
 			trace("On envoie le sdp complet");
  			var localSDP = pc.localDescription;
- 			alert("localdescriptionGot")
-			socket.send(JSON.stringify({ "sdp": localSDP }));    	
-			alert("localSdpSent") 
+			socket.send(JSON.stringify({ "sdp": localSDP })); //envoie du sdp	
 		}
 	};
-	
-	document.getElementById("connexion").disabled = true;
-	document.getElementById("createConference").disabled = false;
-	document.getElementById("destroyConference").disabled = false;
-	
+
 	call();
+
+	//buttonState(disabled, active, active, active, active, active, disabled);
 }
 
-	
-var pc;
-var servers = null;
-var pc_constraints = {"optional": []};
-var configuration = { "iceServers": [{ "url": "stun:stun.example.org" }] };
 
-// Appel du distant
+function conference(){
+
+	buttonState(disabled, active, disabled, disabled, active, disabled, disabled, disabled);
+	socket.send(JSON.stringify({ "cmd":"joinConf","param":"" }));
+	
+}
+
+function createConference() {
+
+	buttonState(disabled, active, disabled, disabled, active, disabled, disabled, disabled);
+	socket.send(JSON.stringify({"cmd":"createConf","param":"hello"}));
+}
+
+
+function disconnect(){
+
+	socket.send(JSON.stringify({"cmd":"disconnect","param":" "}));
+
+	socket.close();
+}
+
+function playFile() {
+
+	document.getElementById("recordConf").style.display = "none";
+	buttonState(disabled, active, active, disabled, active, disabled, disabled, disabled);
+
+	//socket.send(JSON.stringify({"cmd":"play","param":"/var/opt/data/flat/64poms/files/logs/20150210/bonjour.a8k"}));
+	socket.send(JSON.stringify({"cmd":"play","param":"/var/opt/data/flat/64poms/files/logs/20150210/recording.a8k"}));
+}
+
+function say() {
+
+	buttonState(disabled, active, disabled, active, disabled, disabled, active, disabled);
+
+	socket.send(JSON.stringify({"cmd":"say","param":""}));
+}
+
+function recordingConf() {
+
+	buttonState(disabled, active, disabled, disabled, disabled, active, disabled, disabled);
+
+	socket.send(JSON.stringify({"cmd":"record","param":"/var/opt/data/flat/64poms/files/logs/20150210/recording.a8k"}));
+}
+
+
+function stopRecordingConf(){
+
+	buttonState(disabled, active, active, active, active, disabled, disabled, disabled);
+
+	socket.send(JSON.stringify({"cmd":"stopRecord","param":" "}));
+}
+
 
 function call() {
 
@@ -274,7 +331,7 @@ function call() {
 	// On définit un dtmfSender pour envoyer des dtmfs
 	// Et on l'attache au bon curseur local
     
-	navigator.getUserMedia({ "audio": true}, 
+	navigator.getUserMedia({ "audio": true, "video": false }, 
    		function (stream) {
 			trace("Lit le flux local et l'envoie au correspondant");
 			pc.addStream(stream);
@@ -283,17 +340,10 @@ function call() {
 			// Attache le flux local au casque local. On s'entend parler
 			attachMediaStream(audio1, stream);
 			trace("On attache le flux local au curseur du haut : audio1");
+			//myStream = stream;
+			pc.createOffer(gotDescription, function(error) {
+					trace("Erreur createOffer")} );
 
-			var audioTracks = stream.getAudioTracks();
-			var track = audioTracks[0];
-			trace ("audioTracks : " + track);
-			trace ("audioTracks id: " + track.id);
-			pc.createOffer(
-				gotDescription, 
-				function(error) {
-					trace("Erreur createOffer")
-				}
-			);
 	        function gotDescription(desc) {
 				trace ("On envoie le SDP");
 	            pc.setLocalDescription(desc);
