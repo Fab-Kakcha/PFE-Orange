@@ -99,7 +99,7 @@ public class OmsConference implements Runnable {
 		
 		boolean state = status(confName);
 		if(state){
-			websock.send("confalreadyexists");
+			websock.send("confAlreadyExists");
 		}
 		else{
 		String respCreation = connOMSConf
@@ -153,7 +153,7 @@ public class OmsConference implements Runnable {
 		boolean state = status(confName);
 
 		if (!state) {
-			websock.send("confdoesnotexist");
+			websock.send("confDoesNotExist");
 		} else {
 			String repJoin;
 			int num = 1;
