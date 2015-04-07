@@ -7,6 +7,8 @@ import java.io.BufferedWriter;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Properties;
 
 import org.apache.log4j.Logger;
@@ -43,6 +45,8 @@ public class MonService extends OmsService implements OmsMessageListener {
 	
 	boolean isAnswer = false;
 	private OmsConference conf;
+	private List<OmsCall> listOmsCall = new ArrayList<OmsCall>();
+	private String filePath = "/opt/application/64poms/current/tmp/infosOnConferences.log";
 	
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
@@ -78,7 +82,7 @@ public class MonService extends OmsService implements OmsMessageListener {
 		
 		try {
 			conf = new OmsConference(hostVip, portVipConf);
-			conf.create("conf1");
+			//conf.create("conf1");
 		} catch (OmsException | IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -106,6 +110,7 @@ public class MonService extends OmsService implements OmsMessageListener {
 					call.init(sdp);
 					call.say("Bienvenue sur le serveur de conference. Pour entrer dans la conference. "
 							+ "Tapez conference", true);
+					listOmsCall.add(call);
 				} else {
 					call.answer(sdp);
 					logger.info("la mÃ©thode answer a reussit");
@@ -149,8 +154,10 @@ public class MonService extends OmsService implements OmsMessageListener {
 					webSock.send(param+"NotConnected");
 				}*/
 				break;
-			case "createConf":			
-				conf.create(param);
+			case "createConf":
+				conf.create(call, "conf1");
+				conf.notification(listOmsCall);
+				//conf.create(param);
 				break;
 			case "say":			
 				call.say("Vous avez cliquez sur say", true);
@@ -191,6 +198,7 @@ public class MonService extends OmsService implements OmsMessageListener {
 			case "disconnect":
 				//quitter la conf (function unjoin retourne vrai si c'est le dernier Ã  quitter la conf)
 				//dÃ©truire la conf si c'est le dernier client Ã  quitter la conf
+				conf.list(filePath);
 				conf.delete(call);
 				call.delete();
 				break;
