@@ -34,6 +34,12 @@ public class OmsConference implements Runnable {
 	private static Pattern pat2 = Pattern.compile("mediainput=\"([^ \t\"]+)");
 	private static Pattern pat3 = Pattern
 			.compile("participant id=\"([^ \t\"]+)");
+	private static Pattern pat4 = Pattern.compile("conferenceinfo ([^/>]+)");
+	private static Pattern pat5 = Pattern.compile("conferenceid=\"([^\\s\"]+)");
+	private static Pattern pat6 = Pattern.compile("participant ([^/>]+)");
+	private static Pattern pat7 = Pattern.compile("currentconf=\"([^\\s/>]+)");
+	private static Pattern pat8 = Pattern.compile("currentpart=\"([^\\s/>]+)");
+	private static Pattern pat9 = Pattern.compile("confcreated=\"([^\\s/>]+)");
 
 	private static Logger logger = Logger.getLogger(OmsConference.class);
 	private VipConnexion connOMSConf = null;
@@ -85,7 +91,9 @@ public class OmsConference implements Runnable {
 	}
 
 	/**
-	 * To create the conference
+	 * To create the conference, and if a conference has already been creaded,
+	 * then a message is sent to the Browser letting him know the conference
+	 * exists and he is welcome to join it.
 	 * 
 	 * @param name
 	 *            conference's name
@@ -96,21 +104,20 @@ public class OmsConference implements Runnable {
 
 		confName = name;
 		websock = omsCall.getWebSocket();
-		
+
 		boolean state = status(confName);
-		if(state){
+		if (state) {
 			websock.send("confAlreadyExists");
-		}
-		else{
-		String respCreation = connOMSConf
-				.getReponse("<conference> <create requestid=\"req1\" conferenceid=\""
-						+ confName + "\" /></conference>");
+		} else {
+			String respCreation = connOMSConf
+					.getReponse("<conference> <create requestid=\"req1\" conferenceid=\""
+							+ confName + "\" /></conference>");
 
-		if (respCreation.indexOf("OK") == -1)
-			throw new OmsException("Error cannot create the conference : "
-					+ respCreation);
+			if (respCreation.indexOf("OK") == -1)
+				throw new OmsException("Error cannot create the conference : "
+						+ respCreation);
 
-		add(omsCall, name);
+			add(omsCall, name);
 		}
 	}
 
@@ -133,17 +140,18 @@ public class OmsConference implements Runnable {
 		while (ite.hasNext()) {
 			call = ite.next();
 			num = call.getPartNumberConf();
-			System.out.println("num: " + num);
 			if (num != 1)
 				call.getWebSocket().send("confCreated");
 		}
 	}
 
 	/**
-	 * To add a OMS call into the conference
+	 * To add a OMS call into the conference, and if the conference does not yet
+	 * exist, then a message is sent to the Browser for letting him know there
+	 * is no conference yet.
 	 * 
 	 * @param omsCall
-	 *            OMS call
+	 *            OMS call to join the conference
 	 * @param param
 	 * @throws OmsException
 	 */
@@ -158,7 +166,7 @@ public class OmsConference implements Runnable {
 			String repJoin;
 			int num = 1;
 			connOMSCall = omsCall.getVipConnexion();
-			
+
 			/*
 			 * To deal with the connection and reconnexion of a client into the
 			 * same conference
@@ -319,9 +327,9 @@ public class OmsConference implements Runnable {
 			}
 		}
 
-		if (!unjoin) {
+		/*if (!unjoin) {
 			logger.info("participant " + num + " already unjoined");
-		}
+		}*/
 
 		if (listOmsCallInConf.size() == 0 && !destroyConf || num == 1) {
 			destroy(omsCall);
@@ -787,7 +795,7 @@ public class OmsConference implements Runnable {
 	 * To get the state of the conference
 	 * 
 	 * @param name
-	 *            cnference name
+	 *            conference name
 	 * @return true if the conference exists, no otherwise
 	 * @throws OmsException
 	 */
@@ -798,14 +806,100 @@ public class OmsConference implements Runnable {
 		String rep = confVip
 				.getReponse("<conference><status requestid=\"req6\" conferenceid=\""
 						+ name + "\"/></conference>");
-
-		logger.info(rep);
+		// logger.info(rep);
 		if (rep.indexOf("OK") != -1)
 			state = true;
 		else
 			state = false;
 		// throw new OmsException("Error: cannot get the status :" + rep);
 		return state;
+	}
+
+	/**
+	 * To get informations from the conference server about total the number of
+	 * ongoing conference, of participants in each conference as well as the
+	 * maximum number of participants allow in each conference
+	 * 
+	 * @throws OmsException
+	 * @throws IOException
+	 */
+	public void list(String filePath) throws OmsException, IOException {
+	
+		File file;
+		FileOutputStream fop;
+
+		String infosOnConferences = "";
+		String name, rep;
+		Matcher mat, mat4, mat5;
+		
+		VipConnexion confVip = getVipConnexion();
+		rep = confVip.getReponse("<conference><stats requestid=\"req\"/></conference>");
+
+		if (rep.indexOf("OK") != -1) {
+			mat = pat7.matcher(rep);
+			mat4 = pat8.matcher(rep);
+			mat5 = pat9.matcher(rep);
+			
+			if (mat5.find()) {
+				rep = mat5.group();
+				infosOnConferences = infosOnConferences + rep + "\n";
+				// System.out.println(rep);
+			}			
+			if (mat.find()) {
+				rep = mat.group();
+				infosOnConferences = infosOnConferences + rep + "\n";
+				// System.out.println(rep);
+			}
+			if (mat4.find()) {
+				rep = mat4.group();
+				infosOnConferences = infosOnConferences + rep + "\n";
+				// System.out.println(rep);
+			}
+
+			rep = confVip
+					.getReponse("<conference><list requestid=\"req\"/></conference>");
+			if (rep.indexOf("OK") != -1) {
+
+				Matcher mat1 = pat4.matcher(rep);
+				Matcher mat2, mat3;
+				while (mat1.find()) {
+					// System.out.println(mat1.group());
+					rep = mat1.group();
+					infosOnConferences = infosOnConferences + rep + "\n";
+					mat2 = pat5.matcher(rep);
+
+					if (mat2.find()) {
+						name = mat2.group(1);
+						rep = confVip.getReponse("<conference><status requestid=\"req6\" conferenceid=\""
+										+ name + "\"/></conference>");
+						mat3 = pat6.matcher(rep);
+						while (mat3.find()) {
+							rep = mat3.group();
+							// System.out.println(mat3.group(1));
+							infosOnConferences = infosOnConferences + rep + "\n";
+						}
+
+						logger.info(infosOnConferences);
+						
+						buf = new byte[ARRAY_SIZE];
+						buf = infosOnConferences.getBytes();
+						file = new File(filePath);
+						if (!file.exists()) {
+							file.createNewFile();
+						}
+						
+						fop = new FileOutputStream(file);
+						fop.write(buf);
+						fop.flush();
+						fop.close();
+						
+					} else
+						logger.error("mat2 not find");
+				}
+			} else
+				throw new OmsException("Cannot get the list");
+		} else
+			throw new OmsException("Cannot get the stats");
 	}
 
 	/**
