@@ -4,6 +4,7 @@
 <head>
 <title>PeerConnection Audio Only Demo 1</title>
 <script src="base/adapter.js"></script>
+<script src="js/jquery-2.1.3.js"></script>
 <link href="css/monCSS.css" rel="stylesheet">
 <!--<link href="css/bootstrap-theme.css" rel="stylesheet">
 <link href="css/bootstrap.min.css" rel="stylesheet">-->
@@ -41,13 +42,18 @@ Serveur OmsGateway : <input type="text" value="10.184.48.159:8887" name="serveur
 
 <div class="btn-group">
 <!--<button id="conf" class="enabled" onclick="showForm()">conference</button>-->
-<button id="conf" class="disabled" onclick="conference()">conference</button>
+<button id="createConf" class="disabled" onclick="createConference()">create conf</button>
+<button id="conf" class="disabled" onclick="">conference</button>
 </div>
 </div>
 
 <div id="userName">
 <form id="form" name="form" method="post">
 User Name: <input id="name" name="name" type="text" placeholder="your username" required>
+			<select name="mode" id="mode">
+				<option value="mute">discret</option>
+				<option value="unmute">normal</option>
+			</select>
 <input id="submit" type="submit" value="OK" onclick="checkEmpty()">
 </form>
 </div>
@@ -68,29 +74,14 @@ User Name: <input id="name" name="name" type="text" placeholder="your username" 
 
 <script>
 
-//var count = 15;
-//var counter = setInterval(timer, 1000);
-
-/*function timer(){
-
-	count = count -1;
-	if(count > 0){
-		document.getElementById("timer").innerHTML = count;
-	}else{
-		document.getElementById("timer").style.display = none;
-		clearInterval(counter);
-	}
-}*/
-
-
-function showForm(){
-
+/*function showForm(){
 	document.getElementById("userName").style.display = "block";
-}
+}*/
 
 function checkEmpty(){
 
-	var login = document.getElementById("name").value;
+	//var login = document.getElementById("name").value;
+	var login = $("#name").val();
 	if(login == ""){
 
 		alert("Name must be filled out");
@@ -98,10 +89,22 @@ function checkEmpty(){
 	}
 	else{
 
-		//conference(login);
+		var mode = $("#mode").val();
+		//conference(login);		
 		document.getElementById("userName").style.display = "none";
+
+		alert("name: "+login + " mode:" + mode);
+
 	}
 }
+
+
+$(document).ready(function(){
+
+	$("#conf").click(function(){
+		$("#userName").show();
+	});
+});
 
 //Client websocket
 
@@ -138,7 +141,7 @@ function createWebSocket(host) {
 		socket.onclose = function() { 
 			//trace("Déconnexion"); 
 
-			buttonState(active, disabled, disabled, disabled, disabled, disabled, disabled);
+			buttonState(active, disabled, disabled, disabled, disabled, disabled, disabled, disabled);
 
 			//alert("connexion to AS is closed");
 
@@ -164,30 +167,27 @@ function createWebSocket(host) {
 				document.getElementById("recordConf").innerHTML = "Recording started";
 				document.getElementById("recordConf").style.color = "red";
 				
-				/*var count = 15;
-				var counter = setInterval(
-					function timer(){
+			}else if(evt.data == "incomingCall"){
+				//console.log("incoming Call");
+				//buttonState(disabled, disabled, disabled, disabled, disabled, disabled, disabled);
+			}else if(evt.data == "confCreated"){
 
-				count = count -1;
-				if(count >= 0){
-					//document.getElementById("timer").innerHTML = count;
-				}else{
-					//document.getElementById("timer").innerHTML = "0";
-					//clearInterval(counter);
-					}
-				}
-					, 1000);*/
+					buttonState(disabled, active, disabled, disabled, disabled, disabled, active, disabled);
+			}else if (evt.data == "confDoesNotExist") {
+
+				alert("No conference available. You can create one by clicking on create");
+				buttonState(disabled, active, disabled, disabled, disabled, disabled, disabled, active);
+			}else if (evt.data == "confAlreadyExists") {
 				
-			}else if(evt.data == "incomingCall"){ 
-
-				buttonState(disabled, disabled, disabled, disabled, disabled, disabled, disabled);
+				alert("conference already. You can join by clicking on conference");
+				buttonState(disabled, active, disabled, disabled, disabled, disabled, active, disabled);
 			}
 			else {
 				var signal = JSON.parse(evt.data);
 				if (signal.sdp) { //distinguer sdp offer ou answer
 					trace ("Reception de SDP" + signal.sdp.sdp);
 
-					buttonState(disabled, active, disabled, disabled, disabled, disabled, active);
+					buttonState(disabled, active, disabled, disabled, disabled, disabled, active,active);
 
 					pc.setRemoteDescription(new RTCSessionDescription(signal.sdp));
 					//setTimeout(function(){window.close();},6000);
@@ -207,7 +207,7 @@ function createWebSocket(host) {
 }
 
 
-function buttonState(p1, p2, p3, p4, p5, p6, p7){
+function buttonState(p1, p2, p3, p4, p5, p6, p7, p8){
 
 	document.getElementById("connexionToOMS").className = p1;
 	document.getElementById("deconnexiondOMS").className = p2;
@@ -217,6 +217,7 @@ function buttonState(p1, p2, p3, p4, p5, p6, p7){
 	document.getElementById("recording").className = p5;
 	document.getElementById("stoprecording").className = p6;
 	document.getElementById("conf").className = p7;
+	document.getElementById("createConf").className = p8;
 
 	//document.getElementById("connexionToOMS").disabled = true;
 }
@@ -268,10 +269,17 @@ function connectToOMS() {
 
 function conference(){
 
-	buttonState(disabled, active, disabled, disabled, active, disabled, disabled);
+	buttonState(disabled, active, disabled, disabled, active, disabled, disabled, disabled);
 	socket.send(JSON.stringify({ "cmd":"joinConf","param":"" }));
 	
 }
+
+function createConference() {
+
+	buttonState(disabled, active, disabled, disabled, active, disabled, disabled, disabled);
+	socket.send(JSON.stringify({"cmd":"createConf","param":"hello"}));
+}
+
 
 function disconnect(){
 
@@ -283,7 +291,7 @@ function disconnect(){
 function playFile() {
 
 	document.getElementById("recordConf").style.display = "none";
-	buttonState(disabled, active, active, disabled, active, disabled, disabled);
+	buttonState(disabled, active, active, disabled, active, disabled, disabled, disabled);
 
 	//socket.send(JSON.stringify({"cmd":"play","param":"/var/opt/data/flat/64poms/files/logs/20150210/bonjour.a8k"}));
 	socket.send(JSON.stringify({"cmd":"play","param":"/var/opt/data/flat/64poms/files/logs/20150210/recording.a8k"}));
@@ -291,14 +299,14 @@ function playFile() {
 
 function say() {
 
-	buttonState(disabled, active, disabled, active, disabled, disabled, active);
+	buttonState(disabled, active, disabled, active, disabled, disabled, active, disabled);
 
 	socket.send(JSON.stringify({"cmd":"say","param":""}));
 }
 
 function recordingConf() {
 
-	buttonState(disabled, active, disabled, disabled, disabled, active, disabled);
+	buttonState(disabled, active, disabled, disabled, disabled, active, disabled, disabled);
 
 	socket.send(JSON.stringify({"cmd":"record","param":"/var/opt/data/flat/64poms/files/logs/20150210/recording.a8k"}));
 }
@@ -306,7 +314,7 @@ function recordingConf() {
 
 function stopRecordingConf(){
 
-	buttonState(disabled, active, active, active, active, disabled, disabled);
+	buttonState(disabled, active, active, active, active, disabled, disabled, disabled);
 
 	socket.send(JSON.stringify({"cmd":"stopRecord","param":" "}));
 }
