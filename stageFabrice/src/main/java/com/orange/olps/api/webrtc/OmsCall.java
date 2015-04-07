@@ -1,20 +1,17 @@
+/**
+ * This Java's Class defines how to connect to OMS in order to play file, to record and many others things
+ */
+
+
 package com.orange.olps.api.webrtc;
 
 import java.io.IOException;
-import java.net.UnknownHostException;
 import java.util.ArrayList;
-import java.util.Iterator;
-//import java.util.HashMap;
-//import java.util.Iterator;
 import java.util.List;
 import java.util.StringTokenizer;
 
 import org.apache.log4j.Logger;
 import org.java_websocket.WebSocket;
-
-import com.orange.olps.api.webrtc.OmsException;
-
-//import com.orange.olps.stageFabrice.OmsException;
 
 /*
  * Nouvelle version : Le client est maintenant un thread, ce qui permet
@@ -42,8 +39,30 @@ public class OmsCall extends Thread {
 	private WebSocket conn = null;
 	private String ipAddress;
 	private int partNumberConf;
+	private boolean hasClientPressDisc;
 	
 	private String[] hosPortVip;
+	
+	
+	/**
+	 * To dealt with the case where a Browser either clicks on the disconnect button or just close 
+	 * its web page. But, this is implemented on the OmsService Class, thus do not care about this method if
+	 * you want to develop the service.
+	 * @return a boolean checking whether the Browser clicks on disconnect or not
+	 */
+	public boolean getHasClientPressDisc(){
+		return hasClientPressDisc;
+	}
+	
+	/**
+	 * To dealt with the case where a Browser either clicks on the disconnect button or just close 
+	 * its web page. But, this is implemented on the OmsService Class, thus do not care about this method if
+	 * you want to develop the service.
+	 * @param bool is set to true if client clicks on true before leaving the web page
+	 */
+	public void setHasClientPressDisc(boolean bool){
+		hasClientPressDisc = bool;
+	}
 	
 	/**
 	 * 
@@ -54,7 +73,7 @@ public class OmsCall extends Thread {
 	}
 
 	/**
-	 * 
+	 * To get the Browser or client websocket and IP address
 	 * @param conn client websocket
 	 * @param ipAddress client IP address
 	 */
@@ -62,6 +81,7 @@ public class OmsCall extends Thread {
 		 
 		this.conn = conn;
 		this.ipAddress = ipAddress;
+		hasClientPressDisc = false;
 		this.start();
 	}
 	
@@ -117,13 +137,6 @@ public class OmsCall extends Thread {
 		return sdpToReturn;
 	}
 	
-	/**
-	 * 
-	 * @param rviWebrtc
-	 * @param sdpNav
-	 * @return
-	 * @throws OmsException
-	 */
 	private Sdp sdpAnswer(String rviWebrtc, String sdpNav) throws OmsException {
 
 			Sdp sdp = new Sdp();
