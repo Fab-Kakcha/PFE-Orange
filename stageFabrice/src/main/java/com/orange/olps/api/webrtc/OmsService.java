@@ -19,11 +19,15 @@ import org.java_websocket.WebSocket;
 import org.java_websocket.WebSocketImpl;
 import org.java_websocket.handshake.ClientHandshake;
 import org.java_websocket.server.WebSocketServer;
+import org.json.simple.JSONObject;
+
+import com.google.gson.JsonObject;
 
 public class OmsService extends WebSocketServer {
 
 	protected static HashMap<WebSocket, OmsCall> calls = null;
 	protected static HashMap<String, WebSocket> annuaire = null;
+	private boolean bool;
 	
 	private static Logger logger = Logger.getLogger(OmsService.class);
 	
@@ -51,7 +55,11 @@ public class OmsService extends WebSocketServer {
 				+ " : " + message );
 		
 		//logger.info("NAV ==> AS : " + message );
+				
 		OmsCall call = calls.get(conn);		
+		if(message.indexOf("disconnect") != -1)
+			call.setHasClientPressDisc(true);
+		
 		OmsMessageEvent msgEvent = new OmsMessageEvent(call, message);
 		Iterator<OmsMessageListener> i = _listeners.iterator();
 		while(i.hasNext())  {
@@ -75,10 +83,23 @@ public class OmsService extends WebSocketServer {
 	public void onClose( WebSocket conn, int code, String reason, boolean remote ) {		
 		logger.info("SORTIE DE CLIENT : "
 				+ conn.getRemoteSocketAddress().getAddress().getHostAddress());
-
+		
 		// Quand un client se deconnecte, on detruit tout ce qui lui appartient
-		//OmsCall call = calls.get(conn);
-
+		OmsCall call = calls.get(conn);
+		bool = call.getHasClientPressDisc();
+		
+		if(!bool){
+			JsonObject json = new JsonObject();
+			json.addProperty("cmd", "disconnect");
+			json.addProperty("param", " ");
+			String message = json.toString();
+			
+			OmsMessageEvent msgEvent = new OmsMessageEvent(call, message);
+			Iterator<OmsMessageListener> i = _listeners.iterator();
+			while(i.hasNext())  {
+				((OmsMessageListener) i.next()).omsMessagePerformed(msgEvent);
+			}		
+		}
 		calls.remove(conn);
 		conn.close();
 	}
