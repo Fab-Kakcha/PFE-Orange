@@ -28,7 +28,8 @@ public class MonService extends OmsService implements OmsMessageListener {
 	 */
 	
 	private static Logger logger = Logger.getLogger(MonService.class);
-	private static final String WEBRTC_CONF = "/opt/testlab/utils/stageFabrice/src/main/java/";
+	//private static final String WEBRTC_CONF = "/opt/testlab/utils/stageFabrice/src/main/java/";
+	private static final String WEBRTC_CONF = "C:\\Users\\JWPN9644\\opt\\application\\64poms\\current\\conf\\";
 	protected static String hostVip = "127.0.0.1";
 	protected static String portVip = "4670";
 	private static String portWs = "8887";
@@ -46,7 +47,9 @@ public class MonService extends OmsService implements OmsMessageListener {
 	boolean isAnswer = false;
 	private OmsConference conf;
 	private List<OmsCall> listOmsCall = new ArrayList<OmsCall>();
-	private String filePath = "/opt/application/64poms/current/tmp/infosOnConferences.log";
+	//private String filePath = "/opt/application/64poms/current/tmp/infosOnConferences.log";
+	private String filePath = "C:\\Users\\JWPN9644\\Documents\\infosOnConferences.log";
+
 	
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
@@ -96,8 +99,8 @@ public class MonService extends OmsService implements OmsMessageListener {
 
 		String message = msgEvt.getMessage();
 		//logger.info("Nouveau message: " + message);
-		//logger.info("ReÃ§u de: " + call + " Ã  l'adresse ip: "
-			//	+ call.getIpAddress());
+		//logger.info("ReÃ§u de: " + call + "l'adresse ip: "
+				//+ call.getIpAddress());
 		OmsMessage msg = new OmsMessage(message);
 		String typeMesg = msg.getType();
 		try{
@@ -155,7 +158,8 @@ public class MonService extends OmsService implements OmsMessageListener {
 				}*/
 				break;
 			case "createConf":
-				conf.create(call, "conf1");
+				//conf.create(call, "conf1");
+				conf.create(call, param);
 				conf.notification(listOmsCall);
 				//conf.create(param);
 				break;
@@ -198,7 +202,7 @@ public class MonService extends OmsService implements OmsMessageListener {
 			case "disconnect":
 				//quitter la conf (function unjoin retourne vrai si c'est le dernier Ã  quitter la conf)
 				//dÃ©truire la conf si c'est le dernier client Ã  quitter la conf
-				conf.list(filePath);
+				conf.infos(filePath);
 				conf.delete(call);
 				call.delete();
 				break;
