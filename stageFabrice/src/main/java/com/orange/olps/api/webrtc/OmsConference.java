@@ -61,6 +61,13 @@ public class OmsConference implements Runnable {
 	private boolean isStudentExist = false;
 	private byte[] buf;
 
+	
+	
+	//On peut avoir plusieurs conférences, dans une même session. 
+	//Donc, il faudrait trouver une manière d'identifier chaque conférence. par exemple savoir, à quelle
+	//conférence un omsCall appartient. Pensez également à créer une liste de liste de conférence, afin
+	//d'intenfier les participants de chaque conférence. 
+	//List<List<String>> group = new ArrayList<List<String>>();
 	private void terminate() {
 		running = false;
 	}
@@ -83,6 +90,7 @@ public class OmsConference implements Runnable {
 			throws OmsException, IOException {
 
 		// /confName = name;
+		
 		connOMSConf = new VipConnexion(hostVipConf, portVipConf);
 		/*
 		 * String respCreation = connOMSConf.getReponse(
@@ -265,7 +273,7 @@ public class OmsConference implements Runnable {
 				throw new OmsException("Cannot shutup mt1" + respSh);
 
 			if (mode.equalsIgnoreCase("mute")) {
-				System.out.println(mode + " "+ confName);
+				System.out.println(mode);
 				repJoin = connOMSConf
 						.getReponse("<conference><join  requestid=\"req1\" conferenceid=\""+ confName
 								+ "\"  participantid=\""+ num + "\" confrole=\"mute\" /></conference>");
@@ -737,18 +745,21 @@ public class OmsConference implements Runnable {
 	 * To get informations from the conference server about the total number of
 	 * ongoing conferences, of participants as well as the
 	 * maximum number of participants allow in a conference
-	 * @param filePath path of file where the informations will be written
+	 * @param filePath path of log file where the informations will be written
 	 * @throws OmsException
 	 * @throws IOException
 	 */
-	public void infos(String filePath) throws OmsException, IOException {
+	public void infos(OmsCall omsCall, String filePath) throws OmsException, IOException {
 	
 		File file;
 		FileOutputStream fop;
-
+		
 		String infosOnConferences = "";
 		String name, rep;
 		Matcher mat, mat4, mat5;
+
+		if(omsCall != null)	
+			websock = omsCall.getWebSocket();
 		
 		VipConnexion confVip = getVipConnexion();
 		rep = confVip.getReponse("<conference><stats requestid=\"req\"/></conference>");
@@ -777,10 +788,34 @@ public class OmsConference implements Runnable {
 
 				Matcher mat1 = pat4.matcher(rep);
 				Matcher mat2, mat3;
-				while (mat1.find()) {
+				
+				if(!mat1.find()){
+					
+					infosOnConferences = "No informations about conferences are available at the conference"
+							+ " server right now. Please, create a new conference first.\n";
+					buf = new byte[ARRAY_SIZE];
+					buf = infosOnConferences.getBytes();
+					file = new File(filePath);
+					if (!file.exists()) {
+						file.createNewFile();
+					}
+					
+					fop = new FileOutputStream(file);
+					fop.write(buf);
+					fop.flush();
+					fop.close();
+					
+					if(websock != null){
+						websock.send(buf);
+					}				
+				}else{
+					do{
+				//while (mat1.find()) {
 					rep = mat1.group();
-					infosOnConferences = infosOnConferences + rep + "\n";
+					//infosOnConferences = infosOnConferences + rep + "\n";
 					mat2 = pat5.matcher(rep);
+					rep = "\t" +rep;
+					infosOnConferences = infosOnConferences + rep + "\n";
 
 					if (mat2.find()) {
 						name = mat2.group(1);
@@ -788,26 +823,31 @@ public class OmsConference implements Runnable {
 										+ name + "\"/></conference>");
 						mat3 = pat6.matcher(rep);
 						while (mat3.find()) {
-							rep = mat3.group();
+							rep = "\t\t" + mat3.group();
 							infosOnConferences = infosOnConferences + rep + "\n";
 						}
-
-						logger.info(infosOnConferences);
 						
-						buf = new byte[ARRAY_SIZE];
-						buf = infosOnConferences.getBytes();
-						file = new File(filePath);
-						if (!file.exists()) {
-							file.createNewFile();
-						}
-						
-						fop = new FileOutputStream(file);
-						fop.write(buf);
-						fop.flush();
-						fop.close();
-						
+												
 					} else
 						logger.error("mat2 not find");
+				}while (mat1.find());
+					
+					buf = new byte[ARRAY_SIZE];
+					buf = infosOnConferences.getBytes();
+					file = new File(filePath);
+					if (!file.exists()) {
+						file.createNewFile();
+					}
+					
+					fop = new FileOutputStream(file);
+					fop.write(buf);
+					fop.flush();
+					fop.close();
+					
+					if(websock != null){
+						websock.send(buf);
+					}
+					
 				}
 			} else
 				throw new OmsException("Cannot get the list");
