@@ -160,7 +160,7 @@ public class MonService extends OmsService implements OmsMessageListener {
 			case "createConf":
 				//conf.create(call, "conf1");
 				conf.create(call, param);
-				conf.notification(listOmsCall);
+				//conf.notification(listOmsCall);
 				//conf.create(param);
 				break;
 			case "say":			
@@ -199,10 +199,13 @@ public class MonService extends OmsService implements OmsMessageListener {
 						call.say("Je ne vous ai pas entendu.", false);
 				}
 				break;
+			case ("confInfos"):
+				conf.infos(call,filePath);
+				break;
 			case "disconnect":
 				//quitter la conf (function unjoin retourne vrai si c'est le dernier Ã  quitter la conf)
 				//dÃ©truire la conf si c'est le dernier client Ã  quitter la conf
-				conf.infos(filePath);
+				//conf.infos(call,filePath);
 				conf.delete(call);
 				call.delete();
 				break;
