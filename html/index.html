@@ -69,13 +69,13 @@ ConfName: <input id="confname" name="confname" type="text" placeholder="conf nam
 <button id="say" class="disabled" onclick="say()">say</button>
 <button id="play" class="disabled" onclick="playFile()">play</button>
 <button id="recording" class="disabled" onclick="recordingConf()">recording</button>
-<button id="stoprecording" class="disabled" onclick="stopRecordingConf()">stop recording</button>
+<button id="stoprecording" class="disabled" onclick="stopRecordingConf()">stop recording</button><br><br>
 <!-- <button id="joinconf" class="disabled" onclick="joinConf()">join conf</button> -->
+<button id="infos" class="disabled" onclick="confInfos()">infos</button>
+<br>
 </div>
-
+<p id="confInfos"></p>
 <p id="recordConf"> </p>
-<p id="timer"> </p>
-
 
 <script>
 
@@ -143,10 +143,10 @@ $(document).ready(function(){
 
 		  var mode = $("#mode").val();
 		  loginMode = login +":" + mode + ":" + confname;
-		  
-			if(Boolean(confCreation)){
+
+		if(Boolean(confCreation)){
 			  createConference(loginMode);
-		   }else conference(loginMode);
+		  }else conference(loginMode);
 		
 	}
 
@@ -193,6 +193,7 @@ $(document).ready(function(){
   }	
 
 });
+
 
 });
 
@@ -241,9 +242,9 @@ function createWebSocket(host) {
 		}
 		socket.onerror = function() { trace("Une erreur est survenue"); }
 		socket.onmessage = function(evt){
+			//alert(evt.data);
 			if (evt.data == "stopRecordConf") {
 				buttonState(disabled, active, active, active, active, disabled, disabled);
-				document.getElementById("timer").style.display = "none";
 				document.getElementById("recordConf").style.display = "block";
 				document.getElementById("recordConf").innerHTML = "Recording ended";
 				document.getElementById("recordConf").style.color = "blue";
@@ -277,19 +278,33 @@ function createWebSocket(host) {
 			}else if(evt.data == "studentExist"){
 				alert("A student already exists. Please change your mode");
 				buttonState(disabled, active, disabled, disabled, disabled, disabled, active, disabled);
-			}
-			else {
+			}else if (evt.data instanceof Blob) {
+
+				//alert("here");
+				//buttonState(disabled, active, disabled, disabled, disabled, disabled, active, disabled);
+				var urlInfo = window.URL.createObjectURL(evt.data);
+				
+				var strWindowFeatures = "menubar=yes,location=yes,resizable=yes,scrollbars=yes,status=yes";
+				var windowObjectReference = window.open(urlInfo, "My_Window", strWindowFeatures);
+
+				 /*$(windowObjectReference.document).load(function(){
+					window.stop();
+				});*/
+			}else {
+
 				var signal = JSON.parse(evt.data);
 				if (signal.sdp) { //distinguer sdp offer ou answer
 					trace ("Reception de SDP" + signal.sdp.sdp);
 
 					buttonState(disabled, active, disabled, disabled, disabled, disabled, active,active);
+					document.getElementById("infos").className = active;
 
 					pc.setRemoteDescription(new RTCSessionDescription(signal.sdp));
 					//setTimeout(function(){window.close();},6000);
 					//window.close();
 				}
 				else {
+
 					if (signal.candidate) {
 						trace ("Reception de CANDIDATES");
 						pc.addIceCandidate(new RTCIceCandidate(signal.candidate));
@@ -365,7 +380,6 @@ function connectToOMS() {
 
 function conference(loginMode){
 
-	var loginMode = "tata:mute:conf1";
 	buttonState(disabled, active, disabled, disabled, active, disabled, disabled, disabled);
 	socket.send(JSON.stringify({ "cmd":"joinConf","param": loginMode }));
 	
@@ -417,6 +431,11 @@ function stopRecordingConf(){
 	socket.send(JSON.stringify({"cmd":"stopRecord","param":" "}));
 }
 
+function confInfos(){
+
+	socket.send(JSON.stringify({"cmd":"confInfos","param":" "}));
+
+}
 
 function call() {
 
