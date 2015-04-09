@@ -33,13 +33,15 @@ public class OmsCall extends Thread {
 	private boolean isRviSyntExist = false;
 	private boolean isRviEnregExist = false;
 	private boolean isRviRecogExist = false;
-	private boolean isCaller = false;
-	private boolean isCallee = false;
-	private int nbOfClientConnected = 1;
+	private boolean isRviWebrtcExist = false;
+	//private boolean isCaller = false;
+	//private boolean isCallee = false;
+	//private int nbOfClientConnected = 1;
+	
 	private WebSocket conn = null;
-	private String ipAddress;
-	private int partNumberConf;
-	private boolean hasClientPressDisc;
+	private String ipAddress = null;
+	private int partNumberConf = 0;
+	private boolean hasClientPressDisc = false;
 	
 	private String[] hosPortVip;
 	
@@ -98,14 +100,18 @@ public class OmsCall extends Thread {
 		hosPortVip[0] = hostVip;
 		hosPortVip[1] = portVip;
 		
-		this.connOMS = new VipConnexion(hostVip, portVip);
-		//String respInfo = this.connOMS.getReponse("info ocam");
-		String respWebrtcCreation = this.connOMS.getReponse("new mt1 webrtc");
-		
-		if (respWebrtcCreation.equals("OK")) {
-			this.connOMS.getReponse("mt1 setparam escape_sdp_newline=true");
-		} else 
-			throw new OmsException("Error: Cannot create rvi webrtc "+ respWebrtcCreation);		
+		if(!isRviWebrtcExist){
+			this.connOMS = new VipConnexion(hostVip, portVip);
+			//String respInfo = this.connOMS.getReponse("info ocam");
+			String respWebrtcCreation = this.connOMS.getReponse("new mt1 webrtc");
+			
+			if (respWebrtcCreation.equals("OK")) {
+				this.connOMS.getReponse("mt1 setparam escape_sdp_newline=true");
+			} else 
+				throw new OmsException("Error: Cannot create rvi webrtc "+ respWebrtcCreation);	
+			
+			isRviWebrtcExist = true;
+		}		
 	}
 	
 	/**
@@ -204,13 +210,6 @@ public class OmsCall extends Thread {
 		}
 
 	}
-	
-	/**
-	 * To play a file
-	 * @param say
-	 * @param interrupt
-	 * @throws OmsException
-	 */
 	
 	/**
 	 * To play an audio file
@@ -338,11 +337,6 @@ public class OmsCall extends Thread {
 	 * @throws OmsException
 	 */
 	
-	/**
-	 * To delete all the rvi resources
-	 * @throws OmsException
-	 */
-	
 	private void delResources() throws OmsException{
 			
 		//int i;
@@ -381,16 +375,24 @@ public class OmsCall extends Thread {
 		
 		}else if(this.getIsCallee()){*/
 			
-			String delRviWebrtc = this.getVipConnexion().getReponse("delete mt" + num);
-			if (delRviWebrtc.equals("OK"))
-				this.getVipConnexion().getReponse("wait evt=mt"+ num +".mediadisconnected");
-			else
-				throw new OmsException("Error cannot delete webrtc rvi mt"+ num +": "+ delRviWebrtc);
-			
-			String delRviSyn = this.getVipConnexion().getReponse("delete s" + num);
-			if(!delRviSyn.equals("OK"))
-				throw new OmsException("Error cannot delete synt rvi s " + delRviSyn);
-			
+			if(isRviWebrtcExist){
+				String delRviWebrtc = this.getVipConnexion().getReponse("delete mt" + num);
+				if (delRviWebrtc.equals("OK"))
+					this.getVipConnexion().getReponse("wait evt=mt"+ num +".mediadisconnected");
+				else
+					throw new OmsException("Error cannot delete webrtc rvi mt"+ num +": "+ delRviWebrtc);			
+			}
+					
+			if(isRviSyntExist){
+				String delRviSyn = this.getVipConnexion().getReponse("delete s" + num);
+				if(!delRviSyn.equals("OK"))
+					throw new OmsException("Error cannot delete synt rvi s " + delRviSyn);				
+			}
+			if(isRviEnregExist){
+				String delRviEnreg = this.connOMS.getReponse("delete e");
+				if(!delRviEnreg.equals("OK"))
+					throw new OmsException(" Error cannot delete enreg rvi " + delRviEnreg);
+			}			
 		//}
 	}
 		
@@ -489,8 +491,8 @@ public class OmsCall extends Thread {
 		this.conn.send(sdpAnswer.getSdp());
 
 		String mediaConn = connOMS.getReponse("wait evt=mt1.mediaconnected");
-		//if(!mediaConn.startsWith("OK"))
-			//throw new OmsException("media is not connected " + mediaConn);		
+		if(!mediaConn.startsWith("OK"))
+			throw new OmsException("media is not connected " + mediaConn);		
 	}
 	
 	/**
@@ -501,9 +503,12 @@ public class OmsCall extends Thread {
 	
 	public void delete() throws OmsException, IOException {
 	
-		this.delResources();
-		this.connOMS.getSocket().close();
-		this.listOmsCall.clear();
+		VipConnexion vipConn = getVipConnexion();	
+		if(vipConn != null){		
+			delResources();
+			vipConn.getSocket().close();
+			listOmsCall.clear();
+		}					
 	}
 
 	public void setVipConnexion(VipConnexion connOMS) {
