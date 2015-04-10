@@ -28,8 +28,8 @@ public class MonService extends OmsService implements OmsMessageListener {
 	 */
 	
 	private static Logger logger = Logger.getLogger(MonService.class);
-	//private static final String WEBRTC_CONF = "/opt/testlab/utils/stageFabrice/src/main/java/";
-	private static final String WEBRTC_CONF = "C:\\Users\\JWPN9644\\opt\\application\\64poms\\current\\conf\\";
+	private static final String WEBRTC_CONF = "/opt/testlab/utils/stageFabrice/src/main/java/";
+	//private static final String WEBRTC_CONF = "C:\\Users\\JWPN9644\\opt\\application\\64poms\\current\\conf\\";
 	protected static String hostVip = "127.0.0.1";
 	protected static String portVip = "4670";
 	private static String portWs = "8887";
@@ -47,8 +47,8 @@ public class MonService extends OmsService implements OmsMessageListener {
 	boolean isAnswer = false;
 	private OmsConference conf;
 	private List<OmsCall> listOmsCall = new ArrayList<OmsCall>();
-	//private String filePath = "/opt/application/64poms/current/tmp/infosOnConferences.log";
-	private String filePath = "C:\\Users\\JWPN9644\\Documents\\infosOnConferences.log";
+	private String filePath = "/opt/application/64poms/current/tmp/infosOnConferences.log";
+	//private String filePath = "C:\\Users\\JWPN9644\\Documents\\infosOnConferences.log";
 
 	
 	public static void main(String[] args) {
@@ -167,18 +167,18 @@ public class MonService extends OmsService implements OmsMessageListener {
 				call.say("Vous avez cliquez sur say", true);
 				break;
 			case "play":				
-					conf.playRecording();
+				conf.playRecording(call.getConfname());
 					//conf.play();
 				break;
 			case ("record"):
 				// Le client demande a ce que l'appel soit enregistre. 
 					//call.record(param);
-					conf.startRecording();
+					conf.startRecording(call.getConfname());
 				break;
 			case ("stopRecord"):
 				// Le client demande a arreter l'enregistrement. 
 					//call.stopRecord();
-					conf.stopRecording();
+					conf.stopRecording(call.getConfname());
 				break;
 			case ("joinConf"):
 				// Le client demande a entrer dans la confÃ©rennce ouverte dans le constructeur
