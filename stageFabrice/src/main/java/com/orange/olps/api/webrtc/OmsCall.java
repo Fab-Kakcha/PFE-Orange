@@ -41,10 +41,31 @@ public class OmsCall extends Thread {
 	private WebSocket conn = null;
 	private String ipAddress = null;
 	private int partNumberConf = 0;
+	private String confName = null;
 	private boolean hasClientPressDisc = false;
+	private boolean hasCreatedConf = false;
+	
 	
 	private String[] hosPortVip;
 	
+	
+	public void setHasCreatedConf(boolean bool){
+		hasCreatedConf = bool;		
+	}
+	
+	public boolean getHasCreatedConf(){
+		return hasCreatedConf;
+	}
+	
+	
+	public void setConfName(String conf){
+		confName = conf;
+	}
+	
+	
+	public String getConfname(){	
+		return confName;
+	}
 	
 	/**
 	 * To dealt with the case where a Browser either clicks on the disconnect button or just close 
