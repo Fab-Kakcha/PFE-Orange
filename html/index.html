@@ -21,7 +21,7 @@ padding: 8px;
 <body>
 <div id="form" class="btn-group">
 <form name="saisie">
-Serveur OmsGateway : <input type="text" value="127.0.0.1:8887" name="serveurPort"><br>
+Serveur OmsGateway : <input type="text" value="10.184.48.159:8887" name="serveurPort"><br>
 </form>
 </div>
 
@@ -52,7 +52,7 @@ Serveur OmsGateway : <input type="text" value="127.0.0.1:8887" name="serveurPort
 <br>
 <form id="form" name="form" method="post">
 UserName: <input id="name" name="name" type="text" placeholder="your username" maxlength="20" required><p id="checkUserName" class="checkUserName"></p><br>
-ConfName: <input id="confname" name="confname" type="text" placeholder="conf name" maxlength="20" required><p id="checkConfName" class="checkUserName"></p><br>
+ConfName: <input id="confname" name="confname" type="text" placeholder="conf name" maxlength="20" required><p id="checkConfName" class="checkUserName"></p><br><br>
 			<select name="mode" id="mode">
 				<option value="speaker">normal</option>
 				<option value="mute">discret</option>
@@ -92,11 +92,15 @@ $(document).ready(function(){
 
 	$("#conf").click(function(){
 		$("#userName").show();
+		buttonState(disabled,disabled,disabled,disabled,disabled,disabled,disabled,disabled);
+		document.getElementById("infos").className = disabled;
 		confCreation = 0;
 	});
 
 	$("#createConf").click(function(){
 		$("#userName").show();
+		buttonState(disabled,disabled,disabled,disabled,disabled,disabled,disabled,disabled);
+		document.getElementById("infos").className = disabled;
 		confCreation = 1;
 	});
 
@@ -120,15 +124,21 @@ $(document).ready(function(){
             e.preventDefault();
             
            // document.getElementById('submit').click(); 
-
+           $("span").hide();
          var login = $("#name").val();
 		 var confname = $("#confname").val();
-		if(login == ""){
+		if(login == "" && confname == ""){
+				$("#checkUserName").show();
+				$("#checkConfName").show();
+			 //$("#checkUserName").css("color","red");
+			 	$("#checkUserName").text("userName must be filled out");
+			 	$("#checkConfName").text("confName must be filled out");
 
-			$("#checkUserName").show();
-			$("#checkUserName").text("userName must be filled out");
+		}else if (login == "") {
 
-		}else if(confname == ""){
+				$("#checkUserName").show();
+				$("#checkUserName").text("userName must be filled out");
+			}else if(confname == ""){
 
 			$("#checkConfName").show();
 			//$("#checkConfName").css("color","red");
@@ -162,16 +172,24 @@ $(document).ready(function(){
           e.preventDefault();            
            // document.getElementById('submit').click(); 
 
+           $("span").hide();
+
            var login = $("#name").val();
 			var confname = $("#confname").val();
-			if(login == ""){
+
+			if(login == "" && confname == ""){
+				$("#checkUserName").show();
+				$("#checkConfName").show();
+			 //$("#checkUserName").css("color","red");
+			 	$("#checkUserName").text("userName must be filled out");
+			 	$("#checkConfName").text("confName must be filled out");
+
+			}else if (login == "") {
 
 				$("#checkUserName").show();
-			 //$("#checkUserName").css("color","red");
-			 $("#checkUserName").text("userName must be filled out");
-
-			}else if(confname == ""){
-
+				$("#checkUserName").text("userName must be filled out");
+			}
+			else if(confname == ""){
 				$("#checkConfName").show();
 			//$("#checkConfName").css("color","red");
 			$("#checkConfName").text("confName must be filled out");
@@ -245,16 +263,15 @@ function createWebSocket(host) {
 			//alert(evt.data);
 			if (evt.data == "stopRecordConf") {
 				buttonState(disabled, active, active, active, active, disabled, disabled);
-				document.getElementById("recordConf").style.display = "block";
-				document.getElementById("recordConf").innerHTML = "Recording ended";
-				document.getElementById("recordConf").style.color = "blue";
+				//document.getElementById("recordConf").style.display = "block";
+				//.getElementById("recordConf").innerHTML = "Recording ended";
+				//document.getElementById("recordConf").style.color = "blue";
+				$("#recordConf").show().css("color","blue").text("Recording ended");
 			} else if(evt.data == "recordConf"){
 				
-				buttonState(disabled, active, disabled, disabled, disabled, active, disabled);
+				buttonState(disabled, active, disabled, disabled, disabled, active, disabled, disabled);
 
-				document.getElementById("recordConf").style.display = "block";
-				document.getElementById("recordConf").innerHTML = "Recording started";
-				document.getElementById("recordConf").style.color = "red";
+				$("#recordConf").show().css("color","red").text("Recording started");
 				
 			}else if(evt.data == "incomingCall"){
 				//console.log("incoming Call");
@@ -298,7 +315,6 @@ function createWebSocket(host) {
 
 					buttonState(disabled, active, disabled, disabled, disabled, disabled, active,active);
 					document.getElementById("infos").className = active;
-
 					pc.setRemoteDescription(new RTCSessionDescription(signal.sdp));
 					//setTimeout(function(){window.close();},6000);
 					//window.close();
@@ -381,6 +397,7 @@ function connectToOMS() {
 function conference(loginMode){
 
 	buttonState(disabled, active, disabled, disabled, active, disabled, disabled, disabled);
+	document.getElementById("infos").className = active;
 	socket.send(JSON.stringify({ "cmd":"joinConf","param": loginMode }));
 	
 }
@@ -389,6 +406,7 @@ function createConference(loginMode) {
 
 	//var loginMode = "tata:mute:conf1";
 	buttonState(disabled, active, disabled, disabled, active, disabled, disabled, disabled);
+	document.getElementById("infos").className = active;
 	socket.send(JSON.stringify({"cmd":"createConf","param": loginMode}));
 }
 
@@ -402,11 +420,10 @@ function disconnect(){
 
 function playFile() {
 
-	document.getElementById("recordConf").style.display = "none";
 	buttonState(disabled, active, active, disabled, active, disabled, disabled, disabled);
 
 	//socket.send(JSON.stringify({"cmd":"play","param":"/var/opt/data/flat/64poms/files/logs/20150210/bonjour.a8k"}));
-	socket.send(JSON.stringify({"cmd":"play","param":"/var/opt/data/flat/64poms/files/logs/20150210/recording.a8k"}));
+	socket.send(JSON.stringify({"cmd":"play","param":" "}));
 }
 
 function say() {
@@ -420,7 +437,7 @@ function recordingConf() {
 
 	buttonState(disabled, active, disabled, disabled, disabled, active, disabled, disabled);
 
-	socket.send(JSON.stringify({"cmd":"record","param":"/var/opt/data/flat/64poms/files/logs/20150210/recording.a8k"}));
+	socket.send(JSON.stringify({"cmd":"record","param":" "}));
 }
 
 
