@@ -91,7 +91,6 @@ public class OmsCall extends Thread {
 	 * 
 	 */
 	public OmsCall() {
-
 		super();
 	}
 
