@@ -17,18 +17,15 @@
 			<attribute name="maven.pomderived" value="true"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.7">
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/J2SE-1.5">
 		<attributes>
 			<attribute name="maven.pomderived" value="true"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry kind="lib" path="/home/fabrice/Documents/Stage PFE Orange/Lib/commons-logging-1.1.jar"/>
-	<classpathentry kind="lib" path="/home/fabrice/Documents/Stage PFE Orange/Lib/gson-2.3.jar"/>
-	<classpathentry kind="lib" path="/home/fabrice/Documents/Stage PFE Orange/Lib/httpclient-4.3.jar"/>
-	<classpathentry kind="lib" path="/home/fabrice/Documents/Stage PFE Orange/Lib/httpclient-cache-4.3.jar"/>
-	<classpathentry kind="lib" path="/home/fabrice/Documents/Stage PFE Orange/Lib/httpcore-4.3.jar"/>
-	<classpathentry kind="lib" path="/home/fabrice/Documents/Stage PFE Orange/Lib/httpmime-4.3.jar"/>
-	<classpathentry kind="lib" path="/home/fabrice/Documents/Stage PFE Orange/Lib/java_websocket.jar"/>
-	<classpathentry kind="lib" path="/home/fabrice/Documents/Stage PFE Orange/Lib/log4j-1.2.9.jar"/>
+	<classpathentry kind="lib" path="/home/fabrice/PFE-Orange/lib/api-oms-webrtc.jar"/>
+	<classpathentry kind="lib" path="/home/fabrice/PFE-Orange/lib/commons-logging-1.1.jar"/>
+	<classpathentry kind="lib" path="/home/fabrice/PFE-Orange/lib/gson-2.3.jar"/>
+	<classpathentry kind="lib" path="/home/fabrice/PFE-Orange/lib/java_websocket.jar"/>
+	<classpathentry kind="lib" path="/home/fabrice/PFE-Orange/lib/log4j-1.2.9.jar"/>
 	<classpathentry kind="output" path="target/classes"/>
 </classpath>
