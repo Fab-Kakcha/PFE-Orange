@@ -8,7 +8,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import orange.olps.svi.client.Client;
-import orange.olps.svi.stats.StatManager;
 
 public class Redirection extends Navigation {
 	protected static final String SERVICE = "service";
@@ -43,10 +42,7 @@ public class Redirection extends Navigation {
 		
 		// premier passage dans cet item
 		// Statistiques
-		StatManager.getInstance().posterStatistiques(client.getIdent(), 
-					label, 
-					System.currentTimeMillis(),
-					StatManager.NAVIGATION);
+
 		if (serviceRedirection != null) {
 			client.setValeur(Client.VAR_SVC, serviceRedirection);
 		}

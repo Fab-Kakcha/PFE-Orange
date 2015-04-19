@@ -6,8 +6,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import orange.olps.svi.client.Client;
-import orange.olps.svi.stats.StatManager;
-
 
 
 public class Deconnexion extends Navigation {
@@ -36,11 +34,6 @@ public class Deconnexion extends Navigation {
 		
 		logger.debug("calculerActionNavigation - ("+label+") - ("+client.getValeur(Client.VAR_IDENT)+") action precedente="+actionNav);
 		
-		// Statistiques
-		StatManager.getInstance().posterStatistiques(client.getIdent(), 
-				label, 
-				System.currentTimeMillis(),
-				StatManager.NAVIGATION);
 		
 		if (actionNav == Navigation.RIEN && this.isPrompt()) {
 			// premier passage dans cet item de navigation

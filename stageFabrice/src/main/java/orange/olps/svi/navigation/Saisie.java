@@ -9,7 +9,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import orange.olps.svi.client.Client;
-import orange.olps.svi.stats.StatManager;
 
 
 public class Saisie extends Menu {
@@ -143,11 +142,7 @@ public class Saisie extends Menu {
 		
 		if (actionNav == Navigation.RIEN) {
 			// premier passage dans cet item
-			// Statistiques
-			StatManager.getInstance().posterStatistiques(client.getIdent(), 
-					label, 
-					System.currentTimeMillis(),
-					StatManager.NAVIGATION);
+
 			
 			if (!client.getNavCourante().equals(client.getNavPrecedente())){
 				// premier passage

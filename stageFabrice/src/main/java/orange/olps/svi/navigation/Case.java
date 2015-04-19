@@ -9,7 +9,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import orange.olps.svi.client.Client;
-import orange.olps.svi.stats.StatManager;
+//import orange.olps.svi.stats.StatManager;
 
 public class Case extends Navigation {
 	
@@ -70,12 +70,6 @@ public class Case extends Navigation {
 	@Override
 	public void calculerActionNavigation(Client client) {
 		logger.debug("calculerActionNavigation ("+label+") - ("+client.getValeur(Client.VAR_IDENT)+") - Entree");
-				
-		// Statistiques
-		StatManager.getInstance().posterStatistiques(client.getIdent(), 
-				label, 
-				System.currentTimeMillis(),
-				StatManager.NAVIGATION);
 		
 		String nav = null;
 		if (variable != null && !"".equals(variable)) {

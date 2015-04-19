@@ -7,7 +7,6 @@ import org.json.JSONObject;
 
 import orange.olps.svi.client.Client;
 import orange.olps.svi.config.Config;
-import orange.olps.svi.stats.StatManager;
 
 public class Langue extends Menu {
 	
@@ -35,11 +34,7 @@ public class Langue extends Menu {
 		
 		if (actionNav == Navigation.RIEN) {
 			// premier passage dans cet item
-			// Statistiques
-			StatManager.getInstance().posterStatistiques(client.getIdent(), 
-					label, 
-					System.currentTimeMillis(),
-					StatManager.NAVIGATION);
+
 			
 			if (!client.getNavCourante().equals(client.getNavPrecedente())){
 				// premier passage

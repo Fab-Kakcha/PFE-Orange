@@ -10,7 +10,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import orange.olps.svi.client.Client;
-import orange.olps.svi.stats.StatManager;
 import orange.olps.svi.util.Util;
 
 public class Affectation extends Navigation {
@@ -116,10 +115,10 @@ public class Affectation extends Navigation {
 		logger.debug("calculerActionNavigation ("+label+") - ("+client.getValeur(Client.VAR_IDENT)+" - Entree");
 				
 		// Statistiques
-		StatManager.getInstance().posterStatistiques(client.getIdent(), 
-				label, 
-				System.currentTimeMillis(),
-				StatManager.NAVIGATION);
+		//StatManager.getInstance().posterStatistiques(client.getIdent(), 
+			//	label, 
+				//System.currentTimeMillis(),
+				//StatManager.NAVIGATION);
 	
 	
 		for (AffectationUnitaire aff : listAffectation) {

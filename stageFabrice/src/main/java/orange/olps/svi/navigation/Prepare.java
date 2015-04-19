@@ -18,7 +18,6 @@ import org.json.JSONObject;
 
 import orange.olps.svi.client.Client;
 import orange.olps.svi.config.Config;
-import orange.olps.svi.stats.StatManager;
 import orange.olps.svi.util.Util;
 
 public  class Prepare extends Navigation {
@@ -170,10 +169,7 @@ public  class Prepare extends Navigation {
 						
 			// premier passage dans cet item
 			// Statistiques
-			StatManager.getInstance().posterStatistiques(client.getIdent(), 
-					label, 
-					System.currentTimeMillis(),
-					StatManager.NAVIGATION);
+
 			boolean isPrompt = false;
 			if (client.getValeur(varListePrompt) == null) {
 				// la liste des prompts n'a pas été construite pour ce client/cet item

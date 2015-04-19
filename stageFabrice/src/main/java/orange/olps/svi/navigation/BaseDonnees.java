@@ -13,7 +13,6 @@ import orange.olps.svi.bdd.ConnexionManager;
 import orange.olps.svi.bdd.ConnexionUtil;
 import orange.olps.svi.client.Client;
 import orange.olps.svi.config.Config;
-import orange.olps.svi.stats.StatManager;
 import orange.olps.svi.util.Util;
 
 public class BaseDonnees extends Navigation {
@@ -190,10 +189,10 @@ public class BaseDonnees extends Navigation {
 	public void calculerActionNavigation(Client client) {		
 		logger.debug("calculerActionNavigation - ("+label+") - ("+client.getValeur(Client.VAR_IDENT)+") - Entree");
 		// Statistiques
-		StatManager.getInstance().posterStatistiques(client.getIdent(), 
-				label, 
-				System.currentTimeMillis(),
-				StatManager.NAVIGATION);
+		///StatManager.getInstance().posterStatistiques(client.getIdent(), 
+			//	label, 
+				//System.currentTimeMillis(),
+				//StatManager.NAVIGATION);
 		
 		ConnexionUtil util = new ConnexionUtil();
 		

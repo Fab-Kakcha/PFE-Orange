@@ -272,7 +272,7 @@ public class NavigationManager {
 				nav = new Saisie(label,service);
 			}
 			else if ("SMS".equals(type)) {
-				nav = new Sms(label,service);
+				//nav = new Sms(label,service);
 				useSms = true;
 			}
 			else if ("STATISTIQUES".equals(type)) {
@@ -283,7 +283,7 @@ public class NavigationManager {
 			}
 			else if ("WEBSVC".equals(type)) {
 				useWebSvc = true;
-				nav = new WebService(label,service);
+				//nav = new WebService(label,service);
 			}
 		}
 		return nav;

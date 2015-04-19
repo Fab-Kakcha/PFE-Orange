@@ -13,7 +13,6 @@ import org.json.JSONObject;
 
 import orange.olps.svi.client.Client;
 import orange.olps.svi.config.Config;
-import orange.olps.svi.stats.StatManager;
 import orange.olps.svi.util.Util;
 
 public class Condition extends Navigation {
@@ -145,12 +144,6 @@ public class Condition extends Navigation {
 		logger.debug("calculerActionNavigation ("+label+") - ("+client.getValeur(Client.VAR_IDENT)+") - Entree");
 		// on evalue la condition
 		Boolean bool = new Boolean(false);
-
-		// Statistiques
-		StatManager.getInstance().posterStatistiques(client.getIdent(), 
-				label, 
-				System.currentTimeMillis(),
-				StatManager.NAVIGATION);
 
 		if (condition != null) {           
 				bool = Boolean.valueOf(Util.interpreterJavaScript(client, tabVar, condition));	            			

@@ -9,7 +9,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import orange.olps.svi.client.Client;
-import orange.olps.svi.stats.StatManager;
 import orange.olps.svi.util.Util;
 
 public class Statistiques extends Navigation {
@@ -46,11 +45,6 @@ public class Statistiques extends Navigation {
 	@Override
 	public void calculerActionNavigation(Client client) {
 		logger.debug("calculerActionNavigation - ("+label+") - ("+client.getValeur(Client.VAR_IDENT)+") - Entree");
-
-		StatManager.getInstance().posterStatistiques(client.getIdent(), 
-					Util.reconstituerString(valeur, client), 
-					System.currentTimeMillis(),
-					typeValeur);
 		
 		client.setActionNavigation(Navigation.RIEN);
 		client.setNavCourante(getSuivant());

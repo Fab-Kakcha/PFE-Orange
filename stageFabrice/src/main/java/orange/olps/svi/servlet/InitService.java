@@ -24,10 +24,9 @@ import orange.olps.svi.bdd.ConnexionManager;
 import orange.olps.svi.config.Config;
 import orange.olps.svi.guide.ConfigGuide;
 import orange.olps.svi.navigation.NavigationManager;
-import orange.olps.svi.sms.SMSUtil;
-import orange.olps.svi.stats.StatManager;
+//import orange.olps.svi.sms.SMSUtil;
 import orange.olps.svi.util.Util;
-import orange.olps.svi.web.WebManager;
+//import orange.olps.svi.web.WebManager;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -122,12 +121,12 @@ public class InitService extends HttpServlet {
 	@Override
 	public void destroy() {
 
-		StatManager.getInstance().stop();
+		//StatManager.getInstance().stop();
 		if (NavigationManager.getInstance().isUseBdd()) {
 			ConnexionManager.supprimer();            	       
 		}
 		if (NavigationManager.getInstance().isUseSms()) {
-			SMSUtil.getInstance().stop();
+		//	SMSUtil.getInstance().stop();
 		}
 		timer.cancel();
 		super.destroy();
@@ -246,7 +245,7 @@ public class InitService extends HttpServlet {
 		ConnexionManager.supprimer();
 		ConnexionManager.initialiser(); /* initialisation des connexions base (s'il y a lieu)*/
 
-		StatManager.getInstance().initialiser(); // initialisation des stats
+		//StatManager.getInstance().initialiser(); // initialisation des stats
 
 		// Recopie des prompts
 		ConfigGuide.getInstance().initialiser();
@@ -257,14 +256,14 @@ public class InitService extends HttpServlet {
 		NavigationManager.getInstance().initialiser();
 
 		// rechargement de la config http
-		if (NavigationManager.getInstance().isUseWebSvc() || StatManager.isWriterHttp()) {
-			logger.info("initialiserSvi() - Demarrage du WebManager");
-			WebManager.getInstance().initialiser();
-		}
+		//if (NavigationManager.getInstance().isUseWebSvc() || StatManager.isWriterHttp()) {
+			//logger.info("initialiserSvi() - Demarrage du WebManager");
+			//WebManager.getInstance().initialiser();
+		//}
 
 		if (NavigationManager.getInstance().isUseSms()) {
 			logger.info("initialiserSvi() - Demarrage de SMSUtil");
-			SMSUtil.getInstance().initialiser();
+			//SMSUtil.getInstance().initialiser();
 		}
 		dateRechargement = new Date();
 		// timer de reinitialisation periodique

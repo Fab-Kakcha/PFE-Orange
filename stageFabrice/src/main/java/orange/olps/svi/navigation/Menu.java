@@ -10,7 +10,6 @@ import org.json.JSONObject;
 
 import orange.olps.svi.client.Client;
 import orange.olps.svi.config.Config;
-import orange.olps.svi.stats.StatManager;
 import orange.olps.svi.util.Util;
 
 
@@ -175,10 +174,7 @@ public class Menu extends Navigation {
 		
 		if (Navigation.RIEN == actionNav) {			
 			// Statistiques
-			StatManager.getInstance().posterStatistiques(client.getIdent(), 
-					label, 
-					System.currentTimeMillis(),
-					StatManager.NAVIGATION);			
+			
 			if (!client.getNavCourante().equals(client.getNavPrecedente())){
 				// premier passage
 				client.setNbInactivite(0);

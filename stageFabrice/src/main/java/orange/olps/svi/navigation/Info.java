@@ -9,7 +9,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import orange.olps.svi.client.Client;
-import orange.olps.svi.stats.StatManager;
 import orange.olps.svi.util.Util;
 import orange.olps.svi.config.Config;
 
@@ -73,10 +72,7 @@ public class Info extends Navigation {
 		if (actionNav == Navigation.RIEN) {
 			// premier passage dans cet item
 			// Statistiques
-			StatManager.getInstance().posterStatistiques(client.getIdent(), 
-					label, 
-					System.currentTimeMillis(),
-					StatManager.NAVIGATION);
+
 		}
 		
 		if (actionNav == Navigation.RIEN && ("".equals(saisie) || isPromptUnParUn())) {

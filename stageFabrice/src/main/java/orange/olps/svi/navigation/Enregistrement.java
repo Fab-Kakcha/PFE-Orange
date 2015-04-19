@@ -14,7 +14,6 @@ import org.json.JSONObject;
 import orange.olps.svi.client.Client;
 import orange.olps.svi.client.ClientFormat;
 import orange.olps.svi.config.Config;
-import orange.olps.svi.stats.StatManager;
 import orange.olps.svi.util.Util;
 
 public class Enregistrement extends Navigation {
@@ -269,10 +268,7 @@ public class Enregistrement extends Navigation {
 		if (actionNav == Navigation.RIEN) {
 			// premier passage dans cette fonction pour ce client
 			// Statistiques
-			StatManager.getInstance().posterStatistiques(client.getIdent(), 
-					label, 
-					System.currentTimeMillis(),
-					StatManager.NAVIGATION);
+
 		}
 		if (actionNav == Navigation.RIEN  && this.isPrompt() && MODE_TEXTE.equals(mode)) {
 			// premier passage dans cet item de navigation

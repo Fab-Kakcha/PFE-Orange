@@ -8,7 +8,6 @@ import org.json.JSONObject;
 
 import orange.olps.svi.client.Client;
 import orange.olps.svi.config.Config;
-import orange.olps.svi.stats.StatManager;
 
 public class Rejet extends Navigation {
 
@@ -27,7 +26,6 @@ public class Rejet extends Navigation {
 		int rejetMax = menu.getNbErreurMax();
 		
 		logger.debug("traiterRejet ("+label+")-  ("+client.getIdent()+") Nb rejets/Max rejets ("+client.getNbRejet()+"/"+rejetMax+")");
-		StatManager.getInstance().posterStatistiques(client.getIdent(), label, System.currentTimeMillis(), StatManager.NAVIGATION);
 		
 		client.incrementerRejet();
 		client.resetSaisie();
@@ -39,7 +37,6 @@ public class Rejet extends Navigation {
 			 if(nav == null || "".equals(nav) || Navigation.REJET.equals(nav) ) {
 				 // pas d'item de navigation prevu
 				 String message = Config.getInstance().getProperty(Config.DISSUASION_ERREUR,"");
-				 StatManager.getInstance().posterStatistiques(client.getIdent(), Client.REJET, System.currentTimeMillis(), Client.VAR_RAISON);
 				 if("".equals(message)) {
 					 client.setActionNavigation(Navigation.DECONNEXION);
 				 }

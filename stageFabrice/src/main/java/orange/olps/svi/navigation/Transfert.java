@@ -10,7 +10,6 @@ import org.json.JSONObject;
 
 import orange.olps.svi.client.Client;
 import orange.olps.svi.config.Config;
-import orange.olps.svi.stats.StatManager;
 import orange.olps.svi.util.Util;
 
 public class Transfert extends Navigation {
@@ -71,11 +70,7 @@ public class Transfert extends Navigation {
 		logger.debug("calculerActionNavigation - appelant="+client.getNumeroAppelant()+" navigation ="+client.getNavCourante()+" action precedente="+actionNav);
 		if (Navigation.RIEN == actionNav) {
 			// premier passage dans cet item
-			// Statistiques
-			StatManager.getInstance().posterStatistiques(client.getIdent(), 
-					label, 
-					System.currentTimeMillis(),
-					StatManager.NAVIGATION);
+
 		}
 		if (Navigation.RIEN ==  actionNav  && this.isPrompt() && preparerPrompt(client) > 0) {
 			// premier passage dans cet item de navigation
@@ -86,10 +81,7 @@ public class Transfert extends Navigation {
 		else  {
 			if (boolStat && numeroTransfert != null) {
 				String numero = Util.reconstituerString(numeroTransfert, client); 
-				StatManager.getInstance().posterStatistiques(client.getIdent(), 
-						numero.split(";")[0], 
-						System.currentTimeMillis(),
-						Client.VAR_TRANSFERT);
+
 			}
 			// on part en transfert
 			client.setActionNavigation(TRANSFERT);
