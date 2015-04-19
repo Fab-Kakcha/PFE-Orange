@@ -19,7 +19,6 @@ import org.java_websocket.WebSocket;
 import org.java_websocket.WebSocketImpl;
 import org.java_websocket.handshake.ClientHandshake;
 import org.java_websocket.server.WebSocketServer;
-import org.json.simple.JSONObject;
 
 import com.google.gson.JsonObject;
 

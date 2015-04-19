@@ -22,7 +22,6 @@
 			<attribute name="maven.pomderived" value="true"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry kind="lib" path="/home/fabrice/PFE-Orange/lib/api-oms-webrtc.jar"/>
 	<classpathentry kind="lib" path="/home/fabrice/PFE-Orange/lib/commons-logging-1.1.jar"/>
 	<classpathentry kind="lib" path="/home/fabrice/PFE-Orange/lib/gson-2.3.jar"/>
 	<classpathentry kind="lib" path="/home/fabrice/PFE-Orange/lib/java_websocket.jar"/>
