@@ -9,7 +9,7 @@ import java.util.regex.Pattern;
 
 import orange.olps.svi.navigation.Navigation;
 import orange.olps.svi.navigation.NavigationManager;
-import orange.olps.svi.stats.StatManager;
+//import orange.olps.svi.stats.StatManager;
 import orange.olps.svi.util.Util;
 import orange.olps.svi.config.Config;
 
@@ -143,10 +143,10 @@ public class Client {
 		
 		setSilenceService(Boolean.parseBoolean(Config.getInstance().getProperty(Config.SILENCE+getService(), "true")));
 		
-		StatManager.getInstance().posterStatistiques(getIdent(), 
-				f.toString(), 
-				System.currentTimeMillis(), 
-				StatManager.CLIENT);
+		//StatManager.getInstance().posterStatistiques(getIdent(), 
+			//	f.toString(), 
+				//System.currentTimeMillis(), 
+				//StatManager.CLIENT);
 		
 	}
 	/**
@@ -306,10 +306,10 @@ public class Client {
     	mapAttribut.put(param, valeur);    	
  		if (isStat) {
 			// Statistiques
-			StatManager.getInstance().posterStatistiques(this.getIdent(), 
-					valeur, 
-					System.currentTimeMillis(),
-					param);
+		//	StatManager.getInstance().posterStatistiques(this.getIdent(), 
+			//		valeur, 
+				//	System.currentTimeMillis(),
+					//param);
  		}
 		return;		
 	}

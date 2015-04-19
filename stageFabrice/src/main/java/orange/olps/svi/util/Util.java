@@ -851,7 +851,7 @@ public class Util {
 		Context cx = ContextFactory.getGlobal().enterContext();
 		try {
 
-			cx.setLanguageVersion(Context.VERSION_1_8);
+			cx.setLanguageVersion(Context.VERSION_1_7);
 			Scriptable scope = cx.initStandardObjects();
 
 			String val;
@@ -908,7 +908,7 @@ public class Util {
 		Context cx = ContextFactory.getGlobal().enterContext();
 		try {
 
-			cx.setLanguageVersion(Context.VERSION_1_8);
+			cx.setLanguageVersion(Context.VERSION_1_7);
 			Scriptable scope = cx.initStandardObjects();
 
 			cx.evaluateString(scope, "v='"+json.substring(json.indexOf('{'), json.lastIndexOf('}'))+"'",
