@@ -65,7 +65,7 @@ pointer-events: none;
   background-position: 0 -15px;
 }*/
 
-#userName{
+#userName,#confName{
   height: 500px;
     width: 500px;
 /*margin-top: 2cm;
@@ -90,4 +90,61 @@ overflow:auto;
 }
 form{
   text-align: center;
+}
+
+div#listOfPeopleConnected.listOfPeopleConnected{
+   position:absolute;
+    margin: 100px auto;
+    margin-right: 20px;
+    /* set position */
+    top: 0px;
+    right: 0px;
+
+    /* must have dimension */
+    width: 300px;
+    height: 500px;
+    font-size: 14px;;
+}
+
+ div#listOfPeopleConnected div  {
+    background-color: #FFA500;
+    /*background-image: -webkit-gradient(linear, left top, left bottom, from(rgb(114, 122, 134)),to(rgb(80, 88, 100)));
+    background-image: -webkit-linear-gradient(top, rgb(114, 122, 134), rgb(80, 88, 100));
+    background-image: -moz-linear-gradient(top, rgb(114, 122, 134), rgb(80, 88, 100));
+    background-image: -o-linear-gradient(top, rgb(114, 122, 134), rgb(80, 88, 100));
+    background-image: -ms-linear-gradient(top, rgb(114, 122, 134), rgb(80, 88, 100));
+    background-image: linear-gradient(top, rgb(114, 122, 134), rgb(80, 88, 100));
+    filter: progid:DXImageTransform.Microsoft.gradient(GradientType=0,StartColorStr='#727a86', EndColorStr='#505864');*/
+    border-bottom: 1px solid #33373d;
+    -webkit-box-shadow: inset 0px 1px 0px 0px #878e98;
+    -moz-box-shadow: inset 0px 1px 0px 0px #878e98;
+    box-shadow: inset 0px 1px 0px 0px #878e98;
+    width: 100%;
+    height: 2.75em;
+    line-height: 2.75em;
+    text-indent: 2.75em;
+    display: block;
+    position: relative;
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    font-weight: 600;
+    color: #fff;
+    text-shadow: 0px 1px 0px rgba(0,0,0,.5);
+}
+
+div#listOfPeopleConnected li  {
+    background: #fff;
+    border-bottom: 1px solid #efeff0;
+    width: 100%;
+    height: 2.75em;
+    line-height: 2.75em;
+    text-indent: 2.75em;
+    display: block;
+    position: relative;
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    font-size: 0.923em;
+    font-weight: 400;
+    color: #878d95;
+}
+ div#listOfPeopleConnected  li:last-child  {
+    border-bottom: 1px solid #33373d;
 }

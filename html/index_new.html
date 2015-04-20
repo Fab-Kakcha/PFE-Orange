@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html>
+<meta charset="UTF-8">
+<head>
+<title>PeerConnection Audio Only Demo 1</title>
+<script src="base/adapter.js"></script>
+<script src="js/jquery-2.1.3.js"></script>
+<!--<link href="css/bootstrap-theme.css" rel="stylesheet">
+<link href="css/bootstrap.min.css" rel="stylesheet">-->
+<link href="css/monCSS.css" rel="stylesheet">
+
+<!-- <style>
+button {
+	font: 18px sans-serif;
+padding: 8px;
+}
+</style>-->
+</head>
+<!-- <body onload=connect();>  10.184.48.159:8887 -->
+
+<body>
+<div id="form" class="btn-group">
+<form name="saisie">
+Serveur OmsGateway : <input type="text" value="127.0.0.1:8887" name="serveurPort"><br>
+</form>
+</div>
+
+<div id="audio" class="btn-group">
+<h2>Local-Audio</h2>
+<audio id="audio1" autoplay="autoplay" muted="muted" controls="controls"></audio>
+<h2>Remote-Audio</h2>
+<audio id="audio2" autoplay="autoplay" controls="controls"></audio>
+</div>
+<br><br>
+
+<div class="btn-group">
+<!-- <button id="connexion" disabled onclick="connectToOMS()">Connect to AS</button>-->
+<!--<button class="active" id="connexionToOMS" onclick="connectToOMS()">Connect</button>-->
+<button class="active" id="connexionToOMS" onclick="">Connect</button>
+<button id="deconnexiondOMS" class="disabled" onclick="disconnect()">Disconnect</button>
+</div>
+<br><br>
+
+<div class="btn-group">
+<!--<button id="conf" class="enabled" onclick="showForm()">conference</button> createConference()-->
+<button id="createConf" class="disabled" onclick="">create conf</button>
+<button id="conf" class="disabled" onclick="">conference</button>
+</div>
+</div>
+
+<div id="userName">
+<span class="checkUserName"></span>
+<br>
+<form id="form2" name="form2" method="post">
+UserName: <input id="name" name="name" type="text" placeholder="your username" maxlength="20" required><p id="checkUserName" class="checkUserName"></p><br>
+</form>
+<input id="submit2" type="submit" value="OK">
+</div>
+<br>
+<div id="confName">
+<span class="checkconfName"></span>
+<br>
+<form id="form" name="form" method="post">
+<!--UserName: <input id="name" name="name" type="text" placeholder="your username" maxlength="20" required><p id="checkUserName" class="checkUserName"></p><br>-->
+ConfName: <input id="confname" name="confname" type="text" placeholder="conf name" maxlength="20" required><p id="checkConfName" class="checkUserName"></p><br><br>
+			<select name="mode" id="mode">
+				<option value="speaker">speaker</option>
+				<option value="mute">mute</option>
+				<option value="student">student</option>
+				<option value="coach">coach</option>
+			</select><br>
+<input id="submit" type="submit" value="OK">
+</form>
+</div>
+
+<br><br>
+
+<div class="btn-group">
+<button id="say" class="disabled" onclick="say()">say</button>
+<button id="play" class="disabled" onclick="playFile()">play</button>
+<button id="recordingConf" class="disabled" onclick="recordingConf()">record conf</button>
+<button id="stoprecordingConf" class="disabled" onclick="stopRecordingConf()">stop recording conf</button>
+<!-- <button id="joinconf" class="disabled" onclick="joinConf()">join conf</button> -->
+<br><br>
+<button  class ="disabled" id="mute" onclick="mute()">Mute</button>
+<button  class ="disabled" id="unmute" onclick="unmute()">Unmute</button>
+<button  class ="disabled" id="muteall" onclick="muteAll()">MuteAll</button>
+<button  class ="disabled" id="unmuteall" onclick="unmuteAll()">UnmuteAll</button>
+<br><br>
+<button id="infos" class="disabled" onclick="confInfos()">infos</button>
+</div>
+<p id="confInfos"></p>
+<p id="recordConf"> </p>
+
+<div id="listOfPeopleConnected" class="listOfPeopleConnected">
+	<div id="online"> List of Participants </div>
+</div>
+
+<script>
+
+/*
+<script src="https://code.jquery.com/jquery-1.10.2.js">
+function showForm(){
+	document.getElementById("userName").style.display = "block";
+}*/
+
+var loginMode;
+var confCreation = 0;
+
+$(document).ready(function(){
+	
+	$("#connexionToOMS").click(function(){
+		$("#userName").show();
+		buttonState(disabled,disabled,disabled,disabled,disabled,disabled,disabled,disabled);
+		buttonState2(disabled, disabled, disabled, disabled, disabled);
+	});
+
+	$("#conf").click(function(){
+		$("#confName").show();
+		buttonState(disabled,disabled,disabled,disabled,disabled,disabled,disabled,disabled);
+		buttonState2(disabled, disabled, disabled, disabled, disabled);
+
+		confCreation = 0;
+	});
+
+	$("#createConf").click(function(){
+		$("#confName").show();
+		buttonState(disabled,disabled,disabled,disabled,disabled,disabled,disabled,disabled);
+		buttonState2(disabled, disabled, disabled, disabled, disabled);
+		confCreation = 1;
+	});
+
+	$("input").keypress(function(e){
+
+		$("#checkUserName").hide();	
+		$("#checkConfName").hide();
+
+		var key = String.fromCharCode(e.which);
+		if(key.match(/[:!]/)){
+			e.preventDefault();
+			$("span").show();
+			//$("span").css("color","red");
+			$("span").text("key not allowed");
+
+		  }else $("span").hide();
+	});
+
+	$('#submit').keypress(function(e){                                       
+       if (e.which == 13) {
+            e.preventDefault();
+            
+           // document.getElementById('submit').click(); 
+           $("span").hide();
+        // var login = $("#name").val();
+		 var confname = $("#confname").val();
+		if(confname == ""){
+				//$("#checkUserName").show();
+				$("#checkConfName").show();
+			 //$("#checkUserName").css("color","red");
+			 	//$("#checkUserName").text("userName must be filled out");
+			 	$("#checkConfName").text("confName must be filled out");
+
+	//	}else if (login == "") {
+
+				//$("#checkUserName").show();
+				//$("#checkUserName").text("userName must be filled out");
+			//}else if(confname == ""){
+
+			//$("#checkConfName").show();
+			//$("#checkConfName").css("color","red");
+			//$("#checkConfName").text("confName must be filled out");
+
+			}
+		else{		
+
+			//$("#checkUserName").hide();	
+			$("#checkConfName").hide();
+			$("#confName").hide();
+
+		  var mode = $("#mode").val();
+		  loginMode = mode + ":" + confname;
+
+		if(Boolean(confCreation)){
+			  createConference(loginMode);
+		  }else conference(loginMode);
+		
+	}
+
+       }
+});
+
+	$('#submit2').keypress(function(e){                                       
+       if (e.which == 13) {
+            e.preventDefault();
+            
+           // document.getElementById('submit').click(); 
+           $("span").hide();
+         var login = $("#name").val();
+		if(login == ""){
+				$("#checkUserName").show();
+			 //$("#checkUserName").css("color","red");
+			 	$("#checkUserName").text("userName must be filled out");
+
+		}else{		
+
+			$("#checkUserName").hide();	
+			$("#userName").hide();
+
+			connectToOMS(login);			
+	}
+
+       }
+});
+
+	$('#submit').click(function(e){   
+
+		var idClicked = e.target.id;
+
+		if(idClicked=="submit"){
+
+          e.preventDefault();            
+           // document.getElementById('submit').click(); 
+
+           $("span").hide();
+
+           //var login = $("#name").val();
+			var confname = $("#confname").val();
+
+			if(confname == ""){
+				//$("#checkUserName").show();
+				$("#checkConfName").show();
+			 //$("#checkUserName").css("color","red");
+			 	//$("#checkUserName").text("userName must be filled out");
+			 	$("#checkConfName").text("confName must be filled out");
+
+			//}else if (login == "") {
+
+				//$("#checkUserName").show();
+				//$("#checkUserName").text("userName must be filled out");
+			//}
+			//else if(confname == ""){
+				//$("#checkConfName").show();
+			//$("#checkConfName").css("color","red");
+			//$("#checkConfName").text("confName must be filled out");
+
+			}
+		else{		
+
+			//$("#checkUserName").hide();	
+			$("#checkConfName").hide();
+			$("#confName").hide();
+
+		 var mode = $("#mode").val();
+		 loginMode = mode + ":" + confname;
+		 
+		 if(Boolean(confCreation)){
+			createConference(loginMode);			
+		 }else conference(loginMode);			
+	}
+  }	
+
+});
+
+$('#submit2').click(function(e){  
+	var idClicked = e.target.id;  
+
+       if(idClicked=="submit2") {
+            e.preventDefault();
+            
+           // document.getElementById('submit').click(); 
+           $("span").hide();
+         var login = $("#name").val();
+		if(login == ""){
+				$("#checkUserName").show();
+			 //$("#checkUserName").css("color","red");
+			 	$("#checkUserName").text("userName must be filled out");
+
+		}else{		
+
+			$("#checkUserName").hide();	
+			$("#userName").hide();
+
+			connectToOMS(login);			
+	}
+
+       }
+});
+
+
+
+});
+
+//Client websocket
+
+/*
+Test d'appel initialise par le navigateur. Il se connecte a l'AS et envoie son SDP
+L'AS envoie le SDP a OMS qui retourne le sien
+L'AS retourne le SDP au navigateur et les 2 interlocuteurs s'envoient du STUN puis document 
+etablissent la communication media
+*/
+
+var streamLocal;
+var dtmfSender;
+var serveurWs;
+var socket;
+var socketAS;
+var active = "active";
+var disabled = "disabled";
+var listArrayClient = new Array();
+var showName = "showName";
+
+function createWebSocket(host) {
+	if(window.MozWebSocket) {
+		window.WebSocket=window.MozWebSocket;
+	}
+	if(!window.WebSocket) {
+		alert('Votre navigateur ne supporte pas les webSocket!');
+		return false;
+	} else {
+		socket = new WebSocket(host);
+		//socket.onopen = function() {
+			//trace("Connexion au serveur " + serveurWs);
+			//alert("Message to sent...");
+			//socket.send("newCall");
+			//alert("New call");
+		//}
+		socket.onclose = function() { 
+			//trace("Déconnexion"); 
+
+			buttonState(active, disabled, disabled, disabled, disabled, disabled, disabled, disabled);
+
+			var video =  document.getElementById("audio2");
+			video.muted = true;
+			video.autoplay = false;
+			window.location.reload(true);
+
+		}
+		socket.onerror = function() { trace("Une erreur est survenue"); }
+		socket.onmessage = function(evt){
+			//alert(evt.data);
+			if (evt.data == "stopRecordConf") {
+				buttonState(disabled, active, active, active, active, disabled, disabled);
+				//document.getElementById("recordConf").style.display = "block";
+				//.getElementById("recordConf").innerHTML = "Recording ended";
+				//document.getElementById("recordConf").style.color = "blue";
+				$("#recordConf").show().css("color","blue").text("Recording ended");
+			} else if(evt.data == "recordConf"){
+				
+				buttonState(disabled, active, disabled, disabled, disabled, active, disabled, disabled);
+
+				$("#recordConf").show().css("color","red").text("Recording started");
+				
+			}else if(evt.data == "incomingCall"){
+				//console.log("incoming Call");
+				//buttonState(disabled, disabled, disabled, disabled, disabled, disabled, disabled);
+			}else if(evt.data == "confCreated"){
+
+					buttonState(disabled, active, disabled, disabled, disabled, disabled, active, disabled);
+					buttonState2(disabled, disabled, disabled, disabled, disabled);
+
+			}else if (evt.data == "confDoesNotExist") {
+				alert("No conference available. You can create one by clicking on create");
+				buttonState(disabled, active, disabled, disabled, disabled, disabled, disabled, active);
+				buttonState2(disabled, disabled, disabled, disabled, disabled);				
+
+			}else if (evt.data == "confAlreadyExists") {				
+				alert("conference already exists. You can join it by clicking on conference");
+				buttonState(disabled, active, disabled, disabled, disabled, disabled, active, disabled);
+				buttonState2(disabled, disabled, disabled, disabled, disabled);
+
+			}else if(evt.data == "coachExist"){
+				alert("A coach already exists. Please change your mode");
+				buttonState(disabled, active, disabled, disabled, disabled, disabled, active, disabled);
+				buttonState2(disabled, disabled, disabled, disabled, disabled);
+
+			}else if(evt.data == "studentExist"){
+				alert("A student already exists. Please change your mode");
+				buttonState(disabled, active, disabled, disabled, disabled, disabled, active, disabled);
+				buttonState2(disabled, disabled, disabled, disabled, disabled);
+
+			}else if(evt.data =="userNameExist"){
+				alert("userName already exists.");
+				socket.close();
+			}else if (evt.data.substring(0,showName.length) === showName) {
+
+				//alert(evt.data);
+				var str = evt.data.split(":");
+				var nameClient = str[str.length - 1];
+				//alert("your userName is: " + nameClient);
+				if(listArrayClient.indexOf(nameClient) == -1){
+
+					listArrayClient.push(nameClient);
+
+					var participantNode = document.createTextNode(nameClient);
+					var node=document.createElement("LI");
+					var liste= document.getElementById("listOfPeopleConnected");
+					node.appendChild(participantNode);
+					liste.appendChild(node);
+				}						
+			}
+			else if (evt.data instanceof Blob) {
+
+				//alert("here");
+				//buttonState(disabled, active, disabled, disabled, disabled, disabled, active, disabled);
+				var urlInfo = window.URL.createObjectURL(evt.data);
+				
+				var strWindowFeatures = "menubar=yes,location=yes,resizable=yes,scrollbars=yes,status=yes";
+				var windowObjectReference = window.open(urlInfo, "My_Window", strWindowFeatures);
+
+				 /*$(windowObjectReference.document).load(function(){
+					window.stop();
+				});*/
+			}else {
+
+				var signal = JSON.parse(evt.data);
+				if (signal.sdp) { //distinguer sdp offer ou answer
+					trace ("Reception de SDP" + signal.sdp.sdp);
+
+					buttonState(disabled, active, disabled, disabled, disabled, disabled, active,active);
+					document.getElementById("infos").className = active;
+					pc.setRemoteDescription(new RTCSessionDescription(signal.sdp));
+					//setTimeout(function(){window.close();},6000);
+					//window.close();
+				}
+				else {
+
+					if (signal.candidate) {
+						trace ("Reception de CANDIDATES");
+						pc.addIceCandidate(new RTCIceCandidate(signal.candidate));
+					} else {
+						trace ("Reception de data : " + evt.data);
+					}
+				}
+			}
+		}
+	}
+}
+
+
+function buttonState(p1, p2, p3, p4, p5, p6, p7, p8){
+
+	document.getElementById("connexionToOMS").className = p1;
+	document.getElementById("deconnexiondOMS").className = p2;
+
+	document.getElementById("say").className = p3;
+	document.getElementById("play").className = p4;
+	document.getElementById("recordingConf").className = p5;
+	document.getElementById("stoprecordingConf").className = p6;
+	document.getElementById("conf").className = p7;
+	document.getElementById("createConf").className = p8;
+
+	//document.getElementById("connexionToOMS").disabled = true;
+}
+
+
+function buttonState2(p1, p2, p3, p4, p5){
+
+	document.getElementById("infos").className = p1;
+	document.getElementById("mute").className = p2;
+	document.getElementById("unmute").className = p3;
+	document.getElementById("muteall").className = p4;
+	document.getElementById("unmuteall").className = p5;
+}
+
+
+var pc;
+var servers = null;
+var pc_constraints = {"optional": []};
+var configuration = { "iceServers": [{ "url": "stun:stun.example.org" }] };
+
+pc = new RTCPeerConnection(servers,pc_constraints);
+
+function connectToOMS(userName) {
+
+	//var userName = "Test";
+	serveurWs = document.saisie.serveurPort.value;
+	createWebSocket("ws://" + serveurWs);
+	//createWebSocket("ws://127.0.0.1:8887");
+
+
+	socket.onopen = function() {
+		trace("Connexion au serveur " + serveurWs);
+		//socket.send("newCall");
+	}
+
+	//pc = new RTCPeerConnection(servers,pc_constraints);
+	trace("getStream");
+
+	// Handler sur la reception d'un flux media
+    pc.onaddstream = function (evt) {
+		trace("onaddstream");
+		
+		// Attache le flux du distant au casque local
+		attachMediaStream(audio2, evt.stream);
+    };
+	
+	// Handler sur la reception des candidates. La derniere == null. 
+    pc.onicecandidate = function (evt) {
+		if (evt.candidate == null) {
+			trace("On envoie le sdp complet");
+ 			var localSDP = pc.localDescription;
+			socket.send(JSON.stringify({"sdp": localSDP,"userName":userName})); //envoie du sdp	
+		}
+	};
+
+	call();
+
+	//buttonState(disabled, active, active, active, active, active, disabled);
+}
+
+
+function conference(loginMode){
+
+	buttonState(disabled, active, disabled, disabled, active, disabled, active, disabled);
+	
+	buttonState2(active, active, active, active, active);
+	socket.send(JSON.stringify({ "cmd":"joinConf","param": loginMode }));
+	
+}
+
+function createConference(loginMode) {
+
+	//var loginMode = "tata:mute:conf1";
+	buttonState(disabled, active, disabled, disabled, active, disabled, disabled, disabled);
+	buttonState2(active, active, active, active, active);
+	socket.send(JSON.stringify({"cmd":"createConf","param": loginMode}));
+}
+
+
+function disconnect(){
+
+	socket.send(JSON.stringify({"cmd":"disconnect","param":" "}));
+	socket.close();
+}
+
+function playFile() {
+
+	buttonState(disabled, active, disabled, disabled, active, disabled, disabled, disabled);
+
+	//socket.send(JSON.stringify({"cmd":"play","param":"/var/opt/data/flat/64poms/files/logs/20150210/bonjour.a8k"}));
+	socket.send(JSON.stringify({"cmd":"play","param":" "}));
+}
+
+function say() {
+
+	buttonState(disabled, active, disabled, active, disabled, disabled, active, disabled);
+
+	socket.send(JSON.stringify({"cmd":"say","param":""}));
+}
+
+function recordingConf() {
+
+	buttonState(disabled, active, disabled, disabled, disabled, active, disabled, disabled);
+
+	socket.send(JSON.stringify({"cmd":"recordConf","param":" "}));
+}
+
+
+function stopRecordingConf(){
+
+	buttonState(disabled, active, disabled, active, active, disabled, disabled, disabled);
+
+	socket.send(JSON.stringify({"cmd":"stopRecordConf","param":" "}));
+}
+
+function confInfos(){
+
+	socket.send(JSON.stringify({"cmd":"confInfos","param":" "}));
+}
+
+function mute(){
+	
+	buttonState2(active, disabled, active, active, active);
+	socket.send(JSON.stringify({"cmd":"mute","param":" "}));
+}
+
+function unmute(){
+	
+	buttonState2(active, active, disabled, active, active);
+	socket.send(JSON.stringify({"cmd":"unmute","param":" "}));
+}
+
+function muteAll(){
+	
+	buttonState2(active, active, active, disabled, active);
+	socket.send(JSON.stringify({"cmd":"muteAll","param":" "}));
+}
+
+function unmuteAll(){
+	
+	buttonState2(active, active, active, active, disabled);	
+	socket.send(JSON.stringify({"cmd":"unmuteAll","param":" "}));
+}
+
+function call() {
+
+    // On demande le flux local au navigateur 
+	// On l'envoie au correspondant
+	// On définit un dtmfSender pour envoyer des dtmfs
+	// Et on l'attache au bon curseur local
+    
+	navigator.getUserMedia({ "audio": true, "video": false }, 
+   		function (stream) {
+			trace("Lit le flux local et l'envoie au correspondant");
+			pc.addStream(stream);
+			trace ("createOffer");
+			
+			// Attache le flux local au casque local. On s'entend parler
+			attachMediaStream(audio1, stream);
+			trace("On attache le flux local au curseur du haut : audio1");
+			//myStream = stream;
+			pc.createOffer(gotDescription, function(error) {
+					trace("Erreur createOffer")} );
+
+	        function gotDescription(desc) {
+				trace ("On envoie le SDP");
+	            pc.setLocalDescription(desc);
+	        }
+   		}, 
+		function(evt){
+           	trace("ERREUR : Impossible de lire le media local" + evt);
+       	}
+    );
+}
+//});
+</script>
+</body>
+</html>
