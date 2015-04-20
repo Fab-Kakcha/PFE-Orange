@@ -42,49 +42,24 @@ public class OmsCall extends Thread {
 	private String ipAddress = null;
 	private int partNumberConf = 0;
 	private String confName = null;
+	private String userName = null;
 	private boolean hasClientPressDisc = false;
 	private boolean hasCreatedConf = false;
-	
 	
 	private String[] hosPortVip;
 	
 	
-	public void setHasCreatedConf(boolean bool){
-		hasCreatedConf = bool;		
-	}
-	
-	public boolean getHasCreatedConf(){
-		return hasCreatedConf;
-	}
-	
-	
-	public void setConfName(String conf){
-		confName = conf;
-	}
-	
-	
-	public String getConfname(){	
-		return confName;
-	}
-	
 	/**
-	 * To dealt with the case where a Browser either clicks on the disconnect button or just close 
-	 * its web page. But, this is implemented on the OmsService Class, thus do not care about this method if
-	 * you want to develop the service.
-	 * @return a boolean checking whether the Browser clicks on disconnect or not
+	 * Check whether or not a client is a participant of a conference
+	 * @return true if the client is in a conference and false otherwise
 	 */
-	public boolean getHasClientPressDisc(){
-		return hasClientPressDisc;
-	}
-	
-	/**
-	 * To dealt with the case where a Browser either clicks on the disconnect button or just close 
-	 * its web page. But, this is implemented on the OmsService Class, thus do not care about this method if
-	 * you want to develop the service.
-	 * @param bool is set to true if client clicks on true before leaving the web page
-	 */
-	public void setHasClientPressDisc(boolean bool){
-		hasClientPressDisc = bool;
+	public boolean isInsideAConf(){
+		
+		String name = this.getConfname();
+		if(name == null)
+			return false;
+		else 
+			return true;
 	}
 	
 	/**
@@ -582,6 +557,51 @@ public class OmsCall extends Thread {
 	public int getPartNumberConf(){	
 		return partNumberConf;
 	}
+	
+	public void setHasCreatedConf(boolean bool){
+		hasCreatedConf = bool;		
+	}
+	
+	public boolean getHasCreatedConf(){
+		return hasCreatedConf;
+	}
+	
+	public void setConfName(String conf){
+		confName = conf;
+	}
+	
+	public String getConfname(){	
+		return confName;
+	}
+	
+	public void setUserName(String userName){
+		this.userName = userName;
+	}
+	
+	public String getUserName(){
+		return userName;
+	}
+	
+	/**
+	 * To dealt with the case where a Browser either clicks on the disconnect button or just close 
+	 * its web page. But, this is implemented on the OmsService Class, thus do not care about this method if
+	 * you want to develop the service.
+	 * @return a boolean checking whether the Browser clicks on disconnect or not
+	 */
+	public boolean getHasClientPressDisc(){
+		return hasClientPressDisc;
+	}
+	
+	/**
+	 * To dealt with the case where a Browser either clicks on the disconnect button or just close 
+	 * its web page. But, this is implemented on the OmsService Class, thus do not care about this method if
+	 * you want to develop the service.
+	 * @param bool is set to true if client clicks on true before leaving the web page
+	 */
+	public void setHasClientPressDisc(boolean bool){
+		hasClientPressDisc = bool;
+	}
+	
 	
 	/*public void setNbOfClientConnected(int num){
 		this.nbOfClientConnected = num;

@@ -155,7 +155,7 @@ public class MonServiceWtc implements OmsMessageListener {
 				break;
 			case "createConf":
 			try {
-				conf.create(param);
+				conf.create(call, param);
 			} catch (OmsException e2) {
 				// TODO Auto-generated catch block
 				e2.printStackTrace();
@@ -171,7 +171,7 @@ public class MonServiceWtc implements OmsMessageListener {
 				break;
 			case "play":
 				try {
-					conf.playRecording();
+					conf.playRecording(call.getConfname());
 					//call.play(param, true);
 				} catch (OmsException | IOException | InterruptedException e) {
 					// TODO Auto-generated catch block
@@ -182,7 +182,7 @@ public class MonServiceWtc implements OmsMessageListener {
 				// Le client demande a ce que l'appel soit enregistre. 
 				try {
 					//call.record(param);
-					conf.startRecording();
+					conf.startRecording(call.getConfname());
 				} catch (OmsException | IOException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
@@ -192,7 +192,7 @@ public class MonServiceWtc implements OmsMessageListener {
 				// Le client demande a arreter l'enregistrement. 
 				try {
 					//call.stopRecord();
-					conf.stopRecording();
+					conf.stopRecording(call.getConfname());
 				} catch (OmsException | IOException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();

@@ -67,10 +67,9 @@ public class OmsMessage {
 		return msg.getSdp().getSdp();
 	}
 
-	
-	/*public String getType() {
-		return msg.getSdp().getType();
-	}*/
+	public String getUserName(){
+		return msg.getUserName();
+	}
 
 	private boolean isSdp() {
 		return isSdp;
@@ -139,8 +138,12 @@ public class OmsMessage {
 
 class Msg {
 	Sdp sdp = null;
+	String userName = null;
 	public Sdp getSdp() {
 		return sdp;
+	}
+	public String getUserName(){
+		return userName;
 	}
 }
 
