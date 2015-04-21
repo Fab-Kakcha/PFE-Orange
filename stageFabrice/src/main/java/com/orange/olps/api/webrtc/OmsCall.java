@@ -520,7 +520,7 @@ public class OmsCall extends Thread {
 	
 	/**
 	 * To get the client websocket
-	 * @return websocket of the clientSSSS
+	 * @return websocket of the client
 	 */
 	public WebSocket getWebSocket(){	
 		return this.conn;

@@ -319,8 +319,8 @@ public class OmsConference implements Runnable {
 				}
 				
 			}else
-				throw new OmsException("Cannot add omsCall to conference " + getName() +
-						" omsCall is already in the conference: " + omsCall.getConfname());						
+				throw new OmsException("Cannot add omsCall/Client/Browser to conference " + getName() +
+						", because omsCall has already joined the conference named" + omsCall.getConfname());						
 		}
 	}
 	
@@ -525,6 +525,62 @@ public class OmsConference implements Runnable {
 			throw new OmsException("Conference does not exist : " + repStatus);
 
 	}
+	
+	
+	/**
+	 * Printing out userNames of all participants in a given conference. userNames are send through WebSocket, 
+	 * and the format is ClientWebSocket.send("showUserNameInConf:"+userName)
+	 * @param confName the conference's name
+	 * @throws OmsException
+	 */
+	public void showParticipant(String confName) throws OmsException{
+		
+		if (confName == null)
+			throw new IllegalArgumentException("The argument cannot be null");
+		
+		this.confName = confName;
+		
+		List<String> listUserName = new ArrayList<String>();	
+		boolean bool = annuaireForConference.containsKey(confName);
+		if(!bool)
+			throw new OmsException("The conference name is unknwwon");
+		
+		String userName;
+		OmsCall c;
+		WebSocket w;
+				
+		listOmsCallInConf = annuaireForConference.get(getName());	
+		Iterator<OmsCall> ite = listOmsCallInConf.iterator();
+		while (ite.hasNext()) {
+								
+			c = ite.next();
+			userName = c.getUserName();
+			listUserName.add(userName);
+		}
+		
+		ite = listOmsCallInConf.iterator();
+		Iterator<String> ite1;
+		
+		while(ite.hasNext()){
+			
+			c = ite.next();
+			w = c.getWebSocket();
+			
+			ite1 = listUserName.iterator();
+			while(ite1.hasNext()){
+				
+				userName = ite1.next();
+				if(userName != c.getUserName()){
+					
+					w.send("showUserNameInConf:"+userName);				
+				}
+				w.send("enterConf"+userName);
+					
+			}			
+		}	
+		
+	}
+	
 	
 	/**
 	 * To start recording a conference
@@ -766,7 +822,8 @@ public class OmsConference implements Runnable {
 	}
 	
 	/**
-	 * To mute all participants in a conference
+	 * To mute all participants in a conference. A muteAll message is sent through WebSocket in the format
+	 * ClientWebSocket.send("muteAll")
 	 * @param conf conference name
 	 * @throws OmsException
 	 */
@@ -780,14 +837,28 @@ public class OmsConference implements Runnable {
 						+ conf + "\"/></conference>");
 		if (muteAllRep.indexOf("OK") == -1)
 			throw new OmsException("Error: cannot mute all the paricipants. Reason: " + muteAllRep);
+		
+		confName = conf;
+		boolean bool = annuaireForConference.containsKey(confName);
+		if (!bool)
+			throw new OmsException("The conference name " +conf +" is unknown");
+		
+		listOmsCallInConf = annuaireForConference.get(confName);
+		if(listOmsCallInConf.isEmpty())
+			throw new OmsException("Cannot cannot muteAll. Nobody in the conference");
+		
+		Iterator<OmsCall> ite = listOmsCallInConf.iterator();
+		while (ite.hasNext()) {
+			ite.next().getWebSocket().send("muteAll");
+		}	
 	}
-
+	
 	/**
-	 * To unmute all participants in a conference
+	 * To unmute all participants in a conference. An unmuteAll message is sent through WebSocket in the format
+	 * ClientWebSocket.send("unmuteAll")
 	 * @param conf conference name
 	 * @throws OmsException
 	 */
-	
 	public void unmuteAll(String conf) throws OmsException {
 
 		if(conf == null)
@@ -798,6 +869,20 @@ public class OmsConference implements Runnable {
 						+ conf + "\"/></conference>");
 		if (muteAllRep.indexOf("OK") == -1)
 			throw new OmsException("Error: cannot unmute all the paricipants. Reason: " + muteAllRep);
+		
+		confName = conf;
+		boolean bool = annuaireForConference.containsKey(confName);
+		if (!bool)
+			throw new OmsException("The conference name " +conf +" is unknown");
+		
+		listOmsCallInConf = annuaireForConference.get(confName);
+		if(listOmsCallInConf.isEmpty())
+			throw new OmsException("Cannot cannot unmuteAll. Nobody in the conference");
+		
+		Iterator<OmsCall> ite = listOmsCallInConf.iterator();
+		while (ite.hasNext()) {
+			ite.next().getWebSocket().send("unmuteAll");
+		}
 	}
 
 	/**
@@ -825,13 +910,44 @@ public class OmsConference implements Runnable {
 		return state;
 	}
 	
+	
+	/**
+	 * Check the existence of a conference
+	 * @param conf conference name
+	 * @return true if the conference exists, and false otherwise
+	 */
+	public boolean checkExist(String conf){
+		
+		if(annuaireForConference.containsKey(conf))
+			return true;
+		else 
+			return false;
+	}
+	
+	
+	/**
+	 * Return the list of OmsCall/participants in a conference
+	 * @param conf conference name
+	 * @return list of OmsCall in the conference named conf
+	 * @throws OmsException
+	 */
+	public List<OmsCall> getListOmsCallInConf(String conf) throws OmsException{
+		
+		boolean bool = annuaireForConference.containsKey(confName);
+		if (!bool)
+			throw new OmsException("The conference name " +conf +" is unknown");
+		
+		listOmsCallInConf = annuaireForConference.get(confName);
+		
+		return listOmsCallInConf;
+	}
+	
 	/**
 	 * 
 	 * @param omsCall
 	 * @return
 	 * @throws OmsException
 	 */
-	
 	public boolean isClientJoined(OmsCall omsCall) { 
 
 		  try {
