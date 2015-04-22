@@ -26,8 +26,8 @@ public class MonService extends OmsService implements OmsMessageListener {
 	 */
 	
 	private static Logger logger = Logger.getLogger(MonService.class);
-	//private static final String WEBRTC_CONF = "/opt/testlab/utils/stageFabrice/src/main/java/";
-	private static final String WEBRTC_CONF = "C:\\Users\\JWPN9644\\opt\\application\\64poms\\current\\conf\\";
+	private static final String WEBRTC_CONF = "/opt/testlab/utils/stageFabrice/src/main/java/";
+	//private static final String WEBRTC_CONF = "C:\\Users\\JWPN9644\\opt\\application\\64poms\\current\\conf\\";
 	protected static String hostVip = "127.0.0.1";
 	protected static String portVip = "4670";
 	private static String portWs = "8887";
@@ -47,7 +47,8 @@ public class MonService extends OmsService implements OmsMessageListener {
 	private Annuaire annuaire;
 	//private List<OmsCall> listOmsCall = new ArrayList<OmsCall>();
 	//private String filePath = "/opt/application/64poms/current/tmp/infosOnConferences.log";
-	private String filePath = "C:\\Users\\JWPN9644\\Documents\\infosOnConferences.log";
+	//private String filePath = "C:\\Users\\JWPN9644\\Documents\\infosOnConferences.log";
+	private String filePath2 = "/opt/application/64poms/current/tmp/Animaux.a8k";
 
 	
 	public static void main(String[] args) {
@@ -166,8 +167,9 @@ public class MonService extends OmsService implements OmsMessageListener {
 				break;
 			case "createConf":
 				//conf.create(call, "conf1");
-				//if(annuaire.checkOmsCall(call))
-					param = annuaire.updatingParam(call, param);			
+				if(annuaire.checkOmsCall(call))
+					param = annuaire.updatingStringParam(call, param);	
+				logger.info(param);
 				conf.create(call, param);
 				//conf.notification(listOmsCall);
 				//conf.create(param);
@@ -175,18 +177,27 @@ public class MonService extends OmsService implements OmsMessageListener {
 			case "say":			
 				call.say("Vous avez cliquez sur say", true);
 				break;
-			case "play":				
-				conf.playRecording(call.getConfname());
+			case "playRecording":
+				if(conf.status(call.getConfname()))
+					conf.playRecording(call.getConfname());
 					//conf.play();
+				break;
+			case "playFile":
+				conf.myPlay(call.getConfname(), filePath2);
+				break;
+			case "stopPlay":
+				conf.stopPlay();
 				break;
 			case ("recordConf"):
 				// Le client demande a ce que l'appel soit enregistre. 
 					//call.record(param);
+				if(conf.status(call.getConfname()))
 					conf.startRecording(call.getConfname());
 				break;
 			case ("stopRecordConf"):
 				// Le client demande a arreter l'enregistrement. 
 					//call.stopRecord();
+				if(conf.status(call.getConfname()))
 					conf.stopRecording(call.getConfname());
 				break;
 			case ("joinConf"):
@@ -196,9 +207,14 @@ public class MonService extends OmsService implements OmsMessageListener {
 				// Param sert pour muteOn ou muteOff
 				// conf.join(call) ou call.join(conf)
 				//call.join(conf, param);
-				param = annuaire.updatingParam(call, param);
-				conf.add(call, param);
-				conf.showParticipant(call.getConfname());
+				
+				if(annuaire.checkOmsCall(call))
+					param = annuaire.updatingStringParam(call, param);
+				
+				if(!conf.isClientJoined(call)){				
+					conf.add(call, param);
+					conf.showParticipant(call.getConfname());
+				}
 				break;
 			case ("dtmf"):
 				// Le client saisit une pseudo dtmf. En fait, il clique sur un bouton
@@ -211,26 +227,31 @@ public class MonService extends OmsService implements OmsMessageListener {
 				}
 				break;
 			case "mute":
-				conf.mute(call);
+				if(conf.isClientJoined(call))
+					conf.mute(call);
 				break;
 			case "unmute":
-				conf.unmute(call);
+				if(conf.isClientJoined(call))
+					conf.unmute(call);
 				break;
 			case "muteAll":
-				conf.muteAll(call.getConfname());
+				if(conf.status(call.getConfname()))
+					conf.muteAll(call.getConfname());
 				break;
 			case "unmuteAll":
-				conf.unmuteAll(call.getConfname());
+				if(conf.status(call.getConfname()))
+					conf.unmuteAll(call.getConfname());
 				break;
 			case ("confInfos"):
-				conf.infos(call,filePath);
+				//conf.infos(call,filePath);
 				break;
 			case "disconnect":
+				if(annuaire.checkOmsCall(call))
+					annuaire.showPeopleConnectedToOms(call, false);			
 				//quitter la conf (function unjoin retourne vrai si c'est le dernier à quitter la conf)
 				//détruire la conf si c'est le dernier client à quitter la conf
 				//conf.infos(call,filePath);
-				conf.delete(call);
-				annuaire.showPeopleConnectedToOms(call, false);
+				conf.delete(call);			
 				call.delete();
 				break;
 			default :
