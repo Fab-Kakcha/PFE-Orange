@@ -73,8 +73,6 @@ ConfName: <input id="confname" name="confname" type="text" placeholder="conf nam
 </form>
 </div>
 
-<br><br>
-
 <div class="btn-group">
 <button id="say" class="disabled" onclick="say()">say</button>
 <button id="play" class="disabled" onclick="playFile()">play</button>
@@ -92,8 +90,15 @@ ConfName: <input id="confname" name="confname" type="text" placeholder="conf nam
 <p id="confInfos"></p>
 <p id="recordConf"> </p>
 
-<div id="listOfPeopleConnected" class="listOfPeopleConnected">
-	<div id="online"> List of Participants </div>
+<div id="listOfPeopleConnected">
+<p id="printUserName"></p>
+<div id="online" class="listOfPeopleConnected"> List of people connected to OMS </div>
+</div>
+
+<div id="listOfPeopleInConf">
+<p id="printConfName"></p>
+<p id="printMode"></p>
+<div id="onlineInConf" class="listOfPeopleConnected"> List of people in conference </div>
 </div>
 
 <script>
@@ -173,17 +178,19 @@ $(document).ready(function(){
 			}
 		else{		
 
+			var mode = $("#mode").val();
 			//$("#checkUserName").hide();	
 			$("#checkConfName").hide();
 			$("#confName").hide();
 
-		  var mode = $("#mode").val();
 		  loginMode = mode + ":" + confname;
 
 		if(Boolean(confCreation)){
 			  createConference(loginMode);
 		  }else conference(loginMode);
-		
+
+		  $("#printConfName").text("conference name: " + confname);
+		$("#printMode").text("mode: " + mode);		
 	}
 
        }
@@ -207,6 +214,7 @@ $(document).ready(function(){
 			$("#userName").hide();
 
 			connectToOMS(login);			
+			$("#printUserName").text("userName: " + login);
 	}
 
        }
@@ -249,13 +257,17 @@ $(document).ready(function(){
 			//$("#checkUserName").hide();	
 			$("#checkConfName").hide();
 			$("#confName").hide();
-
-		 var mode = $("#mode").val();
+			var mode = $("#mode").val();
+		 
 		 loginMode = mode + ":" + confname;
 		 
+
 		 if(Boolean(confCreation)){
 			createConference(loginMode);			
-		 }else conference(loginMode);			
+		 }else conference(loginMode);	
+
+		 $("#printConfName").text("conference name: " + confname);
+		$("#printMode").text("mode: " + mode);		
 	}
   }	
 
@@ -280,7 +292,8 @@ $('#submit2').click(function(e){
 			$("#checkUserName").hide();	
 			$("#userName").hide();
 
-			connectToOMS(login);			
+			connectToOMS(login);	
+			$("#printUserName").text("userName: " + login);		
 	}
 
        }
@@ -307,7 +320,11 @@ var socketAS;
 var active = "active";
 var disabled = "disabled";
 var listArrayClient = new Array();
-var showName = "showName";
+var listOfPeopleInConf = new Array();
+
+var showUserNameConnectedToOms = "showUserNameConnectedToOMS";
+var deleteUserName = "deleteUserName";
+var showUserNameInConf = "showUserNameInConf";
 
 function createWebSocket(host) {
 	if(window.MozWebSocket) {
@@ -325,7 +342,7 @@ function createWebSocket(host) {
 			//alert("New call");
 		//}
 		socket.onclose = function() { 
-			//trace("Déconnexion"); 
+			//trace("DÃ©connexion"); 
 
 			buttonState(active, disabled, disabled, disabled, disabled, disabled, disabled, disabled);
 
@@ -350,7 +367,20 @@ function createWebSocket(host) {
 
 				$("#recordConf").show().css("color","red").text("Recording started");
 				
-			}else if(evt.data == "incomingCall"){
+			}else if (evt.data instanceof Blob) {
+
+				//alert("here");
+				//buttonState(disabled, active, disabled, disabled, disabled, disabled, active, disabled);
+				var urlInfo = window.URL.createObjectURL(evt.data);
+				
+				var strWindowFeatures = "menubar=yes,location=yes,resizable=yes,scrollbars=yes,status=yes";
+				var windowObjectReference = window.open(urlInfo, "My_Window", strWindowFeatures);
+
+				 /*$(windowObjectReference.document).load(function(){
+					window.stop();
+				});*/
+			}
+			else if(evt.data == "incomingCall"){
 				//console.log("incoming Call");
 				//buttonState(disabled, disabled, disabled, disabled, disabled, disabled, disabled);
 			}else if(evt.data == "confCreated"){
@@ -377,16 +407,20 @@ function createWebSocket(host) {
 				alert("A student already exists. Please change your mode");
 				buttonState(disabled, active, disabled, disabled, disabled, disabled, active, disabled);
 				buttonState2(disabled, disabled, disabled, disabled, disabled);
-
 			}else if(evt.data =="userNameExist"){
 				alert("userName already exists.");
 				socket.close();
-			}else if (evt.data.substring(0,showName.length) === showName) {
+			}else if (evt.data == "muteAll") {
+					$("#printMode").text("mode: " + "mute");
+					buttonState2(active,active,active,disabled,active);
+			}else if (evt.data == "unmuteAll") {
+					$("#printMode").text("mode: " + "speaker");
+					buttonState2(active,active,active,active,disabled);
+			}
+			else if (evt.data.substring(0,showUserNameConnectedToOms.length) == showUserNameConnectedToOms) {
 
-				//alert(evt.data);
 				var str = evt.data.split(":");
 				var nameClient = str[str.length - 1];
-				//alert("your userName is: " + nameClient);
 				if(listArrayClient.indexOf(nameClient) == -1){
 
 					listArrayClient.push(nameClient);
@@ -397,20 +431,44 @@ function createWebSocket(host) {
 					node.appendChild(participantNode);
 					liste.appendChild(node);
 				}						
+			}else if (evt.data.substring(0,showUserNameInConf.length) == showUserNameInConf) {
+
+				var str = evt.data.split(":");
+				var nameClient = str[str.length - 1];
+				var liste;
+				if(listOfPeopleInConf.indexOf(nameClient) == -1){
+
+					listOfPeopleInConf.push(nameClient);
+					var participantNode = document.createTextNode(nameClient);
+					var node = document.createElement("LI");
+					liste= document.getElementById("listOfPeopleInConf");
+
+					node.appendChild(participantNode);
+					liste.appendChild(node);
+
+					$("div#listOfPeopleConnected li:contains("+nameClient+")").remove();
+				}
 			}
-			else if (evt.data instanceof Blob) {
+			else if (evt.data.substring(0,deleteUserName.length) == deleteUserName) {
 
-				//alert("here");
-				//buttonState(disabled, active, disabled, disabled, disabled, disabled, active, disabled);
-				var urlInfo = window.URL.createObjectURL(evt.data);
-				
-				var strWindowFeatures = "menubar=yes,location=yes,resizable=yes,scrollbars=yes,status=yes";
-				var windowObjectReference = window.open(urlInfo, "My_Window", strWindowFeatures);
+				var str = evt.data.split(":");
+				var nameClient = str[str.length - 1];
+				var liste;
+				if(listArrayClient.indexOf(nameClient) != -1){
 
-				 /*$(windowObjectReference.document).load(function(){
-					window.stop();
-				});*/
-			}else {
+					liste= document.getElementById("listOfPeopleConnected");
+  					$('div#listOfPeopleConnected li:contains(' + nameClient + ')').remove();
+  					listArrayClient.splice(listArrayClient.indexOf(nameClient), 1);
+				}
+
+				if(listOfPeopleInConf.indexOf(nameClient) != -1){
+
+					liste = document.getElementById("listOfPeopleInConf");
+					$('div#listOfPeopleInConf li:contains(' + nameClient + ')').remove();
+					listOfPeopleInConf.splice(listOfPeopleInConf.indexOf(nameClient), 1);
+				}
+			}
+			else {
 
 				var signal = JSON.parse(evt.data);
 				if (signal.sdp) { //distinguer sdp offer ou answer
@@ -511,7 +569,7 @@ function connectToOMS(userName) {
 
 function conference(loginMode){
 
-	buttonState(disabled, active, disabled, disabled, active, disabled, active, disabled);
+	buttonState(disabled, active, disabled, disabled, active, disabled, disabled, disabled);
 	
 	buttonState2(active, active, active, active, active);
 	socket.send(JSON.stringify({ "cmd":"joinConf","param": loginMode }));
@@ -570,12 +628,14 @@ function confInfos(){
 
 function mute(){
 	
+	$("#printMode").text("mode: " + "mute");
 	buttonState2(active, disabled, active, active, active);
 	socket.send(JSON.stringify({"cmd":"mute","param":" "}));
 }
 
 function unmute(){
 	
+	$("#printMode").text("mode: " + "speaker");
 	buttonState2(active, active, disabled, active, active);
 	socket.send(JSON.stringify({"cmd":"unmute","param":" "}));
 }
@@ -596,7 +656,7 @@ function call() {
 
     // On demande le flux local au navigateur 
 	// On l'envoie au correspondant
-	// On définit un dtmfSender pour envoyer des dtmfs
+	// On dÃ©finit un dtmfSender pour envoyer des dtmfs
 	// Et on l'attache au bon curseur local
     
 	navigator.getUserMedia({ "audio": true, "video": false }, 
