@@ -50,19 +50,6 @@ public class OmsCall extends Thread {
 	
 	
 	/**
-	 * Check whether or not a client is a participant of a conference
-	 * @return true if the client is in a conference and false otherwise
-	 */
-	public boolean isInsideAConf(){
-		
-		String name = this.getConfname();
-		if(name == null)
-			return false;
-		else 
-			return true;
-	}
-	
-	/**
 	 * 
 	 */
 	public OmsCall() {

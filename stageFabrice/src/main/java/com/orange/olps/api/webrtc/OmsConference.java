@@ -6,6 +6,7 @@ package com.orange.olps.api.webrtc;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -31,7 +32,7 @@ import org.java_websocket.WebSocket;
 
 //Check here and in OmsCall that the Browser is connected before deleting its ressources.
 
-public class OmsConference implements Runnable {
+public class OmsConference{
 
 	private final static int ARRAY_SIZE = 1024 * 1024;
 
@@ -95,13 +96,12 @@ public class OmsConference implements Runnable {
 	}
 
 	/**
-	 * To create the conference, and if a conference has already been creaded,
-	 * then a message is sent to the Browser letting him know the conference
-	 * exists and he is welcome to join it.
-	 * @param omsCall creator of the conference
-	 * @param param param a String concatenating the name, mode(student, coach, mute) of participants
-	 * and the conference name
-	 * 	in the form of "firstname:mode:conferencename"
+	 * To create the conference, and if a conference has already been created,
+	 * then a message "confAlreadyExist" is sent to the Browser through its WebSocket for letting 
+	 * him know the conference exists.
+	 * @param omsCall OmsCall who wants to create the Conference
+	 * @param param is a String concatenating the Client's userName, mode(student, coach, mute)
+	 * and the Conference name in the form of "firstname:mode:conferencename"
 	 * @throws OmsException
 	 */
 	
@@ -143,13 +143,13 @@ public class OmsConference implements Runnable {
 	
 	/**
 	 * To add a OMS call into the conference, and if the conference does not yet
-	 * exist, then a message is sent to the Browser for letting him know there
-	 * is no conference yet.
+	 * exist, then a message "confDoesNotExist" is sent to the Browser through its WebSocket for 
+	 * letting him know there is no conference with the name he entered.
 	 * 
 	 * @param omsCall
 	 *            OMS call to join the conference
-	 * @param param a String concatenating the name, mode(student, coach, mute) of participants
-	 * and the conference name
+	 * @param param a String concatenating the Client's userName, mode(student, coach, mute)
+	 * and the Conference name
 	 * 	in the form of "firstname:mode:conferencename"
 	 * @throws OmsException
 	 */
@@ -181,7 +181,7 @@ public class OmsConference implements Runnable {
 			websock.send("confDoesNotExist");
 		} else {		
 					
-			if(!omsCall.isInsideAConf()){
+			if(!isClientJoined(omsCall)){
 				
 				connOMSCall = omsCall.getVipConnexion();
 				int num = 1;
@@ -320,7 +320,7 @@ public class OmsConference implements Runnable {
 				
 			}else
 				throw new OmsException("Cannot add omsCall/Client/Browser to conference " + getName() +
-						", because omsCall has already joined the conference named" + omsCall.getConfname());						
+						", because omsCall has already joined the conference named " + omsCall.getConfname());						
 		}
 	}
 	
@@ -332,7 +332,7 @@ public class OmsConference implements Runnable {
 	 * @param listOmsCall
 	 *            An ArrayList of Browsers connected to OMS
 	 */
-	public void notification(List<OmsCall> listOmsCall) {
+	private void notification(List<OmsCall> listOmsCall) {
 
 		List<OmsCall> newList = new ArrayList<OmsCall>();
 		newList.addAll(listOmsCall);
@@ -424,13 +424,13 @@ public class OmsConference implements Runnable {
 			
 			boolean bool = annuaireForConference.containsKey(confName);
 			if (!bool)
-				throw new OmsException("The conference name is unknwwon");
+				throw new OmsException("The conference name for the OmsCall is unknown");
 			
 			listOmsCallInConf = annuaireForConference.get(confName);
 			if (listOmsCallInConf.isEmpty())
 				throw new OmsException(
 						"Cannot delete the participant. Nobody in the conference");
-
+				
 			int num = omsCall.getPartNumberConf();
 			connOMSCall = omsCall.getVipConnexion();
 			hasCreatedConf = omsCall.getHasCreatedConf();
@@ -451,6 +451,7 @@ public class OmsConference implements Runnable {
 
 					connOMSCall.getReponse("delete s2");
 					connOMSCall.getReponse("delete e1");
+					connOMSCall.getReponse("wait evt=mt1.*");
 					ite.remove();
 				}
 			}
@@ -478,8 +479,12 @@ public class OmsConference implements Runnable {
 		if(omsCall == null)
 			throw new IllegalArgumentException("The argument cannot be null");
 				
+		
+		if(!omsCall.getHasCreatedConf())
+			throw new OmsException("You cannot destroy a conference, since you have not created "
+					+ "any conference");
+		
 		confName = omsCall.getConfname();		
-		connOMSCall = omsCall.getVipConnexion();
 
 		String repStatus = connOMSConf.getReponse("<conference><status requestid=\"req2\" conferenceid=\""
 						+ getName() + "\" /></conference>");
@@ -503,7 +508,7 @@ public class OmsConference implements Runnable {
 
 			if (destroyConf.indexOf("OK") != -1) {
 								
-				String rep1 = connOMSCall.getReponse("wait evt=mt1.*");
+				//String rep1 = connOMSCall.getReponse("wait evt=mt1.*");
 
 				// if (rep1.indexOf("OK")!=-1){
 				// connOMSCall.getReponse("mt1 shutup");
@@ -528,7 +533,7 @@ public class OmsConference implements Runnable {
 	
 	
 	/**
-	 * Printing out userNames of all participants in a given conference. userNames are send through WebSocket, 
+	 * Printing out userNames of all participants in a given conference, and userNames are send through WebSocket, 
 	 * and the format is ClientWebSocket.send("showUserNameInConf:"+userName)
 	 * @param confName the conference's name
 	 * @throws OmsException
@@ -586,7 +591,7 @@ public class OmsConference implements Runnable {
 	 * @throws IOException
 	 */
 	
-	public void startRecording(String conf) throws OmsException, IOException {
+	public void startRecording(final String conf) throws OmsException, IOException {
 
 		if (conf == null)
 			throw new IllegalArgumentException("The argument cannot be null");
@@ -601,10 +606,122 @@ public class OmsConference implements Runnable {
 			throw new OmsException("Cannot start recording. Nobody in the conference");
 		
 		activate();
-		t = new Thread(this);
+		//t = new Thread(this);
+		//t.start();
+		
+		Thread t = new Thread(new Runnable(){
+
+			@Override
+			public void run() {
+				// TODO Auto-generated method stub
+				
+				confName = conf;
+				randomGenerator = new Random();
+				omsCallRecord = new OmsCall();
+				
+				//listOmsCallInConf = annuaireForConference.get(confName);
+				randomGenerator = new Random();
+				omsCallRecord = new OmsCall();
+
+				int index = randomGenerator.nextInt(listOmsCallInConf.size());
+				String[] hostPortVip = listOmsCallInConf.get(index)
+						.getHostPortVip();
+				try {
+					omsCallRecord.connect(hostPortVip[0], hostPortVip[1]);
+			
+				String respJoin = null;
+				int num = 0;
+
+				
+					respJoin = connOMSConf
+							.getReponse("<conference><join  requestid=\"req1\" conferenceid=\""+ getName()
+									+ "\"  participantid=\"" + num
+									+ "\" entertone=\"false\" exittone=\"false\"/></conference>");
+			
+
+				if (respJoin.indexOf("OK") != -1) {
+
+					Matcher mat2 = pat2.matcher(respJoin);
+
+					if (mat2.find()) {
+
+						String mediaInput = "/" + mat2.group(1);
+						String mediaInputPath = "/opt/application/64poms/current/tmp" + mediaInput;
+						OutputStream outputStream;
+						try {
+							outputStream = new FileOutputStream(new File(mediaInputPath));
+							String string = "Hello";
+							buf = new byte[ARRAY_SIZE];
+							buf = string.getBytes();
+							outputStream.write(buf, 0, buf.length);
+							outputStream.close();
+						} catch (IOException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
+					}
+					Matcher mat1 = pat1.matcher(respJoin);
+
+					if (mat1.find()) {
+
+						Iterator<OmsCall> ite = listOmsCallInConf.iterator();
+
+						while (ite.hasNext()) {
+							ite.next().getWebSocket().send("recordConf");
+						}
+
+						String mediaOutput = "/" + mat1.group(1) + "";
+						String mediaOutputPath = "/opt/application/64poms/current/tmp" + mediaOutput;
+						InputStream inputStream;
+						
+							inputStream = new FileInputStream(new File(
+									mediaOutputPath));
+							buf = new byte[ARRAY_SIZE];
+							int bytes_read;
+
+							String enregFileRaw = enregFile + ".raw";
+							File fRaw = new File(enregFileRaw);
+							if (fRaw.exists()) {
+								fRaw.delete();
+								System.out.println(enregFileRaw + " deleted");
+								fRaw.createNewFile();
+							}
+
+							OutputStream outputStream = new FileOutputStream(fRaw);
+							while (running) {
+
+								bytes_read = inputStream.read(buf);
+								// System.out.println(bytes_read);
+								if (bytes_read == -1)
+									break;
+								outputStream.write(buf, 0, bytes_read);
+							}
+
+							inputStream.close();
+							outputStream.close();
+							logger.info("The .raw file is ready");
+					}
+				}				
+		
+			} catch (OmsException | IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+				
+			}		
+		});	
+		
 		t.start();
 	}
 
+	/**
+	 * To stop the Thread responsible for playing the ongoing played file
+	 */
+	public void stopPlay(){
+		
+		terminate();
+	}
+	
 	private void deleteRecorder(String conf) throws OmsException, IOException {
 
 		if(conf == null)
@@ -667,14 +784,14 @@ public class OmsConference implements Runnable {
 			throw new IllegalArgumentException("The argument cannot be null");
 		
 		//confName = omsCall.getConfname();		
-		confName = conf;		
+		/*confName = conf;		
 		boolean bool = annuaireForConference.containsKey(confName);
 		if(!bool)
-			throw new OmsException("The conference name is unknwwon");
+			throw new OmsException("The conference with name "+conf+" doesn't exist");
 		
 		listOmsCallInConf = annuaireForConference.get(confName);
 		if(listOmsCallInConf.isEmpty())
-			throw new OmsException("Cannot stop recording. Nobody in the conference");
+			throw new OmsException("Cannot stop recording. Nobody in the conference");*/
 		
 		Process p;
 		int returnCode;
@@ -712,7 +829,9 @@ public class OmsConference implements Runnable {
 		if (returnCode != 0)
 			throw new OmsException("sox command failed " + returnCode);
 
-		randomGenerator = new Random();
+		myPlay(conf, enregFileRaw);
+		
+		/*randomGenerator = new Random();
 		omsCallRecord = new OmsCall();
 
 		int index = randomGenerator.nextInt(listOmsCallInConf.size());
@@ -722,7 +841,7 @@ public class OmsConference implements Runnable {
 		String respJoin;
 		int num = 0;
 
-		respJoin = connOMSConf.getReponse("<conference><join  requestid=\"req1\" conferenceid=\""
+		respJoin = connOMSConf.getReponse("<conference><join requestid=\"req1\" conferenceid=\""
 						+ confName + "\"  participantid=\""
 						+ num + "\" entertone=\"false\" exittone=\"false\"/></conference>");
 
@@ -767,18 +886,158 @@ public class OmsConference implements Runnable {
 
 		} else if (respJoin.indexOf("406") != -1) {
 			websock.send("Conference does not yet exist");
-			throw new OmsException("Error cannot join the conference : "
-					+ respJoin);
+			throw new OmsException("Error cannot join the conference : " + respJoin);
 		} else if (respJoin.indexOf("411") != -1)
 			throw new OmsException(
-					"Delete files conf_1.rd and conf_1.wr at /opt/application/64poms/current/tmp");
+					"Delete files conf_*.rd and conf_*.wr at /opt/application/64poms/current/tmp");
 		else if (respJoin.indexOf("408") != -1)
-			throw new OmsException("Error cannot join the conference : "
-					+ respJoin);
+			throw new OmsException("Error cannot join the conference : " + respJoin);
 
-		deleteRecorder(confName);
+		deleteRecorder(confName);*/
 	}
 
+	
+	/**
+	 * To play a file to all participants into a conference. 
+	 * @param conferenceName the conference's name
+	 * @param filePath path towards the file to play in the conference
+	 * @throws OmsException
+	 */
+	public void play(String conferenceName, String filePath) throws OmsException {
+		
+		if(conferenceName == null)
+			throw new IllegalArgumentException("Argument cannot be null");
+		else if(filePath == null)
+			throw new IllegalArgumentException("Argument cannot be null");
+		
+		if(!status(conferenceName))
+			throw new OmsException("The conference with name "+conferenceName+" doesn't exist");
+		
+		filePath = "/opt/application/64poms/current/tmp/Animaux.wav";
+		
+		String subs = getVipConnexion()
+				.getReponse("<conference><subscribe requestid=\"101\" conferenceid=\""
+						+ getName() + "\"><event type=\"playterminated\"/></subscribe></conference>");
+
+		String rep = getVipConnexion()
+				.getReponse("<conference><play requestid=\"req5\" conferenceid=\"" + getName()
+						+ "\"><prompt url=\"" + filePath + "\"/></play></conference>");
+
+		if (rep.indexOf("OK") == -1)
+			throw new OmsException("Error: cannot play file to participants :"
+					+ rep);
+	}
+	 
+	public void myPlay(final String conferenceName, final String filePath) throws OmsException, IOException, 
+	InterruptedException{
+		
+		if(conferenceName == null)
+			throw new IllegalArgumentException("Argument cannot be null");
+		else if(filePath == null)
+			throw new IllegalArgumentException("Argument cannot be null");
+		
+		if(!status(conferenceName))
+			throw new OmsException("The conference's name is unknown");
+		
+		listOmsCallInConf = annuaireForConference.get(conferenceName);
+		if(listOmsCallInConf.isEmpty())
+			throw new OmsException("Cannot start recording. Nobody in the conference");
+				
+		activate();
+		
+		Thread t1 = new Thread(new Runnable(){
+
+			@Override
+			public void run() {
+				// TODO Auto-generated method stub
+				
+				confName = conferenceName;
+				randomGenerator = new Random();
+				omsCallRecord = new OmsCall();
+				
+				listOmsCallInConf = annuaireForConference.get(confName);
+				logger.info(listOmsCallInConf.size());
+				int index = randomGenerator.nextInt(listOmsCallInConf.size());
+				String[] hostPortVip = listOmsCallInConf.get(index).getHostPortVip();
+				try {
+					omsCallRecord.connect(hostPortVip[0], hostPortVip[1]);
+				
+				String respJoin;
+				int num = 0;
+				
+					respJoin = connOMSConf.getReponse("<conference><join requestid=\"req1\" conferenceid=\""
+									+ confName + "\"  participantid=\""
+									+ num + "\" entertone=\"false\" exittone=\"false\"/></conference>");
+		
+				
+				if (respJoin.indexOf("OK") != -1) {
+
+					Matcher mat2 = pat2.matcher(respJoin);
+
+					if (mat2.find()) {
+
+						String mediaInput = "/" + mat2.group(1);
+						String mediaInputPath = "/opt/application/64poms/current/tmp"+ mediaInput;
+						InputStream inputStream;
+						inputStream = new FileInputStream(new File(filePath));
+		
+						OutputStream outputStream;						
+						outputStream = new FileOutputStream(new File(mediaInputPath));
+					
+						buf = new byte[ARRAY_SIZE];
+						int bytes_read;
+						
+						bytes_read = inputStream.read(buf, 0, 160);
+						
+						while (running) {
+							if (bytes_read == -1)
+								break;
+							outputStream.write(buf, 0, bytes_read);
+							Thread.sleep((long) 17);
+							bytes_read = inputStream.read(buf, 0, 160);
+						}
+
+						outputStream.close();
+						inputStream.close();
+					} else
+						throw new OmsException("mediaintput :  NO MATCH " + respJoin);
+
+					Matcher mat1 = pat1.matcher(respJoin);
+					if (mat1.find()) {
+
+						String mediaOutput = "/" + mat1.group(1) + "";
+						String mediaOutputPath = "/opt/application/64poms/current/tmp"+ mediaOutput;
+						InputStream inputStream = new FileInputStream(new File(mediaOutputPath));
+
+						inputStream.close();
+						
+					} else
+						throw new OmsException("mediaoutput :  NO MATCH " + respJoin);
+
+				} else if (respJoin.indexOf("406") != -1) {
+					websock.send("Conference does not yet exist");
+					throw new OmsException("Error cannot join the conference : " + respJoin);
+				}else if (respJoin.indexOf("411") != -1)
+					throw new OmsException(
+							"Delete files conf_*.rd and conf_*.wr at /opt/application/64poms/current/tmp");
+				else if (respJoin.indexOf("408") != -1)
+					throw new OmsException("Error cannot join the conference : " + respJoin);
+
+				deleteRecorder(confName);
+				
+		
+			} catch (OmsException | IOException | InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			}
+			
+		});
+		
+		t1.start();
+				
+	}
+	
 	/**
 	 * To mute a OmsCall in the conference
 	 * @param omsCall OmsCall to mute
@@ -789,13 +1048,16 @@ public class OmsConference implements Runnable {
 		if(omsCall == null)
 			throw new IllegalArgumentException("The argument cannot be null");
 		
-		confName = omsCall.getConfname();				
+		confName = omsCall.getConfname();
+		if(!status(confName))
+			throw new OmsException("The name of conference for that client is unknown");
+		
 		int num = omsCall.getPartNumberConf();
 		
 		String muteRep = getVipConnexion().getReponse("<conference><mute requestid=\"req4\" conferenceid=\""+ 
 					getName()+ "\" participantid=\""+ num+ "\"/></conference>");
 		if (muteRep.indexOf("OK") == -1)
-			throw new OmsException("Error: cannot mute participant " + num + " reason:" + muteRep);
+			throw new OmsException("Error: cannot mute participant " + num + " reason: " + muteRep);
 	}
 
 	/**
@@ -810,6 +1072,9 @@ public class OmsConference implements Runnable {
 		
 		confName = omsCall.getConfname();
 		int num = omsCall.getPartNumberConf();
+		
+		if(!status(confName))
+			throw new OmsException("The name of conference for that client is unknown");
 		
 		String muteRep =  getVipConnexion()
 				.getReponse("<conference><unmute requestid=\"req5\" conferenceid=\""
@@ -829,18 +1094,17 @@ public class OmsConference implements Runnable {
 		if(conf == null)
 			throw new IllegalArgumentException("The argument cannot be null");
 		
+		boolean bool = annuaireForConference.containsKey(conf);
+		if (!bool)
+			throw new OmsException("The conference name " +conf +" is unknown");
+		
 		String muteAllRep = getVipConnexion()
 				.getReponse("<conference><muteall requestid=\"req6\" conferenceid=\""
 						+ conf + "\"/></conference>");
 		if (muteAllRep.indexOf("OK") == -1)
 			throw new OmsException("Error: cannot mute all the paricipants. Reason: " + muteAllRep);
-		
-		confName = conf;
-		boolean bool = annuaireForConference.containsKey(confName);
-		if (!bool)
-			throw new OmsException("The conference name " +conf +" is unknown");
-		
-		listOmsCallInConf = annuaireForConference.get(confName);
+				
+		listOmsCallInConf = annuaireForConference.get(conf);
 		if(listOmsCallInConf.isEmpty())
 			throw new OmsException("Cannot cannot muteAll. Nobody in the conference");
 		
@@ -861,18 +1125,17 @@ public class OmsConference implements Runnable {
 		if(conf == null)
 			throw new IllegalArgumentException("The argument cannot be null");
 		
+		boolean bool = annuaireForConference.containsKey(conf);
+		if (!bool)
+			throw new OmsException("The conference name " +conf +" is unknown");
+		
 		String muteAllRep = getVipConnexion()
 				.getReponse("<conference><unmuteall requestid=\"req6\" conferenceid=\""
 						+ conf + "\"/></conference>");
 		if (muteAllRep.indexOf("OK") == -1)
 			throw new OmsException("Error: cannot unmute all the paricipants. Reason: " + muteAllRep);
-		
-		confName = conf;
-		boolean bool = annuaireForConference.containsKey(confName);
-		if (!bool)
-			throw new OmsException("The conference name " +conf +" is unknown");
-		
-		listOmsCallInConf = annuaireForConference.get(confName);
+				
+		listOmsCallInConf = annuaireForConference.get(conf);
 		if(listOmsCallInConf.isEmpty())
 			throw new OmsException("Cannot cannot unmuteAll. Nobody in the conference");
 		
@@ -913,7 +1176,7 @@ public class OmsConference implements Runnable {
 	 * @param conf conference name
 	 * @return true if the conference exists, and false otherwise
 	 */
-	public boolean checkExist(String conf){
+	private boolean checkExist(String conf){
 		
 		if(annuaireForConference.containsKey(conf))
 			return true;
@@ -923,9 +1186,9 @@ public class OmsConference implements Runnable {
 	
 	
 	/**
-	 * Return the list of OmsCall/participants in a conference
+	 * Return the list of all OmsCall/participants in a given conference
 	 * @param conf conference name
-	 * @return list of OmsCall in the conference named conf
+	 * @return list of OmsCall in a conference
 	 * @throws OmsException
 	 */
 	public List<OmsCall> getListOmsCallInConf(String conf) throws OmsException{
@@ -939,37 +1202,34 @@ public class OmsConference implements Runnable {
 		return listOmsCallInConf;
 	}
 	
+
 	/**
-	 * 
-	 * @param omsCall
-	 * @return
-	 * @throws OmsException
+	 * check whether or not a client has already joined a conference
+	 * @param omsCall OmsCall to check if he has joined a conference
+	 * @return true if the Client/Browser has already joined conference, and false otherwise
+	 * @throws OmsException 
 	 */
-	public boolean isClientJoined(OmsCall omsCall) { 
-
-		  try {
-
-		   String Statusrep = connOMSConf
-		     .getReponse("<conference><status requestid=\"req2\" conferenceid=\""
-		       + getName() + "\" /></conference>");
-		   logger.info(Statusrep);
-		   if (Statusrep.indexOf("id=\"" + omsCall.getPartNumberConf()) != -1) {
-		    return true;
-		   } else
-		    return false;
-		  } catch (OmsException e) {
-		   // TODO Auto-generated catch block
-		   e.printStackTrace();
-		   return false;
-		  }
-		 }
+	public boolean isClientJoined(OmsCall omsCall) throws OmsException  { 
+		
+		if(omsCall == null)
+			throw new IllegalArgumentException("The argument cannot be null");
+					
+			String Statusrep = connOMSConf
+				     .getReponse("<conference><status requestid=\"req2\" conferenceid=\""
+				       + omsCall.getConfname() + "\" /></conference>");
+			if (Statusrep.indexOf("id=\"" + omsCall.getPartNumberConf()) != -1)
+				return true;
+			else 
+				return false;				 		
+	}
 	
 	/**
 	 * 
 	 * @param conf conference name
 	 * @param msg message to send
+	 * @throws OmsException 
 	 */
-	void broadcastToConference(String msg, HashMap<WebSocket, OmsCall> calls) { 
+	void broadcastToConference(String msg, HashMap<WebSocket, OmsCall> calls) throws OmsException { 
 
 		  Iterator<Entry<WebSocket, OmsCall>> entry = calls.entrySet().iterator();
 		  
@@ -1105,11 +1365,14 @@ public class OmsConference implements Runnable {
 			throw new OmsException("Cannot get the stats");
 	}
 
+
 	/**
 	 * To get the number of participant in the conference
-	 * 
+	 * @param conf conference's name
 	 * @return total number of participants in the conference
 	 */
+	
+	
 	public int getParticipantsNumber(String conf) {
 		
 		if(conf == null)
@@ -1144,7 +1407,7 @@ public class OmsConference implements Runnable {
 	/**
 	 * For launching the thread responsible to start recording the conference.
 	 */
-	@Override
+	/*@Override
 	public void run() {
 		// TODO Auto-generated method stub
 
@@ -1246,7 +1509,7 @@ public class OmsConference implements Runnable {
 				}
 			}
 		}
-	}
+	}*/
 	
 	private void terminate() {
 		running = false;
@@ -1256,27 +1519,3 @@ public class OmsConference implements Runnable {
 		running = true;
 	}
 }
-
-
-/*
- * public void play() throws OmsException{
- * 
- * //String enregFilea8k = enregFile + ".a8k"; String url =
- * "http://10.184.155.57:8080/docs/webRTC/doc/Animaux.a8k"; String
- * testAnimaux = "/opt/application/64poms/current/tmp/Animaux.wav";
- * VipConnexion confVip = getVipConnexion();
- * 
- * String subs =
- * confVip.getReponse("<conference><subscribe requestid=\"101\" conferenceid=\""
- * +
- * getName()+"\"><event type=\"playterminated\"/></subscribe></conference>"
- * );
- * 
- * logger.info(subs); String rep =
- * confVip.getReponse("<conference><play requestid=\"req5\" conferenceid=\""
- * + getName()+"\"><prompt url=\""+ testAnimaux
- * +"\"/></play></conference>");
- * 
- * if (rep.indexOf("OK")==-1) throw new
- * OmsException("Error: cannot play file to participants :" + rep); }
- */
