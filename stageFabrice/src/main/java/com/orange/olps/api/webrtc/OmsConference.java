@@ -67,7 +67,7 @@ public class OmsConference implements Runnable {
 
 	//On peut avoir plusieurs conférences, dans une même session
 	//identifier chaque conférence
-	//intenfier les participants de chaque conférence
+	//indentifier les participants de chaque conférence
 	protected static HashMap<String, List<OmsCall>> annuaireForConference = 
 			new HashMap<String, List<OmsCall>>(); 
 	
@@ -574,11 +574,8 @@ public class OmsConference implements Runnable {
 					
 					w.send("showUserNameInConf:"+userName);				
 				}
-				w.send("enterConf"+userName);
-					
 			}			
-		}	
-		
+		}			
 	}
 	
 	
