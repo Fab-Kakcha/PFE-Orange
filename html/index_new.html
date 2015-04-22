@@ -21,7 +21,7 @@ padding: 8px;
 <body>
 <div id="form" class="btn-group">
 <form name="saisie">
-Serveur OmsGateway : <input type="text" value="127.0.0.1:8887" name="serveurPort"><br>
+Serveur OmsGateway : <input type="text" value="10.184.48.159:8887" name="serveurPort"><br>
 </form>
 </div>
 
@@ -325,6 +325,10 @@ var listOfPeopleInConf = new Array();
 var showUserNameConnectedToOms = "showUserNameConnectedToOMS";
 var deleteUserName = "deleteUserName";
 var showUserNameInConf = "showUserNameInConf";
+var playRecording = 0;
+var startRecording = 1;
+var stopPlay = 0;
+
 
 function createWebSocket(host) {
 	if(window.MozWebSocket) {
@@ -342,7 +346,7 @@ function createWebSocket(host) {
 			//alert("New call");
 		//}
 		socket.onclose = function() { 
-			//trace("DÃ©connexion"); 
+			//trace("Déconnexion"); 
 
 			buttonState(active, disabled, disabled, disabled, disabled, disabled, disabled, disabled);
 
@@ -569,7 +573,7 @@ function connectToOMS(userName) {
 
 function conference(loginMode){
 
-	buttonState(disabled, active, disabled, disabled, active, disabled, disabled, disabled);
+	buttonState(disabled, active, disabled, active, active, disabled, active, disabled);
 	
 	buttonState2(active, active, active, active, active);
 	socket.send(JSON.stringify({ "cmd":"joinConf","param": loginMode }));
@@ -579,7 +583,7 @@ function conference(loginMode){
 function createConference(loginMode) {
 
 	//var loginMode = "tata:mute:conf1";
-	buttonState(disabled, active, disabled, disabled, active, disabled, disabled, disabled);
+	buttonState(disabled, active, disabled, active, active, disabled, disabled, disabled);
 	buttonState2(active, active, active, active, active);
 	socket.send(JSON.stringify({"cmd":"createConf","param": loginMode}));
 }
@@ -591,12 +595,39 @@ function disconnect(){
 	socket.close();
 }
 
+
+function stopPlay(){
+
+	socket.send(JSON.stringify({"cmd":"stopPlay","param":" "}));
+}
+
 function playFile() {
 
-	buttonState(disabled, active, disabled, disabled, active, disabled, disabled, disabled);
+	buttonState(disabled, active, disabled, active, active, disabled, disabled, disabled);
 
 	//socket.send(JSON.stringify({"cmd":"play","param":"/var/opt/data/flat/64poms/files/logs/20150210/bonjour.a8k"}));
-	socket.send(JSON.stringify({"cmd":"play","param":" "}));
+
+	if(stopPlay){
+
+		buttonState(disabled, active, disabled, active, active, disabled, disabled, disabled);
+		socket.send(JSON.stringify({"cmd":"stopPlay","param":" "}));
+		$("#play").text("play");
+		stopPlay = 0;
+
+	}else{
+
+		buttonState(disabled, active, disabled, active, disabled, disabled, disabled, disabled);
+		if(playRecording){
+			socket.send(JSON.stringify({"cmd":"playRecording","param":" "}));
+			playRecording = 0;
+		}		
+		else{
+			socket.send(JSON.stringify({"cmd":"playFile","param":" "}));
+		}
+
+	  $("#play").text("stop play");
+	  stopPlay = 1;
+	}		
 }
 
 function say() {
@@ -606,16 +637,30 @@ function say() {
 	socket.send(JSON.stringify({"cmd":"say","param":""}));
 }
 
+
 function recordingConf() {
 
-	buttonState(disabled, active, disabled, disabled, disabled, active, disabled, disabled);
+	buttonState(disabled, active, disabled, disabled, active, disabled, disabled, disabled);
 
 	socket.send(JSON.stringify({"cmd":"recordConf","param":" "}));
+
+	if(startRecording){
+
+		socket.send(JSON.stringify({"cmd":"recordConf","param":" "}));
+		$("#recordingConf").text("stop Recording conf");
+		startRecording = 0;
+	}else{
+
+		socket.send(JSON.stringify({"cmd":"stopRecordConf","param":" "}));
+		$("#recordingConf").text("record Conf");
+		playRecording = 1;
+	}
 }
 
 
 function stopRecordingConf(){
 
+	playRecording = 1;
 	buttonState(disabled, active, disabled, active, active, disabled, disabled, disabled);
 
 	socket.send(JSON.stringify({"cmd":"stopRecordConf","param":" "}));
@@ -656,7 +701,7 @@ function call() {
 
     // On demande le flux local au navigateur 
 	// On l'envoie au correspondant
-	// On dÃ©finit un dtmfSender pour envoyer des dtmfs
+	// On définit un dtmfSender pour envoyer des dtmfs
 	// Et on l'attache au bon curseur local
     
 	navigator.getUserMedia({ "audio": true, "video": false }, 
