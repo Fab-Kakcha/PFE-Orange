@@ -1,0 +1,73 @@
+##########################################################
+# Fichier de propriete pour SVI Attente
+##########################################################
+
+##########################################################
+# Navigation du service Attente
+##########################################################
+
+# Langue par defaut
+Attente.langue.defaut=FR
+#temps de présence sur le service Attente (-1 == infini)
+Attente.application.tempo=-1
+
+##########################################################
+############ Description de la navigation      ###########
+##########################################################
+Attente.navigation.depart=testDureeAttente,miseengarde
+
+########################################
+# test de la duree de l'attente
+########################################
+Attente.navigation.testDureeAttente.type=CONDITION
+Attente.navigation.testDureeAttente.condition=_varAttente=='0'
+Attente.navigation.testDureeAttente.suivant.vrai=inferieurMn
+Attente.navigation.testDureeAttente.suivant.faux=superieurMn
+
+########################################
+# L'attente pour le client est inferieur a la minute
+########################################
+Attente.navigation.inferieurMn.type=INFO
+Attente.navigation.inferieurMn.prompt=INFO_AttenteMoinsUneMinute
+Attente.navigation.inferieurMn.suivant=attente
+
+########################################
+# L'attente pour le client est superieur a la minute
+########################################
+Attente.navigation.superieurMn.type=INFO
+Attente.navigation.superieurMn.prompt=INFO_Attente,_varAttente,INFO_Minute
+Attente.navigation.superieurMn.vocalisation.mode=ENTIER
+Attente.navigation.superieurMn.suivant=attente
+
+
+########################################
+# Boucle d'attente
+# C'est un menu et pas un INFO car sinon
+# on envoie trop de promt a OMS
+########################################
+Attente.navigation.attente.type=MENU
+Attente.navigation.attente.prompt=INFO_Attente1,INFO_Attente2,INFO_Attente1,INFO_Attente3
+Attente.navigation.attente.inactivite.suivant=attente
+Attente.navigation.attente.inactivite.max=-1
+Attente.navigation.attente.inactivite.tempo=1s
+Attente.navigation.attente.inactivite.prompt=<VIDE>
+Attente.navigation.attente.bargein=false
+Attente.navigation.attente.erreur.suivant=attente
+Attente.navigation.attente.erreur.max=-1
+Attente.navigation.attente.erreur.prompt=<VIDE>
+
+########################################
+# Boucle d'attente lors de la mise en garde 
+# C'est un menu et pas un INFO car sinon
+# on envoie trop de promt a OMS
+########################################
+Attente.navigation.miseengarde.type=MENU
+Attente.navigation.miseengarde.prompt=INFO_Attente2
+Attente.navigation.miseengarde.inactivite.suivant=miseengarde
+Attente.navigation.miseengarde.inactivite.max=-1
+Attente.navigation.miseengarde.inactivite.tempo=1s
+Attente.navigation.miseengarde.inactivite.prompt=<VIDE>
+Attente.navigation.miseengarde.bargein=false
+Attente.navigation.miseengarde.erreur.suivant=miseengarde
+Attente.navigation.miseengarde.erreur.max=-1
+Attente.navigation.miseengarde.erreur.prompt=<VIDE>

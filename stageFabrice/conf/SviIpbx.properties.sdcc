@@ -1,0 +1,689 @@
+##########################################################
+# Fichier de propriete pour SVI Ipbx
+##########################################################
+
+##########################################################
+# Navigation du service Ipbx
+##########################################################
+
+# Langue par defaut
+Ipbx.langue.defaut=FR
+
+
+##########################################################
+############ Description de la navigation      ###########
+##########################################################
+Ipbx.navigation.depart=appel,parametrage,testInfoOccup,testInfoOccupMsg,testInfoNonRep,testInfoNonRepMsg,\
+	testInfoIncond,testInfoIncondMsg,testEtatRefusAppel
+########################################
+########################################
+# Appel entrant a destination d'un poste
+# administrateur
+########################################
+########################################
+# Bonjour, veuillez patienter nous recherchons votre correspondant.
+Ipbx.navigation.appel.type=INFO
+Ipbx.navigation.appel.prompt=INFO_IPBX_Patienter
+Ipbx.navigation.appel.suivant=appelInformation
+
+# lecture du parametrage en base
+Ipbx.navigation.appelInformation.type=WEBSVC
+Ipbx.navigation.appelInformation.url=http://10.184.155.174:9010/AdminStat/ipbx?cmde=global&poste=_varNumAppele
+Ipbx.navigation.appelInformation.variable=_varOccup,_varNonRep,_varIncond,_varRefusAppel,_varAccueilMsg
+Ipbx.navigation.appelInformation.valeur.defaut=,,,0,
+Ipbx.navigation.appelInformation.element=occup,nonrep,incond,refusappel,accueilmsg
+Ipbx.navigation.appelInformation.suivant=appelTestRefusAppel
+Ipbx.navigation.appelInformation.erreur.suivant=appelPbTech
+
+###### Refus d'appel
+Ipbx.navigation.appelTestRefusAppel.type=CONDITION
+Ipbx.navigation.appelTestRefusAppel.condition=_varRefusAppel=='1'
+Ipbx.navigation.appelTestRefusAppel.suivant.vrai=appelRefusAppel
+Ipbx.navigation.appelTestRefusAppel.suivant.faux=appelTestIncondMsg
+
+###### Le poste administrateur refuse les appels
+# Désolé, votre correspondant n'est pas joignable actuellement, veuillez rappeler ultérieurement
+Ipbx.navigation.appelRefusAppel.type=DECONNEXION
+Ipbx.navigation.appelRefusAppel.prompt=INFO_IPBX_Injoignable
+
+###### test tout appel vers messagerie
+Ipbx.navigation.appelTestIncondMsg.type=CONDITION
+Ipbx.navigation.appelTestIncondMsg.condition=_varIncond=='messagerie'
+Ipbx.navigation.appelTestIncondMsg.suivant.vrai=appelMessagerie
+Ipbx.navigation.appelTestIncondMsg.suivant.faux=appelTestIncond
+
+Ipbx.navigation.appelMessagerie.type=CONDITION
+Ipbx.navigation.appelMessagerie.condition=_varAccueilMsg==''
+Ipbx.navigation.appelMessagerie.suivant.vrai=appelEnregMsgrDef
+Ipbx.navigation.appelMessagerie.suivant.faux=appelEnregMsgrPerso
+
+# Enregistrement du message dans la boite aux lettres
+# Avec annonce standard
+Ipbx.navigation.appelEnregMsgrDef.type=ENREG
+Ipbx.navigation.appelEnregMsgrDef.mode=AUDIO
+Ipbx.navigation.appelEnregMsgrDef.prompt=INFO_IPBX_Accueil1,_varNumAppele,INFO_IPBX_Accueil2
+Ipbx.navigation.appelEnregMsgrDef.suivant=appelFinEnreg
+Ipbx.navigation.appelEnregMsgrDef.duree.max=20s
+Ipbx.navigation.appelEnregMsgrDef.finalsilence=3s
+Ipbx.navigation.appelEnregMsgrDef.finaldtmf=#
+Ipbx.navigation.appelEnregMsgrDef.repertoire.audio=/opt/application/64poms/SVI/records/ipbx/bal/
+Ipbx.navigation.appelEnregMsgrDef.repertoire.audio.date=false
+Ipbx.navigation.appelEnregMsgrDef.nom.audio=_varNumAppele+_+_varNumAppelant+_+_varDateDeb
+
+# Enregistrement du message dans la boite aux lettres
+# Avec annonce personnalisée
+Ipbx.navigation.appelEnregMsgrPerso.type=ENREG
+Ipbx.navigation.appelEnregMsgrPerso.mode=AUDIO
+Ipbx.navigation.appelEnregMsgrPerso.prompt=_varAccueilMsg
+Ipbx.navigation.appelEnregMsgrPerso.suivant=appelFinEnreg
+Ipbx.navigation.appelEnregMsgrPerso.duree.max=20s
+Ipbx.navigation.appelEnregMsgrPerso.finalsilence=3s
+Ipbx.navigation.appelEnregMsgrPerso.finaldtmf=#
+Ipbx.navigation.appelEnregMsgrPerso.repertoire.audio=/opt/application/64poms/SVI/records/ipbx/bal/
+Ipbx.navigation.appelEnregMsgrPerso.repertoire.audio.date=false
+Ipbx.navigation.appelEnregMsgrPerso.nom.audio=_varNumAppele+_+_varNumAppelant+_+_varDateDeb
+
+###### test si un message a ete depose
+Ipbx.navigation.appelFinEnreg.type=CONDITION
+Ipbx.navigation.appelFinEnreg.condition=_varTmp==''
+Ipbx.navigation.appelFinEnreg.suivant.vrai=appelFin
+Ipbx.navigation.appelFinEnreg.suivant.faux=appelEnregMsgrBase
+
+#### enregistrement en base du message depose
+Ipbx.navigation.appelEnregMsgrBase.type=WEBSVC
+Ipbx.navigation.appelEnregMsgrBase.url=http://10.184.155.174:9010/AdminStat/messagerie?cmde=creer&poste=_varNumAppele&valeur=_varTmp
+Ipbx.navigation.appelEnregMsgrBase.variable=_varErreur
+Ipbx.navigation.appelEnregMsgrBase.valeur.defaut=KO
+Ipbx.navigation.appelEnregMsgrBase.element=status
+Ipbx.navigation.appelEnregMsgrBase.suivant=appelFin
+Ipbx.navigation.appelEnregMsgrBase.erreur.suivant=appelFin
+
+
+###### test tout appel vers autre poste
+Ipbx.navigation.appelTestIncond.type=CONDITION
+Ipbx.navigation.appelTestIncond.condition=_varIncond==''
+Ipbx.navigation.appelTestIncond.suivant.vrai=appelRegistrar
+Ipbx.navigation.appelTestIncond.suivant.faux=appelVarTrfIncond
+
+###### Le poste administrateur refuse les appels
+# Merci et au revoir
+Ipbx.navigation.appelFin.type=DECONNEXION
+Ipbx.navigation.appelFin.prompt=INFO_IPBX_AuRevoir
+
+###### test tout appel vers autre poste
+Ipbx.navigation.appelTestIncond.type=CONDITION
+Ipbx.navigation.appelTestIncond.condition=_varIncond==''
+Ipbx.navigation.appelTestIncond.suivant.vrai=appelRegistrar
+Ipbx.navigation.appelTestIncond.suivant.faux=appelVarTrfIncond
+
+# _varTrf va contenir le nouveau poste
+Ipbx.navigation.appelVarTrfIncond.type=AFFECTATION
+Ipbx.navigation.appelVarTrfIncond.valeur=_varTrf=_varIncond
+Ipbx.navigation.appelVarTrfIncond.suivant=appelTransfertRegistrar
+
+# lecture du registrar
+Ipbx.navigation.appelRegistrar.type=WEBSVC
+Ipbx.navigation.appelRegistrar.url=http://10.184.155.46:10000/acdpj/webapi/records/contact/_varNumAppele
+Ipbx.navigation.appelRegistrar.variable=_varIp
+Ipbx.navigation.appelRegistrar.valeur.defaut=1.1.1.1
+Ipbx.navigation.appelRegistrar.element=ip
+Ipbx.navigation.appelRegistrar.suivant=appelMiseEnRelation
+Ipbx.navigation.appelRegistrar.erreur.suivant=appelPbTech
+
+Ipbx.navigation.appelMiseEnRelation.type=TRANSFERT
+Ipbx.navigation.appelMiseEnRelation.prompt=
+Ipbx.navigation.appelMiseEnRelation.suivant=appelRetour
+Ipbx.navigation.appelMiseEnRelation.numero=sip:telephone@10.184.155.46:5060;oms_dnis=_varNumAppelant;oms_ip=_varIp;oms_contact=_varNumAppele
+
+###### Retour de la mise en relation
+Ipbx.navigation.appelRetour.type=CONDITION
+Ipbx.navigation.appelRetour.condition=_varRetour=='busy'
+Ipbx.navigation.appelRetour.suivant.vrai=appelTestOccupMsg
+Ipbx.navigation.appelRetour.suivant.faux=appelTestNonRep
+
+###### Appele est occupe, test si messagerie activee
+Ipbx.navigation.appelTestOccupMsg.type=CONDITION
+Ipbx.navigation.appelTestOccupMsg.condition=_varOccup=='messagerie'
+Ipbx.navigation.appelTestOccupMsg.suivant.vrai=appelMessagerie
+Ipbx.navigation.appelTestOccupMsg.suivant.faux=appelTestOccup
+
+###### test tout appel vers autre poste
+Ipbx.navigation.appelTestOccup.type=CONDITION
+Ipbx.navigation.appelTestOccup.condition=_varOccup==''
+Ipbx.navigation.appelTestOccup.suivant.vrai=appelRefusAppel
+Ipbx.navigation.appelTestOccup.suivant.faux=appelVarTrfOccup
+
+# _varTrf va contenir le nouveau poste
+Ipbx.navigation.appelVarTrfOccup.type=AFFECTATION
+Ipbx.navigation.appelVarTrfOccup.valeur=_varTrf=_varOccup
+Ipbx.navigation.appelVarTrfOccup.suivant=appelTransfertRegistrar
+
+###### Retour de la mise en relation, test de la non repone
+Ipbx.navigation.appelTestNonRep.type=CONDITION
+Ipbx.navigation.appelTestNonRep.condition=_varRetour=='noanswer'
+Ipbx.navigation.appelTestNonRep.suivant.vrai=appelTestNonRepMsg
+Ipbx.navigation.appelTestNonRep.suivant.faux=appelRefusAppel
+
+###### Appele n'a pas repondu, test si messagerie activee
+Ipbx.navigation.appelTestNonRepMsg.type=CONDITION
+Ipbx.navigation.appelTestNonRepMsg.condition=_varNonRep=='messagerie'
+Ipbx.navigation.appelTestNonRepMsg.suivant.vrai=appelMessagerie
+Ipbx.navigation.appelTestNonRepMsg.suivant.faux=appelTestNonRepNum
+
+###### Appele n'a pas repondu, test si numero transfert
+Ipbx.navigation.appelTestNonRepNum.type=CONDITION
+Ipbx.navigation.appelTestNonRepNum.condition=_varNonRep==''
+Ipbx.navigation.appelTestNonRepNum.suivant.vrai=appelRefusAppel
+Ipbx.navigation.appelTestNonRepNum.suivant.faux=appelVarTrfNonRep
+
+# _varTrf va contenir le nouveau poste
+Ipbx.navigation.appelVarTrfNonRep.type=AFFECTATION
+Ipbx.navigation.appelVarTrfNonRep.valeur=_varTrf=_varNonRep
+Ipbx.navigation.appelVarTrfNonRep.suivant=appelTransfertRegistrar
+
+# lecture du registrar
+Ipbx.navigation.appelTransfertRegistrar.type=WEBSVC
+Ipbx.navigation.appelTransfertRegistrar.url=http://10.184.155.46:10000/acdpj/webapi/records/contact/_varTrf
+Ipbx.navigation.appelTransfertRegistrar.variable=_varIp
+Ipbx.navigation.appelTransfertRegistrar.valeur.defaut=1.1.1.1
+Ipbx.navigation.appelTransfertRegistrar.element=ip
+Ipbx.navigation.appelTransfertRegistrar.suivant=appelTestPosteInterne
+Ipbx.navigation.appelTransfertRegistrar.erreur.suivant=appelPbTech
+
+###### Teste si le numero est interne ou pas 
+Ipbx.navigation.appelTestPosteInterne.type=CONDITION
+Ipbx.navigation.appelTestPosteInterne.condition=_varContact==''
+Ipbx.navigation.appelTestPosteInterne.suivant.vrai=appelExterne
+Ipbx.navigation.appelTestPosteInterne.suivant.faux=appelInterne
+
+#Appel externe vers la passerelle
+Ipbx.navigation.appelExterne.type=TRANSFERT
+Ipbx.navigation.appelExterne.prompt=
+Ipbx.navigation.appelExterne.suivant=appelRefusAppel
+Ipbx.navigation.appelExterne.numero=sip:_varTrf@10.194.127.90
+
+#Appel interne
+Ipbx.navigation.appelInterne.type=TRANSFERT
+Ipbx.navigation.appelInterne.prompt=
+Ipbx.navigation.appelInterne.suivant=appelRefusAppel
+Ipbx.navigation.appelInterne.numero=sip:telephone@10.184.155.46:5060;oms_dnis=_varNumAppelant;oms_ip=_varIp;oms_contact=_varTrf
+
+# Pb technique lors d'un appel entrant
+Ipbx.navigation.appelPbTech.type=INFO
+Ipbx.navigation.appelPbTech.prompt=INFO_IPBX_Injoignable
+Ipbx.navigation.appelPbTech.suivant=appelMessagerie
+
+########################################
+########################################
+# Traitement des commandes IPBX
+########################################
+########################################
+Ipbx.navigation.parametrage.type=CONDITION
+Ipbx.navigation.parametrage.condition=_varNumAppelant=='false'
+Ipbx.navigation.parametrage.suivant.vrai=nonPosteIpbx
+Ipbx.navigation.parametrage.suivant.faux=testRenvoiOccup
+
+# Désolé, le poste depuis lequel vous appelez n'est pas reconnu
+Ipbx.navigation.nonPosteIpbx.type=DECONNEXION
+Ipbx.navigation.nonPosteIpbx.prompt=INFO_IPBX_NonPosteIpbx
+
+###### Occupation
+Ipbx.navigation.testRenvoiOccup.type=CONDITION
+Ipbx.navigation.testRenvoiOccup.condition=_varNumAppele.substring(0,2)=='23'
+Ipbx.navigation.testRenvoiOccup.suivant.vrai=renvoiOccup
+Ipbx.navigation.testRenvoiOccup.suivant.faux=testRenvoiOccupMsg
+
+Ipbx.navigation.testRenvoiOccupMsg.type=CONDITION
+Ipbx.navigation.testRenvoiOccupMsg.condition=_varNumAppele.substring(0,2)=='27'
+Ipbx.navigation.testRenvoiOccupMsg.suivant.vrai=renvoiOccupMsg
+Ipbx.navigation.testRenvoiOccupMsg.suivant.faux=testRenvoiNonRep
+
+###### Non Reponse
+Ipbx.navigation.testRenvoiNonRep.type=CONDITION
+Ipbx.navigation.testRenvoiNonRep.condition=_varNumAppele.substring(0,2)=='22'
+Ipbx.navigation.testRenvoiNonRep.suivant.vrai=renvoiNonRep
+Ipbx.navigation.testRenvoiNonRep.suivant.faux=testRenvoiNonRepMsg
+
+Ipbx.navigation.testRenvoiNonRepMsg.type=CONDITION
+Ipbx.navigation.testRenvoiNonRepMsg.condition=_varNumAppele.substring(0,2)=='26'
+Ipbx.navigation.testRenvoiNonRepMsg.suivant.vrai=renvoiNonRepMsg
+Ipbx.navigation.testRenvoiNonRepMsg.suivant.faux=testRenvoiIncond
+
+###### Inconditionnel
+Ipbx.navigation.testRenvoiIncond.type=CONDITION
+Ipbx.navigation.testRenvoiIncond.condition=_varNumAppele.substring(0,2)=='21'
+Ipbx.navigation.testRenvoiIncond.suivant.vrai=renvoiIncond
+Ipbx.navigation.testRenvoiIncond.suivant.faux=testRenvoiIncondMsg
+
+Ipbx.navigation.testRenvoiIncondMsg.type=CONDITION
+Ipbx.navigation.testRenvoiIncondMsg.condition=_varNumAppele.substring(0,2)=='25'
+Ipbx.navigation.testRenvoiIncondMsg.suivant.vrai=renvoiIncondMsg
+Ipbx.navigation.testRenvoiIncondMsg.suivant.faux=testMessagerie
+
+###### Messagerie
+Ipbx.navigation.testMessagerie.type=CONDITION
+Ipbx.navigation.testMessagerie.condition=_varNumAppele.substring(0,2)=='53'
+Ipbx.navigation.testMessagerie.suivant.vrai=nbreMessage
+Ipbx.navigation.testMessagerie.suivant.faux=testRefusAppel
+
+###### Refus d'appel
+Ipbx.navigation.testRefusAppel.type=CONDITION
+Ipbx.navigation.testRefusAppel.condition=_varNumAppele.substring(0,2)=='45'
+Ipbx.navigation.testRefusAppel.suivant.vrai=pasAppel
+Ipbx.navigation.testRefusAppel.suivant.faux=pbCommande
+
+
+# Traitement du renvoi sur Occupation
+# _varTmp va contenir l'item de navigation à effectuer appres le testPbTechnique
+# _varMetier va contenir la commande a effectuer cote base de donnees
+Ipbx.navigation.renvoiOccup.type=AFFECTATION
+Ipbx.navigation.renvoiOccup.valeur=_varValeur=_varNumAppele.substring(2),_varTmp=testInfoOccup,_varMetier=occup
+Ipbx.navigation.renvoiOccup.suivant=actionBase
+
+# Traitement du renvoi vers la messagerie sur Occupation 
+# _varTmp va contenir l'item de navigation à effectuer appres le testPbTechnique
+# _varMetier va contenir la commande a effectuer cote base de donnees
+Ipbx.navigation.renvoiOccupMsg.type=AFFECTATION
+Ipbx.navigation.renvoiOccupMsg.valeur=_varValeur=messagerie,_varTmp=testInfoOccupMsg,_varMetier=occup
+Ipbx.navigation.renvoiOccupMsg.suivant=actionBase
+
+# Traitement du renvoi sur non reponse
+# _varTmp va contenir l'item de navigation à effectuer appres le testPbTechnique
+# _varMetier va contenir la commande a effectuer cote base de donnees
+Ipbx.navigation.renvoiNonRep.type=AFFECTATION
+Ipbx.navigation.renvoiNonRep.valeur=_varValeur=_varNumAppele.substring(2),_varTmp=testInfoNonRep,_varMetier=nonrep
+Ipbx.navigation.renvoiNonRep.suivant=actionBase
+
+# Traitement du renvoi vers la messagerie sur non reponse 
+# _varTmp va contenir l'item de navigation à effectuer appres le testPbTechnique
+# _varMetier va contenir la commande a effectuer cote base de donnees
+Ipbx.navigation.renvoiNonRepMsg.type=AFFECTATION
+Ipbx.navigation.renvoiNonRepMsg.valeur=_varValeur=messagerie,_varTmp=testInfoNonRepMsg,_varMetier=nonrep
+Ipbx.navigation.renvoiNonRepMsg.suivant=actionBase
+
+# Traitement du renvoi inconditionnel
+# _varTmp va contenir l'item de navigation à effectuer appres le testPbTechnique
+# _varMetier va contenir la commande a effectuer cote base de donnees
+Ipbx.navigation.renvoiIncond.type=AFFECTATION
+Ipbx.navigation.renvoiIncond.valeur=_varValeur=_varNumAppele.substring(2),_varTmp=testInfoIncond,_varMetier=incond
+Ipbx.navigation.renvoiIncond.suivant=actionBase
+
+# Traitement du renvoi inconditionnel vers la messagerie  
+# _varTmp va contenir l'item de navigation à effectuer appres le testPbTechnique
+# _varMetier va contenir la commande a effectuer cote base de donnees
+Ipbx.navigation.renvoiIncondMsg.type=AFFECTATION
+Ipbx.navigation.renvoiIncondMsg.valeur=_varValeur=messagerie,_varTmp=testInfoIncondMsg,_varMetier=incond
+Ipbx.navigation.renvoiIncondMsg.suivant=actionBase
+
+# Traitement du "pas d'appel"
+# _varTmp va contenir l'item de navigation à effectuer appres le testPbTechnique
+# _varMetier va contenir la commande a effectuer cote base de donnees
+Ipbx.navigation.pasAppel.type=AFFECTATION
+Ipbx.navigation.pasAppel.valeur=_varValeur=0,_varTmp=testEtatRefusAppel,_varMetier=refusappel
+Ipbx.navigation.pasAppel.suivant=actionBase
+
+
+# Lancement de la commande a la base de donnees
+Ipbx.navigation.actionBase.type=WEBSVC
+Ipbx.navigation.actionBase.url=http://10.184.155.174:9010/AdminStat/ipbx?cmde=_varMetier&poste=_varNumAppelant&valeur=_varValeur
+Ipbx.navigation.actionBase.variable=_varMetier
+Ipbx.navigation.actionBase.valeur.defaut=0
+Ipbx.navigation.actionBase.element=status
+Ipbx.navigation.actionBase.suivant=_varTmp
+Ipbx.navigation.actionBase.erreur.suivant=pbTechnique
+
+
+###### Test du retour de la commande d'occupation
+# si _varMetier vaut '' --> fin du renvoi
+# si _varMetier non vide --> renvoi des appels
+Ipbx.navigation.testInfoOccup.type=CONDITION
+Ipbx.navigation.testInfoOccup.condition=_varMetier==''
+Ipbx.navigation.testInfoOccup.suivant.vrai=infoFinRenvoiOccup
+Ipbx.navigation.testInfoOccup.suivant.faux=infoRenvoiOccup
+
+###### Test du retour de la commande d'occupation messagerie
+# si _varMetier vaut '' --> fin du renvoi
+# si _varMetier non vide --> renvoi des appels
+Ipbx.navigation.testInfoOccupMsg.type=CONDITION
+Ipbx.navigation.testInfoOccupMsg.condition=_varMetier==''
+Ipbx.navigation.testInfoOccupMsg.suivant.vrai=infoFinRenvoiOccup
+Ipbx.navigation.testInfoOccupMsg.suivant.faux=infoRenvoiOccupMsg
+
+###### Test du retour de la commande de non reponse 
+# si _varMetier vaut '' --> fin du renvoi
+# si _varMetier non vide --> renvoi des appels
+Ipbx.navigation.testInfoNonRep.type=CONDITION
+Ipbx.navigation.testInfoNonRep.condition=_varMetier==''
+Ipbx.navigation.testInfoNonRep.suivant.vrai=infoFinRenvoiNonRep
+Ipbx.navigation.testInfoNonRep.suivant.faux=infoRenvoiNonRep
+
+###### Test du retour de la commande de non reponse messagerie
+# si _varMetier vaut '' --> fin du renvoi
+# si _varMetier non vide --> renvoi des appels
+Ipbx.navigation.testInfoNonRepMsg.type=CONDITION
+Ipbx.navigation.testInfoNonRepMsg.condition=_varMetier==''
+Ipbx.navigation.testInfoNonRepMsg.suivant.vrai=infoFinRenvoiNonRep
+Ipbx.navigation.testInfoNonRepMsg.suivant.faux=infoRenvoiNonRepMsg
+
+
+###### Test du retour de la commande renvoi inconditionnel
+# si _varMetier vaut '' --> fin du renvoi
+# si _varMetier non vide --> renvoi des appels
+Ipbx.navigation.testInfoIncond.type=CONDITION
+Ipbx.navigation.testInfoIncond.condition=_varMetier==''
+Ipbx.navigation.testInfoIncond.suivant.vrai=infoFinRenvoiIncond
+Ipbx.navigation.testInfoIncond.suivant.faux=infoRenvoiIncond
+
+###### Test du retour de la commande renvoi inconditionnel
+# si _varMetier vaut '' --> fin du renvoi
+# si _varMetier non vide --> renvoi des appels
+Ipbx.navigation.testInfoIncondMsg.type=CONDITION
+Ipbx.navigation.testInfoIncondMsg.condition=_varMetier==''
+Ipbx.navigation.testInfoIncondMsg.suivant.vrai=infoFinRenvoiIncond
+Ipbx.navigation.testInfoIncondMsg.suivant.faux=infoRenvoiIncondMsg
+
+###### Test du retour de la commande de refus d'appel
+# si _varMetier (lue dans le retour de la commande) vaut 1 --> refus d'appel
+# si _varMetier vaut 0 --> fin de refus des appels
+Ipbx.navigation.testEtatRefusAppel.type=CONDITION
+Ipbx.navigation.testEtatRefusAppel.condition=_varMetier=='1'
+Ipbx.navigation.testEtatRefusAppel.suivant.vrai=refusAppelInfo
+Ipbx.navigation.testEtatRefusAppel.suivant.faux=finRefusAppelInfo
+
+
+#########################################################
+# Messages apres passage de la commande
+#########################################################
+# Votre demande de renvoi sur occupation vers le
+# 99999
+# a bien ete prise en compte
+Ipbx.navigation.infoRenvoiOccup.type=DECONNEXION
+Ipbx.navigation.infoRenvoiOccup.prompt=INFO_IPBX_RenvoiOccup,_varValeur,INFO_IPBX_PrisEnCompte
+Ipbx.navigation.infoRenvoiOccup.vocalisation.mode=LANGUE
+
+# Votre demande de renvoi vers la messagerie sur occupation 
+# a bien ete prise en compte
+Ipbx.navigation.infoRenvoiOccupMsg.type=DECONNEXION
+Ipbx.navigation.infoRenvoiOccupMsg.prompt=INFO_IPBX_RenvoiOccupMsg,INFO_IPBX_PrisEnCompte
+
+# Le renvoi sur occupation est annulé
+Ipbx.navigation.infoFinRenvoiOccup.type=DECONNEXION
+Ipbx.navigation.infoFinRenvoiOccup.prompt=INFO_IPBX_FinRenvoiOccup
+
+# Votre demande de renvoi sur non reponse vers le
+# 99999
+# a bien ete prise en compte
+Ipbx.navigation.infoRenvoiNonRep.type=DECONNEXION
+Ipbx.navigation.infoRenvoiNonRep.prompt=INFO_IPBX_RenvoiNonRep,_varValeur,INFO_IPBX_PrisEnCompte
+Ipbx.navigation.infoRenvoiNonRep.vocalisation.mode=LANGUE
+
+# Votre demande de renvoi vers la messagerie sur non reponse 
+# a bien ete prise en compte
+Ipbx.navigation.infoRenvoiNonRepMsg.type=DECONNEXION
+Ipbx.navigation.infoRenvoiNonRepMsg.prompt=INFO_IPBX_RenvoiNonRepMsg,INFO_IPBX_PrisEnCompte
+
+# Le renvoi sur non réponse est annulé
+Ipbx.navigation.infoFinRenvoiNonRep.type=DECONNEXION
+Ipbx.navigation.infoFinRenvoiNonRep.prompt=INFO_IPBX_FinRenvoiNonRep
+
+# Votre demande de renvoi inconditionnel vers le
+# 99999
+# a bien ete prise en compte
+Ipbx.navigation.infoRenvoiIncond.type=DECONNEXION
+Ipbx.navigation.infoRenvoiIncond.prompt=INFO_IPBX_RenvoiIncond,_varValeur,INFO_IPBX_PrisEnCompte
+Ipbx.navigation.infoRenvoiIncond.vocalisation.mode=LANGUE
+
+# Votre demande de renvoi inconditionnel vers la messagerie  
+# a bien ete prise en compte
+Ipbx.navigation.infoRenvoiIncondMsg.type=DECONNEXION
+Ipbx.navigation.infoRenvoiIncondMsg.prompt=INFO_IPBX_RenvoiIncondMsg,INFO_IPBX_PrisEnCompte
+
+# Le renvoi inconditionnel est annulé
+Ipbx.navigation.infoFinRenvoiIncond.type=DECONNEXION
+Ipbx.navigation.infoFinRenvoiIncond.prompt=INFO_IPBX_FinRenvoiIncond
+
+# Votre demande de refus d'appel 
+# a bien ete prise en compte
+Ipbx.navigation.refusAppelInfo.type=DECONNEXION
+Ipbx.navigation.refusAppelInfo.prompt=INFO_IPBX_RefusAppel,INFO_IPBX_PrisEnCompte
+
+# Votre demande de fin de refus d'appel 
+# a bien ete prise en compte
+Ipbx.navigation.finRefusAppelInfo.type=DECONNEXION
+Ipbx.navigation.finRefusAppelInfo.prompt=INFO_IPBX_FinRefusAppel,INFO_IPBX_PrisEnCompte
+
+########################################
+# MESSAGERIE
+########################################
+# Lancement de la commande a la base de donnees
+Ipbx.navigation.nbreMessage.type=WEBSVC
+Ipbx.navigation.nbreMessage.url=http://10.184.155.174:9010/AdminStat/messagerie?cmde=compter&poste=_varNumAppelant
+Ipbx.navigation.nbreMessage.variable=_varLu,_varNonLu
+Ipbx.navigation.nbreMessage.valeur.defaut=Aucun,Aucun
+Ipbx.navigation.nbreMessage.element=lu,nonlu
+Ipbx.navigation.nbreMessage.suivant=testLu
+Ipbx.navigation.nbreMessage.erreur.suivant=pbTechnique
+
+# sin les variables _varLu ou _varNonLu valent 0 on les remplacent par 'Aucun'
+Ipbx.navigation.testLu.type=CONDITION
+Ipbx.navigation.testLu.condition=_varLu=='0'
+Ipbx.navigation.testLu.suivant.vrai=luNul
+Ipbx.navigation.testLu.suivant.faux=testNonLu
+
+Ipbx.navigation.testNonLu.type=CONDITION
+Ipbx.navigation.testNonLu.condition=_varNonLu=='0'
+Ipbx.navigation.testNonLu.suivant.vrai=nonLuNul
+Ipbx.navigation.testNonLu.suivant.faux=infoMessagerie
+
+Ipbx.navigation.luNul.type=AFFECTATION
+Ipbx.navigation.luNul.valeur=_varLu=Aucun
+Ipbx.navigation.luNul.suivant=testNonLu
+
+Ipbx.navigation.nonLuNul.type=AFFECTATION
+Ipbx.navigation.nonLuNul.valeur=_varNonLu=Aucun
+Ipbx.navigation.nonLuNul.suivant=infoMessagerie
+
+# vous avez 
+# x
+# nouveaux messages et
+# n
+# messages sauvegardes.
+Ipbx.navigation.infoMessagerie.type=INFO
+Ipbx.navigation.infoMessagerie.prompt=INFO_IPBX_Msg1,_varNonLu,INFO_IPBX_Msg2,_varLu,INFO_IPBX_Msg3
+Ipbx.navigation.infoMessagerie.suivant=menuMessagerie
+
+# pour ecouter vos nouveaux messages, taper 1
+# pour ecouter vos  messages sauvegardes, taper 2
+# pour écouter votre message d'accueil, taper 3
+# pour supprimer votre message d'accueil, taper 4
+# pour personnaliser votre message d'accueil, taper 5 
+Ipbx.navigation.menuMessagerie.type=MENU
+Ipbx.navigation.menuMessagerie.prompt=MENU_IPBX_Messagerie
+Ipbx.navigation.menuMessagerie.action.1=ecouterMessagerieNouv
+Ipbx.navigation.menuMessagerie.action.2=ecouterMessagerieSauv
+Ipbx.navigation.menuMessagerie.action.3=ecouterMessageAccueil
+Ipbx.navigation.menuMessagerie.action.4=supMessageAccueil
+Ipbx.navigation.menuMessagerie.action.5=enregMessageAccueil
+Ipbx.navigation.menuMessagerie.action.8=menuMessagerie
+Ipbx.navigation.menuMessagerie.inactivite.suivant=menuMessagerie
+Ipbx.navigation.menuMessagerie.inactivite.max=3
+Ipbx.navigation.menuMessagerie.inactivite.tempo=3s
+Ipbx.navigation.menuMessagerie.inactivite.prompt=<VIDE>
+Ipbx.navigation.menuMessagerie.bargein=true
+Ipbx.navigation.menuMessagerie.erreur.suivant=menuMessagerie
+Ipbx.navigation.menuMessagerie.erreur.max=3
+Ipbx.navigation.menuMessagerie.erreur.prompt=<VIDE>
+
+# ecoute des nouveaux messages laisses sur la messagerie
+Ipbx.navigation.ecouterMessagerieNouv.type=CONDITION
+Ipbx.navigation.ecouterMessagerieNouv.condition=_varNonLu=='Aucun'
+Ipbx.navigation.ecouterMessagerieNouv.suivant.vrai=infoPasMsgNouv
+Ipbx.navigation.ecouterMessagerieNouv.suivant.faux=msgNouvBal
+
+# ecoute des messages sauvegardes sur la messagerie
+Ipbx.navigation.ecouterMessagerieSauv.type=CONDITION
+Ipbx.navigation.ecouterMessagerieSauv.condition=_varLu=='Aucun' 
+Ipbx.navigation.ecouterMessagerieSauv.suivant.vrai=infoPasMsgSauv
+Ipbx.navigation.ecouterMessagerieSauv.suivant.faux=msgSauvBal
+
+# Pas de nouveaux messages
+Ipbx.navigation.infoPasMsgNouv.type=INFO
+Ipbx.navigation.infoPasMsgNouv.prompt=INFO_IPBX_PasNouvMsg
+Ipbx.navigation.infoPasMsgNouv.suivant=menuMessagerie
+Ipbx.navigation.infoPasMsgNouv.inactivite.tempo=0s
+
+# Pas de messages sauvegardes
+Ipbx.navigation.infoPasMsgSauv.type=INFO
+Ipbx.navigation.infoPasMsgSauv.prompt=INFO_IPBX_PasMsgSauv
+Ipbx.navigation.infoPasMsgSauv.suivant=menuMessagerie
+Ipbx.navigation.infoPasMsgSauv.inactivite.tempo=0s
+
+
+Ipbx.navigation.msgNouvBal.type=AFFECTATION
+Ipbx.navigation.msgNouvBal.valeur=_varNum=-1,_varEtat=false
+Ipbx.navigation.msgNouvBal.suivant=recupererMsgBal
+
+Ipbx.navigation.msgSauvBal.type=AFFECTATION
+Ipbx.navigation.msgSauvBal.valeur=_varNum=-1,_varEtat=true
+Ipbx.navigation.msgSauvBal.suivant=recupererMsgBal
+
+Ipbx.navigation.recupererMsgBal.type=WEBSVC
+Ipbx.navigation.recupererMsgBal.url=http://10.184.155.174:9010/AdminStat/messagerie?cmde=liresuivant&poste=_varNumAppelant&valeur=_varNum&etat=_varEtat
+Ipbx.navigation.recupererMsgBal.variable=_varNum,_varTmp,_varJour
+Ipbx.navigation.recupererMsgBal.valeur.defaut=-1,XX,DD
+Ipbx.navigation.recupererMsgBal.element=id,item,date
+Ipbx.navigation.recupererMsgBal.suivant=testMsgBal
+Ipbx.navigation.recupererMsgBal.erreur.suivant=pbTechnique
+
+# fin des messages non lus laisses sur la messagerie
+Ipbx.navigation.testMsgBal.type=CONDITION
+Ipbx.navigation.testMsgBal.condition=_varNum==-1
+Ipbx.navigation.testMsgBal.suivant.vrai=infoFinBal
+Ipbx.navigation.testMsgBal.suivant.faux=lireJourMsgBal
+
+# fin des messages
+Ipbx.navigation.infoFinBal.type=INFO
+Ipbx.navigation.infoFinBal.prompt=INFO_IPBX_FinBal
+Ipbx.navigation.infoFinBal.suivant=menuMessagerie
+Ipbx.navigation.infoFinBal.inactivite.tempo=0s
+
+# vocalisation de la date
+Ipbx.navigation.lireJourMsgBal.type=INFO
+Ipbx.navigation.lireJourMsgBal.prompt=_varJour
+Ipbx.navigation.lireJourMsgBal.suivant=lireMsgBal
+Ipbx.navigation.lireJourMsgBal.inactivite.tempo=0s
+Ipbx.navigation.lireJourMsgBal.vocalisation.mode=DATE
+
+# vocalisation du message de la boite aux lettres
+Ipbx.navigation.lireMsgBal.type=INFO
+Ipbx.navigation.lireMsgBal.prompt=_varTmp
+Ipbx.navigation.lireMsgBal.prompt.repertoire=/opt/application/64poms/SVI/records/ipbx/bal/
+Ipbx.navigation.lireMsgBal.suivant=menuMsgBal
+Ipbx.navigation.lireMsgBal.inactivite.tempo=0s
+
+# pour re-ecouter le message, taper 1
+# pour le message suivant, taper 2
+# pour supprimer le message, taper 3
+Ipbx.navigation.menuMsgBal.type=MENU
+Ipbx.navigation.menuMsgBal.prompt=MENU_IPBX_Bal
+Ipbx.navigation.menuMsgBal.action.1=lireJourMsgBal
+Ipbx.navigation.menuMsgBal.action.2=recupererMsgBal
+Ipbx.navigation.menuMsgBal.action.3=supMsgBal
+Ipbx.navigation.menuMsgBal.action.8=menuMsgBal
+Ipbx.navigation.menuMsgBal.inactivite.suivant=menuMessagerie
+Ipbx.navigation.menuMsgBal.inactivite.max=3
+Ipbx.navigation.menuMsgBal.inactivite.tempo=3s
+Ipbx.navigation.menuMsgBal.inactivite.prompt=<VIDE>
+Ipbx.navigation.menuMsgBal.bargein=true
+Ipbx.navigation.menuMsgBal.erreur.suivant=menuMessagerie
+Ipbx.navigation.menuMsgBal.erreur.max=3
+Ipbx.navigation.menuMsgBal.erreur.prompt=<VIDE>
+
+#suppression du message dans la BAL
+Ipbx.navigation.supMsgBal.type=WEBSVC
+Ipbx.navigation.supMsgBal.url=http://10.184.155.174:9010/AdminStat/messagerie?cmde=supprimer&poste=_varNumAppelant&valeur=_varNum
+Ipbx.navigation.supMsgBal.variable=_varTmp
+Ipbx.navigation.supMsgBal.valeur.defaut=KO
+Ipbx.navigation.supMsgBal.element=status
+Ipbx.navigation.supMsgBal.suivant=confSupMsgBal
+Ipbx.navigation.supMsgBal.erreur.suivant=pbTechnique
+
+# message supprimé
+Ipbx.navigation.confSupMsgBal.type=INFO
+Ipbx.navigation.confSupMsgBal.prompt=INFO_IPBX_SupBal
+Ipbx.navigation.confSupMsgBal.suivant=recupererMsgBal
+Ipbx.navigation.confSupMsgBal.inactivite.tempo=0s
+
+# Enregistrement du message d'accueil
+# Veuillez énoncer votre message d'accueil après le bip sonore
+Ipbx.navigation.enregMessageAccueil.type=ENREG
+Ipbx.navigation.enregMessageAccueil.mode=AUDIO
+Ipbx.navigation.enregMessageAccueil.prompt=INFO_IPBX_EnregAccueil
+Ipbx.navigation.enregMessageAccueil.suivant=finaliserAccueilMessagerie
+Ipbx.navigation.enregMessageAccueil.duree.max=20s
+Ipbx.navigation.enregMessageAccueil.finalsilence=3s
+Ipbx.navigation.enregMessageAccueil.finaldtmf=#
+Ipbx.navigation.enregMessageAccueil.repertoire.audio=/opt/application/64poms/SVI/records/ipbx/accueil/
+Ipbx.navigation.enregMessageAccueil.repertoire.audio.date=false
+Ipbx.navigation.enregMessageAccueil.nom.audio=_varNumAppele+_+_varNumAppelant
+
+# Enregistrement du nom du message d'accueil en base
+Ipbx.navigation.finaliserAccueilMessagerie.type=WEBSVC
+Ipbx.navigation.finaliserAccueilMessagerie.url=http://10.184.155.174:9010/AdminStat/ipbx?cmde=enregaccueil&poste=_varNumAppelant&valeur=_varTmp
+Ipbx.navigation.finaliserAccueilMessagerie.variable=_varTmp
+Ipbx.navigation.finaliserAccueilMessagerie.valeur.defaut=0
+Ipbx.navigation.finaliserAccueilMessagerie.element=status
+Ipbx.navigation.finaliserAccueilMessagerie.suivant=menuMessagerie
+Ipbx.navigation.finaliserAccueilMessagerie.erreur.suivant=pbTechnique
+
+# Suppression du nom du message d'accueil en base
+Ipbx.navigation.supMessageAccueil.type=WEBSVC
+Ipbx.navigation.supMessageAccueil.url=http://10.184.155.174:9010/AdminStat/ipbx?cmde=enregaccueil&poste=_varNumAppelant&valeur=''
+Ipbx.navigation.supMessageAccueil.variable=_varTmp
+Ipbx.navigation.supMessageAccueil.valeur.defaut=0
+Ipbx.navigation.supMessageAccueil.element=status
+Ipbx.navigation.supMessageAccueil.suivant=infoSupMessageAccueil
+Ipbx.navigation.supMessageAccueil.erreur.suivant=pbTechnique
+
+Ipbx.navigation.infoSupMessageAccueil.type=INFO
+Ipbx.navigation.infoSupMessageAccueil.prompt=INFO_IPBX_SupAccueil
+Ipbx.navigation.infoSupMessageAccueil.suivant=menuMessagerie
+Ipbx.navigation.infoSupMessageAccueil.inactivite.tempo=0s
+
+# lecture du nom du message d'accueil en base
+Ipbx.navigation.ecouterMessageAccueil.type=WEBSVC
+Ipbx.navigation.ecouterMessageAccueil.url=http://10.184.155.174:9010/AdminStat/ipbx?cmde=lireaccueil&poste=_varNumAppelant
+Ipbx.navigation.ecouterMessageAccueil.variable=_varTmp
+Ipbx.navigation.ecouterMessageAccueil.valeur.defaut=
+Ipbx.navigation.ecouterMessageAccueil.element=status
+Ipbx.navigation.ecouterMessageAccueil.suivant=testMessageAccueil
+Ipbx.navigation.ecouterMessageAccueil.erreur.suivant=pbTechnique
+
+Ipbx.navigation.testMessageAccueil.type=CONDITION
+Ipbx.navigation.testMessageAccueil.condition=_varTmp==''
+Ipbx.navigation.testMessageAccueil.suivant.vrai=lireMessageAccueilDefaut
+Ipbx.navigation.testMessageAccueil.suivant.faux=lireMessageAccueil
+
+#lecture du message d'accueil enregistre par le TC
+Ipbx.navigation.lireMessageAccueil.type=INFO
+Ipbx.navigation.lireMessageAccueil.prompt=_varTmp
+Ipbx.navigation.lireMessageAccueil.prompt.repertoire=/opt/application/64poms/SVI/records/ipbx/accueil/
+Ipbx.navigation.lireMessageAccueil.suivant=menuMessagerie
+Ipbx.navigation.lireMessageAccueil.inactivite.tempo=1s
+Ipbx.navigation.lireMessageAccueil.maxage=0
+
+# Bonjour et bienvenue sur la boite vocale du
+# xxxx
+# merci de laisser un message apres le bip sonore.
+Ipbx.navigation.lireMessageAccueilDefaut.type=INFO
+Ipbx.navigation.lireMessageAccueilDefaut.prompt=INFO_IPBX_Accueil1,_varNumAppelant,INFO_IPBX_Accueil2
+Ipbx.navigation.lireMessageAccueilDefaut.suivant=menuMessagerie
+Ipbx.navigation.lireMessageAccueilDefaut.inactivite.tempo=1s
+
+########################################
+# Pb technique
+########################################
+
+# Desole suite a un incident technique votre demande n a pas pu aboutir
+Ipbx.navigation.pbTechnique.type=DECONNEXION
+Ipbx.navigation.pbTechnique.prompt=INFO_IPBX_PbTechnique

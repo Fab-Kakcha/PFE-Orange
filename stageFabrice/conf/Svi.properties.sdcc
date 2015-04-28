@@ -1,0 +1,274 @@
+##########################################################
+# Fichier de propriete pour SVI 1777
+##########################################################
+
+##########################################################
+# Informations generales
+##########################################################
+
+# Liste des langues  
+application.langue=FR,UK
+
+
+# duree en seconde de persistance d'un fichier audio dans le cache OMS
+application.maxage.audio=3600
+# duree en seconde de persistance d'un document dans le cache OMS
+application.maxage.document=0
+#duree de timeout d'un fetch d'une page (Unite obligatoire:s, ms )
+#attention ce parametre doit etre superieur à bdd.requete.timeout
+application.fetchtimeout=5s
+
+# parametre HTTP de cache: applicable qu'a la root.jsp
+# tant que la root.jsp n'a pas expiree les 2 paramètres ci-dessus ne sont pas
+# pris en ccompte dans OMS
+application.maxage.httpcontrolcache=60
+
+# Filtres pour extraire le numero appele/appelant de local/remote
+# le resultat issu du filtre sur numeroappele doit correspondre
+# a un numero de application.service.numero.transmis ou de application.service.autorise ou de application.service.reroute
+# sinon il sera considere comme un numero sortant
+application.pattern.numeroappelant=:(.*)@
+application.pattern.numeroappele=:(.*)@
+
+# Temps de presence maximal sur l'application en seconde
+application.tempo=300
+
+# Temps d'inactivite apres un menu
+application.inactivite.tempo.menu=3s
+# Temps d'inactivite apres un message d'information sans saisie de DTMF
+application.inactivite.tempo.info=0s
+# Temps d'inactivite apres un message de deconnexion
+application.inactivite.tempo.dcnx=1s
+
+# Nombre de passage dans l'inactivite 
+application.inactivite.max=3
+
+# Nombre de passage dans les rejets avant deconnexion (-1 => jamais deconnecte)
+application.rejet.max=-1
+
+#definition des heures (séparées par des virgules) à laquelle 
+# le programme va recharger le referentiel 
+application.heure.rechargement=01:15
+
+# temps d'attente du decroche
+transfert.timeout=30s
+
+# Chaine de remplacement pour les numeros masques
+application.numero.masque=****
+
+# Nombre de caracteres pour le découpage des champs de saisie
+# afin de les vocaliser 
+application.vocalisation.saisie.FR=2
+application.vocalisation.saisie.UK=2
+
+# Seuil en secondes de declenchement d'un dialogue d'attente de mise en relation avec 
+# agent (teleconseiller)
+application.temps.attente=5
+##########################################################
+# Gestion des numeros de service
+##########################################################
+# Liste des services autorisés 
+application.service.autorise=723
+# table de correspondance entre le numero reseau tel qu'il arrive sur la plateforme OMS 
+# et le service attendu (numéro composé par le client)
+# format: [numéro reeseau]>[numero de service client]
+application.service.numero.transmis=223111>723
+# services reroutes vers un numero exterieur
+# syntaxe: [numero appele 1]=[numero de reroutage 1],... ...,[numero appele N]>[numero de reroutage N]
+# exemple application.service.reroute=4000=556078450 
+# tous les appels à destination du 4000 sont reroutés vers le 556078450  (voir le parametre transfert.pattern.gateway)
+application.service.reroute=
+#service ne passant pas par le SVI
+application.service.reroute.cti=
+
+#Pour les appels sortant : extraction du numero pour enlever le 0 du début par exemple
+# Cette seconde extraction (qui vient apres application.pattern.numeroappele) ne s'applique qu'aux appels sontants purs.
+# Pour les appels reroutés c'est dans application.service.reroute, que le numero doit etre saisi au bon format.
+# exemple : transfert.pattern.numeroappele=0{0,1}([0-9]+)
+appel.sortant.pattern.numeroappele=out([+0-9]+)
+#et ensuite ce numero va venir dans la chaine suivante remplacer les XXXXX 
+#  xx.xx.xx.xx =adresse ip de la gateway
+appel.sortant.pattern.gateway=sip:XXXXX@10.194.127.90
+
+# liste des cti externes pour lesquels le champ from contiendra le numero du client
+appel.sortant.from.cti.externe=99900984,0033153634433
+# Pour tous les autres appels sortants (hors 4 chiffres), le champ from contiendra:
+appel.sortant.from.defaut=90009500
+
+###########################################################################
+# Parametres pour IPBX
+###########################################################################
+# pattern identifiant une commande ipbx
+ipbx.pattern.param=star([0-9]+)$
+# pattern identifiant un appel direct teleconseiller
+ipbx.pattern.appel=(^(53[0-9]{4})$|^0556(53[0-9]{4})$)
+###########################################################################
+# Liste de fichiers de proprietes complementaires separes par des virgules
+# a charger en tant que SVI
+# ici gestion des musiques d'attente
+###########################################################################
+application.properties=Attente,Ipbx
+
+###########################################################################
+# Comportement du service par rapport au silence a jouer apres saisie de dtmf
+# par defaut : true (silence joue apres une saisie)
+###########################################################################
+application.silence.Ipbx=false
+application.silence.Attente=false
+##########################################################
+# Variables internes caractérisant le client
+# _varNumAppelant
+# _varNumAppele
+# _varLangue
+# _varMetier : metier sur lequel sera transfere le client au CTI
+# _varDateDeb
+# ces variables sont definies par defaut. On peut en créer de nouvelles
+# Variable speciale :
+# _varTmp : variable temporaire qui n'est pas 
+#          conservee 
+##########################################################
+application.variable=_varNumClient=_varNumAppelant,_varSegment=XX,_varOuverture=OUVERT
+##########################################################
+# codage langue pour CTI
+application.code._varLangue.FR=Francais
+application.code._varLangue.UK=Anglais
+
+##########################################################
+# Informations sur les prompts sonores
+##########################################################
+
+#repertoires des prompts sonores 
+# le chemin est relatif a $RACINE_APP/ (sous linux)
+prompt.repertoire.actif=products/jonas524/00/work/webapps/64poms/single/Svi.war/prompts/
+
+# les prompts sont a livrer dans prompt.repertoire.reference le chemin est relatif a $RACINE_APP/
+prompt.repertoire.reference=SVI/prompts/
+
+##########################################################
+# Les pattern permettant de distinguer les differents types 
+# de fichier
+##########################################################
+# Extensions des prompts sonores, séparées par des virgules
+prompt.extension=wav
+
+##########################################################
+# prompts spécifiques
+##########################################################
+
+# prompt(s) d'erreur, joué(s) a chaque erreur dans les menus
+XXX.navigation.prompt.erreur=ERREUR_beep,ERREUR_MauvaiseTouche,INFO_NavigationGen
+# prompt(s) d'inactivite, joué(s) a chaque passage dans la boucle d'inactivite
+XXX.navigation.prompt.inactivite=INFO_NavigationGen
+# prompt pour signaler trop d'inactivité du client et sa deconnexion
+prompt.dissuasion.inactivite=
+# prompt pour signaler trop d'erreur de dtmf du client et sa deconnexion
+prompt.dissuasion.erreur=
+# temps de presence dans l'application est atteint (cf application.tempo)
+prompt.dissuasion.temps_presence=INFO_TempsPresence
+# Il manque un prompt
+prompt.inexistant=ERREUR_PromptManquant
+
+# prompt de silence permettant au client de porter son telephone à
+# l'oreille apres saisi dtmf. Laisser a vide si fonctionnalite non desiree
+prompt.silence=UTIL_Silence2s
+
+##########################################################
+# STATISTIQUES
+##########################################################
+statistiques.queue.taille=500
+# mode de generation du fichier stats
+#LOCAL = un fichier journalier est cree sous statistiques.repertoire
+#BDD = les donnees de stat sont directement mise dans la base mySQL de stats
+#HTTP= les donnees sont envoyées à un collecteur de stats
+statistiques.mode=LOCAL,HTTP
+statistiques.repertoire=/opt/application/64poms/OVPLOGS/current/stats/
+statistiques.fichier=statAS_
+#adresse de l'AS vu de l'OMS pour envoyer le hangup de fin de connexion
+#statistiques.adresse.as=@IPWEBAS@:@PORTJONAS@
+statistiques.adresse.as=10.184.155.174:9010
+
+# URL pour le mode HTTP
+statistiques.http.url=http://10.184.155.108:9020/CollecteurStat/enregistrer
+##########################################################
+# WEBSERVICE
+##########################################################
+# timeout en milli-seconde de connection
+webservice.timeout.connexion=1000
+# timeout en milli-seconde de reponse a une requete
+webservice.timeout.requete=1000
+# nombre max de connexions http
+webservice.connexion.max=100
+# nombre max de connexions http par route
+webservice.connexion.route.max=100
+
+##########################################################
+# Base de données
+##########################################################
+bdd.driver=com.mysql.jdbc.Driver
+bdd.url=jdbc:mysql://10.184.155.174:3308/p64pclient
+bdd.user=64pomsupdate
+bdd.passwd=64pomsupdate
+#bdd.user=p64pacdupdate
+#bdd.passwd=p64pacdupdate
+bdd.connexion.nbmin=2
+bdd.connexion.nbmax=50
+bdd.connexion.tempo=30
+bdd.connexion.timeout=4
+bdd.requete.timeout=5
+bdd.thread.tempo=600
+
+##########################################################
+# VXML
+##########################################################
+vxml.interdigittimeout=500ms
+
+##########################################################
+# Parametrage CCXML, lancement de SVI particuliers
+#########################################################
+ccxml.svi.navigation.attente=Attente,null
+ccxml.svi.navigation.miseengarde=Attente,miseengarde
+ccxml.svi.navigation.transfert=Attente,null
+ccxml.svi.navigation.ipbx.appel=Ipbx,null
+ccxml.svi.navigation.ipbx.param=Ipbx,parametrage
+
+##########################################################
+# Proprietes communes à tous les services
+##########################################################
+#webservice pour tous les services
+XXX.navigation.websvc.url=http://10.184.155.174:9010/AdminStat/ouvertureService?service=_varNumAppele
+XXX.navigation.websvc.variable=_varOuverture
+XXX.navigation.websvc.valeur.defaut=OUVERT
+XXX.navigation.websvc.element=sdcc
+
+#numero de transfert pour tous les services
+XXX.navigation.transfert.numero=sip:operateur@10.184.155.179:6060;oms_dnis=_varNumAppelant;oms_typ=I;oms_segment_client=_varNumAppele_CHANGE(_varLangue)__varMetier__varSegment
+
+
+##########################################################
+# Enregistrement 
+##########################################################
+XXX.navigation.enreg.repertoire.texte=/opt/application/64poms/SVI/records/txt/
+XXX.navigation.enreg.repertoire.texte.date=true
+XXX.navigation.enreg.duree.max=15s
+XXX.navigation.enreg.finalsilence=3s
+XXX.navigation.enreg.repertoire.audio=/opt/application/64poms/SVI/records/audio/
+XXX.navigation.enreg.repertoire.audio.date=true
+# enregistrement: format des fichiers (_varTmp contient le nom du fichier audio)
+XXX.navigation.enreg.format=CSV
+XXX.navigation.enreg.variable=_varDateDeb,_varNumAppelant,_varNumClient,_varNumAppele,_varLangue,_varDuree,_varTmp
+
+##########################################################
+# Base Donnees 
+##########################################################
+XXX.navigation.bdd.requete=select SEGMENT from CLIENT where TEL=_varNumClient
+XXX.navigation.bdd.variable=_varSegment
+XXX.navigation.bdd.valeur.defaut=LV
+
+
+#########################################################
+# Données pour test
+# si mode debug = 0 --> pas de debug
+# si mode debug = 1 --> le numero appelant reel est remplace par test.numeroappelant
+test.debug=0
+test.numeroappelant=94412608
+test.223.numeroappelant=0877112233
