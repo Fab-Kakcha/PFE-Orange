@@ -11,6 +11,8 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import com.orange.olps.api.webrtc.OmsClientSvi;
+
 import orange.olps.svi.client.Client;
 import orange.olps.svi.config.Config;
 import orange.olps.svi.util.Util;
@@ -140,13 +142,13 @@ public class Condition extends Navigation {
 		return getAction("Faux");
 	}
 	@Override
-	public void calculerActionNavigation(Client client) {
+	public void calculerActionNavigation(OmsClientSvi client) {
 		logger.debug("calculerActionNavigation ("+label+") - ("+client.getValeur(Client.VAR_IDENT)+") - Entree");
 		// on evalue la condition
 		Boolean bool = new Boolean(false);
 
 		if (condition != null) {           
-				bool = Boolean.valueOf(Util.interpreterJavaScript(client, tabVar, condition));	            			
+				//bool = Boolean.valueOf(Util.interpreterJavaScript(client, tabVar, condition));	            			
 		}
 		else if(existeFichier) {
 			String f,v;

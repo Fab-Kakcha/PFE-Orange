@@ -5,6 +5,8 @@ import java.util.Properties;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import com.orange.olps.api.webrtc.OmsClientSvi;
+
 import orange.olps.svi.client.Client;
 import orange.olps.svi.config.Config;
 
@@ -27,7 +29,7 @@ public class Langue extends Menu {
 	}
 
 
-	public void calculerActionNavigation(Client client) {
+	public void calculerActionNavigation(OmsClientSvi client) {
 		int actionNav = client.getActionNavigation();
 		String saisie = client.getPremierCaractereSaisi();
 		logger.debug("calculerActionNavigation - ("+label+") - ("+client.getValeur(Client.VAR_IDENT)+") action precedente="+actionNav+" saisie="+saisie);
@@ -55,7 +57,7 @@ public class Langue extends Menu {
 		}
 		else if (Navigation.DIFFUSION == actionNav) {
 			// on vient de diffuser le prompt manquant
-			client.resetSaisie();
+			//client.resetSaisie();
 			client.setNavCourante(client.getNavPrecedente());
 			client.setActionNavigation(Navigation.RIEN);
 		}
@@ -65,7 +67,7 @@ public class Langue extends Menu {
 			
 			client.supprimerPremierCaractereSaisi(); // on a consomme un item
 			client.setActionNavigation(Navigation.RIEN);
-			client.setSilenceDemande(true);
+			//client.setSilenceDemande(true);
 			
 			if (Config.getInstance().isLangue(resultatSaisie)) {
 				// c'est une langue

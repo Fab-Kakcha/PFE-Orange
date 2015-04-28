@@ -8,6 +8,8 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import com.orange.olps.api.webrtc.OmsClientSvi;
+
 import orange.olps.svi.client.Client;
 import orange.olps.svi.util.Util;
 import orange.olps.svi.config.Config;
@@ -64,7 +66,7 @@ public class Info extends Navigation {
 		verifierPrompt(tabPrompt);		
 	}
 
-	public void calculerActionNavigation(Client client) {
+	public void calculerActionNavigation(OmsClientSvi client) {
 		int actionNav = client.getActionNavigation();
 		String saisie = client.getPremierCaractereSaisi();
 		logger.debug("calculerActionNavigation - ("+label+") - ("+client.getValeur(Client.VAR_IDENT)+") action precedente="+actionNav+" saisie="+saisie);
@@ -104,7 +106,7 @@ public class Info extends Navigation {
 				logger.warn("calculerActionNavigation - ("+label+") - ("+client.getValeur(Client.VAR_IDENT)+") - pas de prompt");
 				if (absorbant || isPromptUnParUn()) {
 					// on supprime les saisies anticipees
-					client.resetSaisie();
+					//client.resetSaisie();
 				}
 				client.setNavCourante(this.getSuivant());
 				client.setActionNavigation(Navigation.RIEN);
@@ -128,11 +130,11 @@ public class Info extends Navigation {
 
 			if (absorbant) {
 				// on supprime les saisies anticipees
-				client.resetSaisie();
+				//client.resetSaisie();
 			}
 			if (isPromptUnParUn()) {
 				// on supprime les saisies anticipees
-				client.resetSaisie();
+				//client.resetSaisie();
 				if (actionNav == Navigation.RIEN) {
 					// on n'est pas passé dans la phase de lecture du prompt
 					// il faut mettre à jour les variables liees au mode un par un

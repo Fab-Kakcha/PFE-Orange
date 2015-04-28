@@ -2,22 +2,23 @@ package orange.olps.svi.client;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import com.orange.olps.api.webrtc.OmsClientSvi;
 
 import orange.olps.svi.util.Util;
 
 
 public class ClientFormat {
 	
-
-
-
 	private static final DateFormat df2 =  new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
 	
 	private Client client;
+	private OmsClientSvi omsClientSvi;
 	private StringBuffer buf = null;
 		
 	protected static Log logger = LogFactory.getLog(ClientFormat.class.getName());
@@ -26,6 +27,11 @@ public class ClientFormat {
 	public ClientFormat (Client c) {
 		client = c;
 		buf = new StringBuffer();
+	}
+	public ClientFormat(OmsClientSvi omsClientSvi) {
+		// TODO Auto-generated constructor stub
+		
+		this.omsClientSvi = omsClientSvi;
 	}
 	/**
 	 * retourne le buffer 

@@ -4,9 +4,12 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Map.Entry;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import com.orange.olps.api.webrtc.OmsClientSvi;
 
 import orange.olps.svi.client.Client;
 //import orange.olps.svi.stats.StatManager;
@@ -68,7 +71,7 @@ public class Case extends Navigation {
 		return getAction("Faux");
 	}
 	@Override
-	public void calculerActionNavigation(Client client) {
+	public void calculerActionNavigation(OmsClientSvi client) {
 		logger.debug("calculerActionNavigation ("+label+") - ("+client.getValeur(Client.VAR_IDENT)+") - Entree");
 		
 		String nav = null;

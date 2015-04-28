@@ -11,6 +11,8 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.json.JSONObject;
 
+import com.orange.olps.api.webrtc.OmsClientSvi;
+
 import orange.olps.svi.client.Client;
 import orange.olps.svi.config.Config;
 import orange.olps.svi.util.Util;
@@ -576,7 +578,7 @@ public abstract class Navigation {
 	 * @param client
 	 * @return nombre de prompts
 	 */
-	protected int preparerPrompt(Client client) {
+	protected int preparerPrompt(OmsClientSvi client) {
 		ArrayList<String> tabPrompt;
 		if(client.getNbInactivite() == 0 && client.getNbRejet() == 0) {
 			tabPrompt = getPrompt(client.getLangue(), Navigation.VERSION_LONGUE);
@@ -647,7 +649,7 @@ public abstract class Navigation {
 		return buf.toString();
 
 	}
-	public abstract void calculerActionNavigation( Client client);
+	public abstract void calculerActionNavigation(OmsClientSvi client);
 	public abstract JSONObject toJsonObject();
 
 }

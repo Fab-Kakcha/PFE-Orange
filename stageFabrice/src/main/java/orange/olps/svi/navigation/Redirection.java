@@ -7,6 +7,8 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import com.orange.olps.api.webrtc.OmsClientSvi;
+
 import orange.olps.svi.client.Client;
 
 public class Redirection extends Navigation {
@@ -37,7 +39,7 @@ public class Redirection extends Navigation {
 	}
 
 	@Override
-	public void calculerActionNavigation(Client client) {
+	public void calculerActionNavigation(OmsClientSvi client) {
 		logger.debug("calculerActionNavigation - ("+label+") - ("+client.getValeur(Client.VAR_IDENT)+") - Entree");
 		
 		// premier passage dans cet item

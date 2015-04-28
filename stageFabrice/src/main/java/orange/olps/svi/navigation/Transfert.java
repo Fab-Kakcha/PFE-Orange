@@ -8,7 +8,8 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import orange.olps.svi.client.Client;
+import com.orange.olps.api.webrtc.OmsClientSvi;
+
 import orange.olps.svi.config.Config;
 import orange.olps.svi.util.Util;
 
@@ -53,7 +54,7 @@ public class Transfert extends Navigation {
 		return ret;
 	}
 
-	public String getNumeroTransfertAvecParam(Client client) {
+	public String getNumeroTransfertAvecParam(OmsClientSvi client) {
 		logger.debug("getNumeroTransfertAvecParam - Client = "+client.getIdent());
 		
 		String ret = Util.reconstituerString(numeroTransfert, client);
@@ -64,7 +65,7 @@ public class Transfert extends Navigation {
 		return ret;
 	}
 
-	public void calculerActionNavigation(Client client) {
+	public void calculerActionNavigation(OmsClientSvi client) {
 		int actionNav = client.getActionNavigation();
 		
 		logger.debug("calculerActionNavigation - appelant="+client.getNumeroAppelant()+" navigation ="+client.getNavCourante()+" action precedente="+actionNav);

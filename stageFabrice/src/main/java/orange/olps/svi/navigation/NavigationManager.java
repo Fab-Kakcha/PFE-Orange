@@ -11,11 +11,14 @@ import java.util.Properties;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.log4j.Level;
+import org.apache.log4j.Logger;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import orange.olps.svi.client.Client;
+import com.orange.olps.api.webrtc.OmsClientSvi;
+
 import orange.olps.svi.config.Config;
 import orange.olps.svi.navigation.Navigation;
 import orange.olps.svi.navigation.BaseDonnees;
@@ -48,14 +51,20 @@ public class NavigationManager {
 	private boolean useSms = false;
 
 	protected static Log logger = LogFactory.getLog(NavigationManager.class.getName());
+	private static Logger log = Logger.getLogger(NavigationManager.class);
 
 
+	
 	private NavigationManager () {
+		
 		mapNavigation = new HashMap <String, Navigation>(5);
 		mapRacineSvc = new  HashMap <String, String>(1);
 	}
 
 	public static  NavigationManager getInstance() {
+		
+		log.setLevel(Level.DEBUG);
+		
 		logger.debug("getInstance - Entree ");
 		if (navManager == null) {
 			synchronized (NavigationManager.class) {
@@ -342,6 +351,8 @@ public class NavigationManager {
 	}	
 
 	public Navigation getNavigation(String svc, String label) {
+		
+		log.setLevel(Level.DEBUG);
 		logger.debug("getNavigation - service ("+svc+") nom ("+label+") ");
 		String key = svc+"_"+label;
 		Navigation n =  mapNavigation.get(key);
@@ -369,9 +380,12 @@ public class NavigationManager {
 	 * @param client : client en ligne
 	 * @return
 	 */
-	public int calculerActionNavigation(Client client) {
+	public int calculerActionNavigation(OmsClientSvi client) {
+		
+		log.setLevel(Level.DEBUG);
 		logger.debug("calculerActionNavigation - client ("+client.getIdent()+") Entree");
 		Navigation nav;
+		
 		do {
 
 			// recuperation de l'objet de navigation courant

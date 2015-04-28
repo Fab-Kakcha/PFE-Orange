@@ -164,6 +164,7 @@ public class Config extends Properties  {
 	private static Config config;
 	private static boolean sbooIsInit = false;
 	private static String repProperties = "/conf/";	
+	//private static String repProperties = "\\conf\\";	
 	private static String nomProperties = "Svi.properties";
 	private static String repAudio = null;
 	private static String repAudioRef = null;
@@ -174,7 +175,8 @@ public class Config extends Properties  {
 
 	protected static Log logger = LogFactory.getLog(Config.class.getName());
 
-	private class FiltreRepJboss implements FilenameFilter {
+	//private class FiltreRepJboss implements FilenameFilter {
+	public class FiltreRepJboss{
 
 		private String filtre;
 		/**
@@ -233,20 +235,26 @@ public class Config extends Properties  {
 		String[] tabEnv = {varEnvRep, "HOME_SVI", "HOME_APP", "HOME_SVC", "HOME_OVP", "HOME_INF"};
 		String fic ="";
 		String repEnv = null;
-
+		String userNameEnv = "PROPERTIES_FILES";
+		
 		for (String s : tabEnv) {
 			if (s != null) {
 				repEnv = System.getenv(s);
+				userNameEnv = System.getenv(userNameEnv);
+				System.out.println("repEnv: " + repEnv);
+				System.out.println("userNameEnv: " + userNameEnv);
 				if (s != null) {
 					fic = repEnv+repProperties+nom;
 					File f = new File (fic);
+					System.out.println("f: " + f);
 					if (f.exists() && f.isFile() && f.canRead()) {
 						return f;
 					}
 				}
 			}
 		}
-
+		
+		System.out.println("fic: " + fic);
 		logger.error("getFileProperties -  fichier properties ("+nom+") non trouve");
 		return null;
 	}
@@ -368,7 +376,8 @@ public class Config extends Properties  {
 		if (f.exists() && f.isDirectory()) {
 			logger.debug("construireRepAudio - traitement du repertoire :"+f.getAbsolutePath());
 			// lecture des répertoire matchant le pattern
-			String[] tabFic = f.list(new FiltreRepJboss(tabRep[i]));
+			//String[] tabFic = f.list(new FiltreRepJboss(tabRep[i]));
+			String[] tabFic = null;
 			String retour = null;
 			String repBase;
 			for (String r : tabFic) {
@@ -397,6 +406,7 @@ public class Config extends Properties  {
 				else {
 					repAudioRef =racine+ sep+rep + sep;
 				}
+				logger.info("repAudioRef: " + repAudioRef);
 
 			}
 			else {

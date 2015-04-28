@@ -9,6 +9,8 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import com.orange.olps.api.webrtc.OmsClientSvi;
+
 import orange.olps.svi.bdd.ConnexionManager;
 import orange.olps.svi.bdd.ConnexionUtil;
 import orange.olps.svi.client.Client;
@@ -186,7 +188,7 @@ public class BaseDonnees extends Navigation {
 		this.tabValeurDef = tabValeurDef;
 	}
 	@Override
-	public void calculerActionNavigation(Client client) {		
+	public void calculerActionNavigation(OmsClientSvi client) {		
 		logger.debug("calculerActionNavigation - ("+label+") - ("+client.getValeur(Client.VAR_IDENT)+") - Entree");
 		// Statistiques
 		///StatManager.getInstance().posterStatistiques(client.getIdent(), 
@@ -196,7 +198,7 @@ public class BaseDonnees extends Navigation {
 		
 		ConnexionUtil util = new ConnexionUtil();
 		
-		util.executerRequete(client, this);
+		//util.executerRequete(client, this);
 		
 		if (isBaseKO(client.getValeur(Client.VAR_ERREUR))) {
 			client.setNavCourante(getAction(Navigation.ERREUR));

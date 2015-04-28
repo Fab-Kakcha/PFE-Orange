@@ -11,6 +11,8 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import com.orange.olps.api.webrtc.OmsClientSvi;
+
 import orange.olps.svi.client.Client;
 import orange.olps.svi.client.ClientFormat;
 import orange.olps.svi.config.Config;
@@ -261,7 +263,7 @@ public class Enregistrement extends Navigation {
 		this.format = format;
 	}
 	@Override
-	public void calculerActionNavigation(Client client) {
+	public void calculerActionNavigation(OmsClientSvi client) {
 		int actionNav = client.getActionNavigation();
 		
 		logger.debug("calculerActionNavigation - ("+label+") - ("+client.getValeur(Client.VAR_IDENT)+") action precedente="+actionNav);
@@ -279,7 +281,7 @@ public class Enregistrement extends Navigation {
 			}
 			else {
 				// mode texte, c'est fini
-				enregDansFichier(client);
+				//enregDansFichier(client);
 				client.setActionNavigation(Navigation.RIEN);
 				client.setNavCourante(getSuivant());
 			}
@@ -289,7 +291,7 @@ public class Enregistrement extends Navigation {
 			// action suivante
 			String nomWave = client.getValeur(Client.VAR_TMP);
 			if (nomWave != null && !"".equals(nomWave)) {
-				enregDansFichier(client);
+				//enregDansFichier(client);
 			}
 			client.setActionNavigation(Navigation.RIEN);
 			client.setNavCourante(getSuivant());
@@ -300,11 +302,11 @@ public class Enregistrement extends Navigation {
 				// on part en enregistrement AUDIO
 				
 				client.setActionNavigation(Navigation.ENREG_AUDIO);
-				client.resetSaisie();
+				//client.resetSaisie();
 			}
 			else {
 				// mode texte, c'est fini
-				enregDansFichier(client);
+				//enregDansFichier(client);
 				client.setActionNavigation(Navigation.RIEN);
 				client.setNavCourante(getSuivant());
 			}

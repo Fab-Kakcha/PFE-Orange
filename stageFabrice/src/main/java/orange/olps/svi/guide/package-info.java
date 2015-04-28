@@ -5,4 +5,4 @@
  * @author JWPN9644
  *
  */
-package orange.olps.svi.config;
+package orange.olps.svi.guide;

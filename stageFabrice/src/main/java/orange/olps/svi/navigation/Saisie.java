@@ -8,6 +8,8 @@ import java.util.regex.Pattern;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import com.orange.olps.api.webrtc.OmsClientSvi;
+
 import orange.olps.svi.client.Client;
 
 
@@ -134,7 +136,7 @@ public class Saisie extends Menu {
 	}
 
 	@Override
-	public void calculerActionNavigation(Client client) {
+	public void calculerActionNavigation(OmsClientSvi client) {
 		int actionNav = client.getActionNavigation();
 		String saisie = client.getSaisie();
 		client.setIndex(-1);
@@ -265,7 +267,7 @@ public class Saisie extends Menu {
 		logger.debug("calculerActionNavigation - ("+label+") - ("+client.getValeur(Client.VAR_IDENT)+") retour = "+client.getActionNavigation());
 		return;
 	}
-	private boolean verifierSaisie(String saisie, Client client) {
+	private boolean verifierSaisie(String saisie, OmsClientSvi client) {
 		if (tabControle == null) return true;
 		if (tabControle.isEmpty()) return true;
 		int i = 0;

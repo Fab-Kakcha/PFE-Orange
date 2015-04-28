@@ -31,9 +31,8 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.NameValuePair;
 import org.apache.http.message.BasicNameValuePair;
-import org.mozilla.javascript.Context;
-import org.mozilla.javascript.ContextFactory;
-import org.mozilla.javascript.Scriptable;
+
+import com.orange.olps.api.webrtc.OmsClientSvi;
 
 
 
@@ -73,7 +72,7 @@ public class Util {
 	 * Verifie le timer global de presence dans l'application en fonction du service
 	 * retourne True si echu
 	 */
-	public static boolean verifierTimerApplicationEchu(Client client) {
+	public static boolean verifierTimerApplicationEchu(OmsClientSvi client) {
 		long t = System.currentTimeMillis(); /* on passe en seconde */
 		Long tpsMax = mapTpsMax.get(client.getService());
 		if (tpsMax == null || tpsMax == -1) return false;
@@ -346,7 +345,7 @@ public class Util {
 	 * @param client : client qui a appele
 	 * @return : nouveau tableau de prompt
 	 */
-	public static ArrayList<String> reconstituerListePrompt(ArrayList<String> tabPrompt, Client client) {
+	public static ArrayList<String> reconstituerListePrompt(ArrayList<String> tabPrompt, OmsClientSvi client) {
 		String valeur;
 		ArrayList<String> tmp;
 		
@@ -695,7 +694,7 @@ public class Util {
 	 * @param client : client a traiter
 	 * @return la chaine reconstituee
 	 */
-	public static String reconstituerString(ArrayList<String> tab, Client client) {
+	public static String reconstituerString(ArrayList<String> tab, OmsClientSvi client) {
 		if (tab == null) return "";
 		boolean change = false;
 		StringBuffer buf = new StringBuffer();
@@ -839,94 +838,7 @@ public class Util {
 		}
 
 	}
-	/**
-	 * Interprete une commande javascript
-	 * @param client = donnees du client appelant
-	 * @param tabVar = tableau des _var* present dans la commande
-	 * @param cmde = commande javascript
-	 * @return le resultat de la commande sous forme de chaine
-	 */
-	public static String interpreterJavaScript (Client client, ArrayList<String> tabVar, String cmde) {
-		Object result = "";
-		Context cx = ContextFactory.getGlobal().enterContext();
-		try {
 
-			cx.setLanguageVersion(Context.VERSION_1_7);
-			Scriptable scope = cx.initStandardObjects();
-
-			String val;
-			for (String v : tabVar) {
-				val = client.getValeur(v);
-				if (v.endsWith("Nb")) {
-					// variable à interpreter comme une valeur numérique
-					if (val == null) {
-						logger.debug("interpreterJavaScript ("+client.getNavCourante()+") - ("+client.getValeur(Client.VAR_IDENT)+") "+v+"=0");
-						cx.evaluateString(scope, v+"=0",
-								"MaCmde", 1, null);
-					}
-					else {
-						logger.debug("interpreterJavaScript ("+client.getNavCourante()+") - ("+client.getValeur(Client.VAR_IDENT)+") "+v+"="+val);
-						cx.evaluateString(scope, v+"="+val,
-								"MaCmde", 1, null);
-					}
-				}
-				else {
-
-					if (val == null) {
-						logger.debug("interpreterJavaScript ("+client.getNavCourante()+") - ("+client.getValeur(Client.VAR_IDENT)+") "+v+"=''");
-						cx.evaluateString(scope, v+"=''",
-								"MaCmde", 1, null);	 
-					}
-					else {
-						logger.debug("interpreterJavaScript ("+client.getNavCourante()+") - ("+client.getValeur(Client.VAR_IDENT)+") "+v+"='"+val+"'");
-						cx.evaluateString(scope, v+"='"+val+"'",
-								"MaCmde", 1, null);
-					}
-				}	  	            		            		            	    	
-			}
-			
-			result = cx.evaluateString(scope, cmde,
-					"MaCmde", 1, null);	 
-		}
-		catch (Exception e) {
-			logger.error("interpreterJavaScript ("+client.getNavCourante()+")- ("+client.getValeur(Client.VAR_IDENT)+") - cmde ("+cmde+") - "+e.getMessage());
-
-		} finally {
-			Context.exit();
-		}
-		return Context.toString(result);	 
-	}
-	/**
-	 * Interprète une commande javascript: retourne une valeur d'un objet json
-	 * @param json = donnee json
-	 * @param cmde = donnée à extraire
-	 * @return
-	 */
-	public static String interpreterJavaScript (String json, String cmde) {
-		if (json == null) return "";
-		Object result = "";
-		Context cx = ContextFactory.getGlobal().enterContext();
-		try {
-
-			cx.setLanguageVersion(Context.VERSION_1_7);
-			Scriptable scope = cx.initStandardObjects();
-
-			cx.evaluateString(scope, "v='"+json.substring(json.indexOf('{'), json.lastIndexOf('}'))+"'",
-								"MaCmde1", 1, null);
-			
-			cmde = "v."+cmde;
-			result = cx.evaluateString(scope, cmde,
-					"MaCmde1", 1, null);	 
-		}
-		catch (Exception e) {
-			logger.error("interpreterJavaScript  - cmde ("+cmde+") - "+e.getMessage());
-			return null;
-
-		} finally {
-			Context.exit();
-		}
-		return Context.toString(result);	 
-	}
 	/**
 	 * Ajoute la duree max de presence dans le service dans la map
 	 * @param service

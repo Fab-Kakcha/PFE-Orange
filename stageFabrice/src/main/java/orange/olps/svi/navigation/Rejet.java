@@ -6,6 +6,8 @@ import java.util.Properties;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import com.orange.olps.api.webrtc.OmsClientSvi;
+
 import orange.olps.svi.client.Client;
 import orange.olps.svi.config.Config;
 
@@ -20,15 +22,15 @@ public class Rejet extends Navigation {
 		return true;	
 	}
 	@Override
-	public void calculerActionNavigation(Client client) {
+	public void calculerActionNavigation(OmsClientSvi client) {
 
 		Menu menu = (Menu) NavigationManager.getInstance().getNavigation(client.getService(), client.getNavPrecedente());
 		int rejetMax = menu.getNbErreurMax();
 		
 		logger.debug("traiterRejet ("+label+")-  ("+client.getIdent()+") Nb rejets/Max rejets ("+client.getNbRejet()+"/"+rejetMax+")");
 		
-		client.incrementerRejet();
-		client.resetSaisie();
+		//client.incrementerRejet();
+		//client.resetSaisie();
 		client.setNavCourante(menu.getLabel()); // on se repositionne sur le menu qui a provoque le rejet
 		
 		if(client.getNbRejet() >= rejetMax && rejetMax >=0) {
@@ -59,7 +61,8 @@ public class Rejet extends Navigation {
 			ArrayList<String> tabErr = menu.getPromptErreur(client);
 			if (tabErr != null && tabErr.size() >0) {
 				//on diffuse les messages d'erreurs	
-				int index = client.getIndex();
+				//int index = client.getIndex();
+				int index = 0;
 				if (index == -1) {
 					  // diffusion de tous les messages d'erreur
 					  client.setPrompt(tabErr);

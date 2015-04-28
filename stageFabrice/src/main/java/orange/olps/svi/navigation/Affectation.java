@@ -9,6 +9,8 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import com.orange.olps.api.webrtc.OmsClientSvi;
+
 import orange.olps.svi.client.Client;
 import orange.olps.svi.util.Util;
 
@@ -111,7 +113,7 @@ public class Affectation extends Navigation {
 
 
 	@Override
-	public void calculerActionNavigation(Client client) {
+	public void calculerActionNavigation(OmsClientSvi client) {
 		logger.debug("calculerActionNavigation ("+label+") - ("+client.getValeur(Client.VAR_IDENT)+" - Entree");
 				
 		// Statistiques
@@ -131,7 +133,7 @@ public class Affectation extends Navigation {
 				client.setValeur(aff.var, client.getValeur(aff.val),boolStat);
 				break;
 			case AffectationUnitaire.AFFECTATION_JS:
-				client.setValeur(aff.var, Util.interpreterJavaScript(client, aff.varVal, aff.val), boolStat);
+				//client.setValeur(aff.var, Util.interpreterJavaScript(client, aff.varVal, aff.val), boolStat);
 				break;
 			default:
 				break;

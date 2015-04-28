@@ -8,6 +8,8 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import com.orange.olps.api.webrtc.OmsClientSvi;
+
 import orange.olps.svi.client.Client;
 import orange.olps.svi.config.Config;
 import orange.olps.svi.util.Util;
@@ -127,7 +129,7 @@ public class Menu extends Navigation {
 		this.nbInactiviteMax = nbInactiviteMax;
 	}
 
-	public ArrayList<String> getPromptErreur(Client client) {
+	public ArrayList<String> getPromptErreur(OmsClientSvi client) {
 		if (erreur == null) return null;
 		if (erreur.isPromptDynamique()) {
 			// il y a des prompts dynamiques , il faut retravailler la liste
@@ -135,7 +137,7 @@ public class Menu extends Navigation {
 		}
 		return erreur.getPrompt(client.getLangue());
 	}
-	public ArrayList<String> getPromptInactivite(Client client) {
+	public ArrayList<String> getPromptInactivite(OmsClientSvi client) {
 		if (inactivite == null) return null;
 		if (inactivite.isPromptDynamique()) {
 			// il y a des prompts dynamiques , il faut retravailler la liste
@@ -167,7 +169,7 @@ public class Menu extends Navigation {
 	public void setNbErreurMax(int nbErreurMax) {
 		this.nbErreurMax = nbErreurMax;
 	}
-	public void calculerActionNavigation(Client client) {
+	public void calculerActionNavigation(OmsClientSvi client) {
 		int actionNav = client.getActionNavigation();
 		String saisie = client.getPremierCaractereSaisi();
 		logger.debug("calculerActionNavigation - ("+label+") - ("+client.getValeur(Client.VAR_IDENT)+") action precedente="+actionNav+" saisie="+saisie);
@@ -195,7 +197,7 @@ public class Menu extends Navigation {
 		}
 		else if (Navigation.DIFFUSION == actionNav) {
 			// on vient de diffuser le prompt manquant
-			client.resetSaisie();
+			//client.resetSaisie();
 			client.setNavCourante(client.getNavPrecedente());
 			client.setActionNavigation(Navigation.RIEN);
 		}
@@ -213,7 +215,7 @@ public class Menu extends Navigation {
 			client.supprimerPremierCaractereSaisi(); // on a consommé un item
 			client.setActionNavigation(Navigation.RIEN);
 			client.setNavPrecedente(label);
-			client.setSilenceDemande(true);
+			//client.setSilenceDemande(true);
 			if (client.getNavCourante() != Navigation.REJET) {
 				// on quitte reellement cet item
 				client.setNbInactivite(0);

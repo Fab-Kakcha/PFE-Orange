@@ -25,9 +25,9 @@ public class Client {
 	public static final String VAR_APPELE = "_varNumAppele";
 	public static final String VAR_ERREUR = "_varErreur";
 	public static final String VAR_IDENT = "_varIdent";
+	public static final String VAR_RAISON = "_varRaison"; // raison de la deconnexion (INACTIVITE/TIMEOUT/REJET)
 	public static final String VAR_SEGMENT = "_varSegment";
 	public static final String VAR_METIER = "_varMetier";
-	public static final String VAR_RAISON = "_varRaison"; // raison de la deconnexion (INACTIVITE/TIMEOUT/REJET)
 	public static final String VAR_TMP = "_varTmp";
 	public static final String VAR_NAV = "_varNav";
 	public static final String VAR_NAV_PREC = "_varNavPre";

@@ -16,6 +16,8 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import com.orange.olps.api.webrtc.OmsClientSvi;
+
 import orange.olps.svi.client.Client;
 import orange.olps.svi.config.Config;
 import orange.olps.svi.util.Util;
@@ -164,7 +166,7 @@ public  class Prepare extends Navigation {
 
 
 		@Override
-		public void calculerActionNavigation(Client client) {
+		public void calculerActionNavigation(OmsClientSvi client) {
 			logger.debug("calculerActionNavigation - ("+label+") - ("+client.getValeur(Client.VAR_IDENT)+") - Entree");
 						
 			// premier passage dans cet item
@@ -192,7 +194,7 @@ public  class Prepare extends Navigation {
 		 * @param client = client appelant
 		 * @return liste de prompts séparés par des virgules
 		 */
-		private boolean filtrerPrompt(Client client) {
+		private boolean filtrerPrompt(OmsClientSvi client) {
 			// Creation du masque
 				
 			String msq = Util.reconstituerString(decoupeFiltre, client);
