@@ -26,8 +26,8 @@ public class MonService extends OmsService implements OmsMessageListener {
 	 */
 	
 	private static Logger logger = Logger.getLogger(MonService.class);
-	private static final String WEBRTC_CONF = "/opt/testlab/utils/stageFabrice/src/main/java/";
-	//private static final String WEBRTC_CONF = "C:\\Users\\JWPN9644\\opt\\application\\64poms\\current\\conf\\";
+	//private static final String WEBRTC_CONF = "/opt/testlab/utils/stageFabrice/src/main/java/";
+	private static final String WEBRTC_CONF = "C:\\Users\\JWPN9644\\opt\\application\\64poms\\current\\conf\\";
 	protected static String hostVip = "127.0.0.1";
 	protected static String portVip = "4670";
 	private static String portWs = "8887";
@@ -43,13 +43,16 @@ public class MonService extends OmsService implements OmsMessageListener {
 	private static final String DEFAULT_CONF_PORT = "10000";
 	
 	boolean isAnswer = false;
-	private OmsConference conf;
-	private Annuaire annuaire;
 	//private List<OmsCall> listOmsCall = new ArrayList<OmsCall>();
 	//private String filePath = "/opt/application/64poms/current/tmp/infosOnConferences.log";
 	//private String filePath = "C:\\Users\\JWPN9644\\Documents\\infosOnConferences.log";
 	private String filePath2 = "/opt/application/64poms/current/tmp/Animaux.a8k";
-
+	
+	
+	private OmsConference conf;
+	private Annuaire annuaire;
+	private ConferenceParameters conferenceParam;
+	
 	
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
@@ -168,9 +171,11 @@ public class MonService extends OmsService implements OmsMessageListener {
 			case "createConf":
 				//conf.create(call, "conf1");
 				if(annuaire.checkOmsCall(call))
-					param = annuaire.updatingStringParam(call, param);	
-				logger.info(param);
-				conf.create(call, param);
+					param = annuaire.updatingStringParam(call, param);					
+				conferenceParam = new ConferenceParameters("confName");
+				
+				//conf.create(call, conferenceParam);
+				//conf.create(call, param);
 				//conf.notification(listOmsCall);
 				//conf.create(param);
 				break;
