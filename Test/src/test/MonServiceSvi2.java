@@ -1,6 +1,3 @@
-/**
- * 
- */
 package test;
 
 import java.io.BufferedWriter;
@@ -189,6 +186,14 @@ public class MonServiceSvi2 extends OmsService implements OmsMessageListener {
 					break;
 				case Navigation.TRANSFERT:
 					
+					Transfert nav1= (Transfert)NavigationManager.getInstance().getNavigation(call.getService(), call.getNavPrecedente());
+				    
+				    String numTransfert=nav1.getNumeroTransfertAvecParam(call);
+					logger.info("numTransfert: " + numTransfert);
+					
+					ClientFormat f = new ClientFormat(call);
+					f.formaterBrut();
+										
 					break;
 				case Navigation.DECONNEXION:
 					tabPrompt = call.getPrompt();
@@ -196,22 +201,14 @@ public class MonServiceSvi2 extends OmsService implements OmsMessageListener {
 					actionNavigation = NavigationManager.getInstance().calculerActionNavigation(call);
 					 logger.info("actionNavigation: " + actionNavigation);
 					
-					//String retour = "NORMAL";
-				    //Navigation nav= NavigationManager.getInstance().getNavigation(call.getService(), call.getNavCourante());
-				    //if (nav != null) {
-				      //  if (nav.getClass().getName().equals(Deconnexion.class.getName())) { call.getNavPrecedente()
-				    //	   retour = ((Deconnexion) nav).getValeurRetour();
-				    	//}        
-				    //}
-									    
-				    Transfert nav1= (Transfert)NavigationManager.getInstance().getNavigation(call.getService(), call.getNavPrecedente());
-									    
-				    String numTransfert=nav1.getNumeroTransfertAvecParam(call);
-					logger.info("numTransfert: " + numTransfert);
-					
-					ClientFormat f = new ClientFormat(call);
-					f.formaterBrut();						
-				    
+					String retour = "NORMAL";
+				    Navigation nav= NavigationManager.getInstance().getNavigation(call.getService(), call.getNavCourante());
+				    if (nav != null) {
+				        if (nav.getClass().getName().equals(Deconnexion.class.getName())) {
+				    	   retour = ((Deconnexion) nav).getValeurRetour();
+				    	}        
+				    }
+						    
 					break;
 				case Navigation.DISSUASION:
 					tabPrompt = call.getPrompt();
