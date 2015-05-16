@@ -1,0 +1,198 @@
+ html{
+ 	font-family:sans-serif;
+ 	background-image: url("images.jpg");
+ 	-webkit-background-size: cover;
+ 	/*-moz-background-size: cover;*/
+ 	-o-background-size: cover;
+ 	background-size: cover;
+ 	-webkit-text-size-adjust:100%;
+ 	-ms-text-size-adjust:100%
+ }
+ body{
+ 	color: white;
+ 	margin:0
+ }
+ button{
+	padding: 8px;
+ 	color: inherit;
+ 	font: inherit;
+ 	font: 18px sans-serif;
+ 	margin: 0;
+ 	color: black;
+  background-image:  linear-gradient(to bottom, #337ab7 0%, #265a88 100%);
+
+  background-repeat: repeat-x;
+  border-color: #245580;
+ }
+
+ /*.btn-primary {
+  color: black;
+  background-image:  linear-gradient(to bottom, #337ab7 0%, #265a88 100%);
+
+  background-repeat: repeat-x;
+  border-color: #245580;
+}*/
+
+/*.btn-primary:active,*/
+.active {
+  background-color: #265a88;
+  border-color: #245580;
+  box-shadow: 10px 10px 5px
+}
+
+/*.btn-primary:disabled*/
+.disabled{
+pointer-events: none;
+  cursor: not-allowed;
+  -webkit-box-shadow: none;
+          box-shadow: none;
+  background-color: #99CCFF;
+  background-image: none;
+}
+
+.btn-group{
+  text-align: center;
+  border-radius: 0;
+  /*display: table-cell;*/
+  margin-right: -1px;
+  padding-right: 8px;
+  padding-left: 8px;
+}
+
+/*.btn-primary:hover,
+.btn-primary:focus {
+  background-color: #265a88;
+  background-position: 0 -15px;
+}*/
+
+#userName,#confName{
+  height: 500px;
+    width: 500px;
+/*margin-top: 2cm;
+margin-bottom: 2cm;
+margin-right: 2cm;
+margin-left: 2cm;*/
+text-align: center;
+/*width:100%;
+height:100%;
+opacity:.95;*/
+top:50px;
+left:375px;
+display:none;
+position:fixed;
+background-color:#313131;
+overflow:auto;
+}
+
+#checkConfName, #checkUserName, span{
+  display: none;
+  color: red;
+}
+form{
+  text-align: center;
+}
+
+.listOfPeopleConnected{
+  
+  display: block;
+    position: relative;
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    font-weight: 600;
+
+    background-color: #FFA500;
+   
+    border-bottom: 1px solid #33373d;
+    -webkit-box-shadow: inset 0px 1px 0px 0px #878e98;
+    -moz-box-shadow: inset 0px 1px 0px 0px #878e98;
+    box-shadow: inset 0px 1px 0px 0px #878e98;
+    width: 100%;
+    height: 2.75em;
+    line-height: 2.75em;
+    text-indent: 2.75em;
+
+    color: #fff;
+    text-shadow: 0px 1px 0px rgba(0,0,0,.5);
+}
+
+#listOfPeopleConnected{
+
+  position:absolute;
+    margin: 10px auto;
+    margin-right: 20px;
+    /* set position */
+    top: 0px;
+    right: 0px;
+
+    /* must have dimension */
+    width: 300px;
+    height: 500px;
+    font-size: 14px;
+
+}
+
+#listOfPeopleInConf{
+  position:absolute;
+  margin-left: 20px;
+    /* set position */
+    top: 10px;
+    left: 0px;
+
+    /* must have dimension */
+    width: 300px;
+    height: 500px;
+    font-size: 14px;;
+}
+
+
+/*div#listOfPeopleConnected.listOfPeopleConnected{
+   position:absolute;
+    margin: 100px auto;
+    margin-right: 20px;
+    /* set position */
+   /* top: 0px;
+    right: 0px;*/
+
+    /* must have dimension */
+   /* width: 300px;
+    height: 500px;
+    font-size: 14px;;
+}*/
+
+
+ div#listOfPeopleConnected div  {
+    /*background-color: #FFA500;
+   
+    border-bottom: 1px solid #33373d;
+    -webkit-box-shadow: inset 0px 1px 0px 0px #878e98;
+    -moz-box-shadow: inset 0px 1px 0px 0px #878e98;
+    box-shadow: inset 0px 1px 0px 0px #878e98;
+    width: 100%;
+    height: 2.75em;
+    line-height: 2.75em;
+    text-indent: 2.75em;*/
+    /*display: block;
+    position: relative;
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    font-weight: 600;*/
+    /*color: #fff;
+    text-shadow: 0px 1px 0px rgba(0,0,0,.5);*/
+}
+
+/*div#listOfPeopleConnected li  {*/
+  li{
+    background: #fff;
+    border-bottom: 1px solid #efeff0;
+    width: 100%;
+    height: 2.75em;
+    line-height: 2.75em;
+    text-indent: 2.75em;
+    display: block;
+    position: relative;
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    font-size: 0.923em;
+    font-weight: 400;
+    color: #878d95;
+}
+ div#listOfPeopleConnected  li:last-child  {
+    border-bottom: 1px solid #33373d;
+}

@@ -1,0 +1,241 @@
+<!DOCTYPE HTML>
+<!--
+@author:Ihda AHARMIM ,Stage 2015;
+-->
+<html>
+<head>
+  <title>WebRTC stage Ihda</title>
+  <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+  <meta name="description" content="" />
+  <meta name="keywords" content="" />
+  <!--[if lte IE 8]><script src="css/ie/html5shiv.js"></script><![endif]-->
+  <script src="js/jquery.min.js"></script>
+  <script src="js/jquery.dropotron.min.js"></script>
+  <script src="js/jquery.scrolly.min.js"></script>
+  <script src="js/jquery.onvisible.min.js"></script>
+  <script src="js/skel.min.js"></script>
+  <script src="js/skel-layers.min.js"></script>
+  <script src="js/init.js"></script>
+  <link href='http://fonts.googleapis.com/css?family=Lato:300,400,700' rel='stylesheet' type='text/css'>
+
+  <link rel="stylesheet" href="css/reset.css"> <!-- CSS reset -->
+  <link rel="stylesheet" href="css/style2.css"> <!-- Resource style -->
+  <script src="js/modernizr.js"></script> <!-- Modernizr -->
+  <script src="js/adapter.js"></script>
+  <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
+  <script src="js/main.js"></script> <!-- Resource jQuery -->
+  <noscript>
+     <link rel="stylesheet" href="css/skel.css" />
+     <link rel="stylesheet" href="css/style.css" />
+     <link rel="stylesheet" href="css/style-desktop.css" />
+     <link rel="stylesheet" href="css/style-noscript.css" />
+ </noscript>
+
+</head>
+<body class="homepage">
+
+  <!-- Header -->
+  <div id="header">
+
+   <!-- Inner -->
+
+   <div id="audio" class="btn-group">
+    <audio  style="display:none" id="audio1" autoplay="autoplay" muted="muted" controls="controls"></audio>
+    <audio style="display:none" id="audio2" autoplay="autoplay" controls="controls"></audio>
+  <!--  <video src="http://upload.wikimedia.org/wikipedia/en/4/45/ACDC_-_Back_In_Black-sample.ogg" id="Beatles-Hey_Jude" controls="" ></video>-->
+    <audio style="display:none" src="RingbackTone.mp3" id="RingbackTone" controls="controls"> </audio>
+	<!--<audio controls autoplay>
+	<source src="Beatles-Hey_Jude.mp3" type="audio/mpeg" />
+	</audio> -->
+	<!--<audio controls autoplay>
+	<source src="RingbackTone.mp3" type="audio/mpeg" />
+	</audio>-->
+</div>
+<div id="form" class="btn-group">
+ <form style="display:none" name="saisie">
+    Serveur OmsGateway : <input type="text" value="127.0.0.1:8887" name="serveurPort"><br>
+</form>
+</div>
+<div class="inner">
+  <header>
+     <h2><a href="index.html" id="logo">OrangeConference</a></h1>
+     <hr />
+     <h3>Welcome to the Conference Service</h3>
+ </header>
+ <footer>
+     <a href="#banner" class="button circled scrolly">Connect</a>
+ </footer>
+</div>
+
+<!-- Nav -->
+<nav id="nav">
+    <ul>
+
+        <li>
+            <a href="">Dropdown</a>
+            <ul>
+                <li><a href="#">Lorem ipsum dolor</a></li>
+
+            </ul>
+        </li>
+
+    </ul>
+</nav>
+
+</div>
+
+<!-- Banner -->
+<section id="banner">
+    <header>
+       <h2>Hi. Please choose your <strong>Login</strong>.</h2>
+       <p>
+           <div id='UserName'>
+              <span class="checkUserName"></span>
+
+              <form id="form2" name="form2" class='login cf' method="post">
+
+                <input id="name" name="name" type="text"  placeholder="Username" maxlength="20" required><p id="checkUserName" class="checkUserName" autofocus></p>
+
+                <input  id="submit2" type="submit" value="Log in">
+
+            </form>
+
+        </div>
+    </p>
+</header>
+</section>
+
+   <!-- Carousel -->
+   <section class="carousel">
+    <div class="reel">
+
+          <button style="display:none" >Mute</button>
+        
+     
+           <article>
+          <a href="#" class="image featured"><img src="images/pic01.jpg" alt="" /></a>
+          <header>
+             <button  class ="option" id="mute">Mute</button>
+          </header>
+     </article>
+           
+
+     <article>
+   <!--   <a href="#" class="image featured"><img src="images/pic02.jpg" alt="" /></a> -->
+      <header>
+         <button  class ="option" id="unmute" disabled>Unmute</button>
+     </header>
+    						
+ </article>
+
+ <article>
+  <!--<a href="#" class="image featured"><img src="images/pic03.jpg" alt="" /></a>-->
+  <header>
+    <button id="play" class="option">Play</button>
+ </header>
+						
+</article>
+
+<article>
+  <a href="#" class="image featured"><img src="images/pic04.jpg" alt="" /></a>
+  <header>
+     <button id="recordingConf" class="option">record</button>
+ </header>
+						
+</article>
+
+<article>
+  <a href="#" class="image featured"><img src="images/pic05.jpg" alt="" /></a>
+  <header>
+   <button id="stopRecordingConf" class="option" disabled>stop recording</button>
+ </header>
+						
+</article>
+<article>
+  <a href="#" class="image featured"><img src="images/pic05.jpg" alt="" /></a>
+  <header>
+   <button id="playFile" class="option">play recorded file</button>
+ </header>
+						
+</article>
+
+</div>
+</section>
+
+
+<!-- Footer -->
+<div id="footer">
+    <div class="container">
+       <div class="row">
+
+          <!-- People in OMS -->
+          <section class="4u contact">
+            <header>
+               <h2 class="icon fa-user circled"><span class="label">List of People in the conference</span></h2>
+               <p id="printUserName"></p>
+               <p id="recordConf"> </p>
+               <div id="online" class="listOfPeopleConnected"> List of people connected to OMS </div>
+           </header>
+           <ul class="divided" id="listOfPeopleConnected" >
+
+
+
+               
+
+         </ul>
+     </section>
+     <!-- People in Conf -->
+
+
+
+
+
+ </div>
+ <hr />
+ <div class="row">
+  <div class="12u">
+
+     <!-- Contact -->
+
+     <section class="contact">
+        <header>
+            <h2 class="icon fa-users circled"><span class="label">>List of People in the conference</span></h2>
+            <p id="printConfName"></p>
+            <p id="printMode"></p>
+			<p id="play"></p>
+			<p id="recording"></p>
+            <div id="onlineInConf" class="listOfPeopleConnected"> List of people in conference </div>
+          <button id="leaveConference" class="option" >Leave Conference</button>
+        </header>
+        <ul class="divided" id="listOfPeopleInConf">
+
+           
+        </section>
+
+
+  </div>
+
+</div>
+</div>
+</div>
+<div id="incomingCall">
+
+   
+    <div class="cd-popup" role="alert">
+       <div class="cd-popup-container">
+           <p class="nameOfCaller">Accept Call from </p>
+
+           <ul class="cd-buttons">
+               <li><a href="#0" id="Accept">Accept</a></li>
+               <li><a href="#0" id="Refuse">Refuse</a></li>
+               
+           </ul>
+           <a href="#0" class="cd-popup-close img-replace">Close</a>
+       </div> <!-- cd-popup-container -->
+   </div> <!-- cd-popup --></div>
+
+</body>
+</html>
+<script>
+
+
