@@ -6,8 +6,8 @@ package com.orange.olps.api.webrtc;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
-import orange.olps.svi.client.ClientFormat;
 import orange.olps.svi.config.Config;
 import orange.olps.svi.navigation.Navigation;
 import orange.olps.svi.navigation.NavigationManager;
@@ -291,6 +291,10 @@ public class OmsClientSvi extends OmsCall{
 	
 	public long getTopDepart() {
 		return Long.parseLong(this.getValeur(VAR_DATE));
+	}
+	
+	public Set<String> getListeAttribut() {
+		return mapAttribut.keySet();
 	}
 
 }

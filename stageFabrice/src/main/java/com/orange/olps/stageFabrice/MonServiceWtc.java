@@ -1,4 +1,4 @@
-package com.orange.olps.api.webrtc;
+package com.orange.olps.stageFabrice;
 
 import java.io.BufferedWriter;
 import java.io.FileInputStream;
@@ -8,6 +8,13 @@ import java.util.Properties;
 
 import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
+
+import com.orange.olps.api.webrtc.OmsCall;
+import com.orange.olps.api.webrtc.OmsConference;
+import com.orange.olps.api.webrtc.OmsException;
+import com.orange.olps.api.webrtc.OmsMessage;
+import com.orange.olps.api.webrtc.OmsMessageEvent;
+import com.orange.olps.api.webrtc.OmsMessageListener;
 
 /**
  * @author JWPN9644
@@ -109,7 +116,7 @@ public class MonServiceWtc implements OmsMessageListener {
 					call.say("Bienvenue sur le serveur de conference. Pour entrer dans la conference. "
 							+ "Tapez conference", true);
 				} else {
-					call.answer(sdp);
+					//call.answer(sdp);
 					logger.info("la méthode answer a reussit");
 				}
 			} catch (OmsException | IOException e) {
@@ -193,7 +200,7 @@ public class MonServiceWtc implements OmsMessageListener {
 				try {
 					//call.stopRecord();
 					conf.stopRecording(call.getConfname());
-				} catch (OmsException | IOException e) {
+				} catch (OmsException | IOException | InterruptedException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}

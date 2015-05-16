@@ -138,8 +138,8 @@ public class Client {
 			}
 		}
 		// Statistiques
-		ClientFormat f = new ClientFormat(this);
-		f.formaterBrut();
+		//ClientFormat f = new ClientFormat(this);
+		//f.formaterBrut();
 		
 		setSilenceService(Boolean.parseBoolean(Config.getInstance().getProperty(Config.SILENCE+getService(), "true")));
 		

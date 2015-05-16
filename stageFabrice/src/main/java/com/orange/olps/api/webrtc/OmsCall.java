@@ -7,8 +7,11 @@ package com.orange.olps.api.webrtc;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
+import java.util.Set;
 import java.util.StringTokenizer;
 
 import org.apache.log4j.Logger;
@@ -49,9 +52,13 @@ public class OmsCall extends Thread {
 	private String exConfName = null;
 	private boolean hasClientPressDisc = false;
 	private boolean hasCreatedConf = false;
+	
+	private String filePath = "C:\\opt\\infosOnConferences.log";
 	//private List<WebSocket> listOfPeopleCalled = new ArrayList<WebSocket>();
 	
 	private ConferenceParameters conferenceParam;
+	
+	
 	
 	private String[] hosPortVip;
 	
@@ -411,9 +418,11 @@ public class OmsCall extends Thread {
 	 * To call someone
 	 * @param omsCall the callee's identifiers
 	 * @throws OmsException
+	 * @throws InterruptedException 
+	 * @throws IOException 
 	 */
 	
-	public void call(OmsCall callee) throws OmsException {
+	public void call(OmsCall callee, OmsConference conf) throws OmsException, IOException, InterruptedException {
 
 		//int num = this.getNbOfClientConnected();
 		//num += 1;
@@ -429,7 +438,17 @@ public class OmsCall extends Thread {
 		//this.listOmsCall.add(omsCall);
 
 		String userName = this.getUserName();	
-		calleeWs.send("incomingCall:"+userName);
+		calleeWs.send("incomingCall:"+userName);		
+		
+		this.play("/opt/application/64poms/current/tmp/Ringback_Tone.a8k", true);
+		//callee.play("/opt/application/64poms/current/tmp/Beatles-Hey_Jude.a8k", true);
+		
+		if(conf.isClientJoined(callee)){			
+			conf.myPlay(callee.getConfname(), "/opt/application/64poms/current/tmp/Beatles-Hey_Jude.a8k");
+		}
+		else
+			callee.play("/opt/application/64poms/current/tmp/Beatles-Hey_Jude.a8k", true);		
+		
 	}
 	
 
@@ -440,8 +459,9 @@ public class OmsCall extends Thread {
 	 * @param bool true answer the call and get out of the conference we are, and false bring the caller
 	 * into the conference we are. 
 	 * @throws OmsException
+	 * @throws IOException 
 	 */
-	public void answer(OmsCall caller, OmsConference conf, boolean bool) throws OmsException{	
+	public void answer(OmsCall caller, OmsConference conf, boolean bool) throws OmsException, IOException{	
 		
 		//Mettre un troisième paramètre qui permet en cas de réponse à appel, de savoir si l'appelé veux 
 		//faire rentrer l'appelant dans sa conference
@@ -454,6 +474,7 @@ public class OmsCall extends Thread {
 		
 		WebSocket callerWs = caller.getWebSocket();
 		callerWs.send("answer:" + this.getUserName());
+		
 		caller.setIsCaller(true);
 		//set le parametre caller pour caller
 		
@@ -504,48 +525,344 @@ public class OmsCall extends Thread {
 			
 			conf.create(caller, conferenceParam);
 			conf.add(callee, conferenceParam);
-		}				
+		}		
+		
+		conf.showParticipant(caller.getConfname(), true);
+		conf.participantsStatus(caller);
+		conf.participantsStatus(callee);
+		
+		conf.infos(filePath);
 	}
 	
-	public void reject(OmsCall caller){
+	
+	public void answerAndLeave(OmsCall caller, OmsConference conf, Annuaire annuaire) throws OmsException, 
+	IOException{
+		
+		if(caller == null)
+			throw new IllegalArgumentException("Argument OmsCall cannot be null");
+		if(conf == null)
+			throw new IllegalArgumentException("Argument Annuaire cannot be null");
+		else if(annuaire == null)
+			throw new IllegalArgumentException("Argument OmsConference cannot be null");
+				
+		
+		List<OmsCall> listOmsCallInConf = new ArrayList<OmsCall>();
+		HashMap<OmsCall, String> omsListOms = annuaire.getAnnuaire();
+		Set<OmsCall> listOms = omsListOms.keySet();
+		
+		WebSocket callerWs = caller.getWebSocket();
+		callerWs.send("answer:" + this.getUserName());
+		caller.setIsCaller(true);
+		
+		Random ran = new Random();
+		int randomNb = ran.nextInt();
+		
+		OmsCall callee = this;
+		
+		if(conf.isClientJoined(callee)){
+			
+			caller.getVipConnexion().getReponse("mt1 shutup");
+			conf.stopPlay();
+			
+			conferenceParam = new ConferenceParameters(Integer.toString(randomNb));	
+			conferenceParam.setEntertone("false");
+			conferenceParam.setExittone("false");
+			
+			if(conf.isClientJoined(caller)){ //Au cas où celui qui m'appelle est aussi dans une conférence
+				// On le fait sortir de sa conférence
+				caller.setExConfName(caller.getConfname());
+				conf.delete(caller);			
+			}
+			
+			conferenceParam.setName(caller.getUserName());
+			conf.create(caller, conferenceParam);
+			callee.setExConfName(this.getConfname()); //Methode setExConfName private
+			
+			//if(callee.getHasCreatedConf()){
+				
+				//Si l'appelé a crée la conférence, la conférece sera détruire avec tous ses participants
+				//Il récuperer la liste des participants et mettre à jours leur status
+				
+				listOmsCallInConf = conf.getListOmsCallInConf(callee.getConfname());											
+						
+				Iterator<OmsCall> ite;
+				Iterator<OmsCall> ite2 = listOmsCallInConf.iterator();
+				OmsCall c, c2;
+				String userName;				
+				
+				while (ite2.hasNext()) {
+
+					c2 = ite2.next();
+					userName = c2.getUserName();
+					c2.getWebSocket().send("hangup:" + callee.getUserName());
+
+					callee.getWebSocket().send("hangup:" + c2.getUserName());
+					
+					ite = listOms.iterator();
+					while (ite.hasNext()) {
+
+						c = ite.next();
+						if (!c.equals(c2)){
+							
+							c.getWebSocket().send("showUserNameConnectedToOMS:" + userName
+									+ ":hangup");
+						}														
+					}
+				}				
+			//}
+			
+			conf.delete(callee);// Attention détruira la conférence si c'est lui qui l'a crée
+			//callee.setHasCreatedConf(false);
+			conferenceParam.setName(callee.getUserName());
+			conf.add(callee, conferenceParam);		
+			
+			conf.showParticipant(caller.getConfname(),true);
+			//conf.participantsStatus(caller);
+			//conf.participantsStatus(callee);
+			
+			//conf.infos(filePath);
+			//logger.info(filePath + " created");
+			
+			Iterator<OmsCall> ite3 = listOms.iterator();
+			//OmsCall c;
+			
+			while(ite3.hasNext()){
+				
+				c = ite3.next();
+				conf.participantsStatus(c);
+			}
+		}else
+			throw new OmsException("Cannot leave the conference, because you are not in a conference");
+	}
+	
+	//Answser par défaut, si le callee n'est pas une conférence, alors une nouvelle conférence
+	//sera crée
+	public void answerAndStay(OmsCall caller, OmsConference conf, Annuaire annuaire) throws OmsException, 
+	IOException{
+		
+		if(caller == null)
+			throw new IllegalArgumentException("Argument OmsCall cannot be null");
+		if(conf == null)
+			throw new IllegalArgumentException("Argument Annuaire cannot be null");
+		else if(annuaire == null)
+			throw new IllegalArgumentException("Argument OmsConference cannot be null");
+		
+		//this.getVipConnexion().getReponse("mt1 shutup");
+		//caller.getVipConnexion().getReponse("mt1 shutup");
+		
+		HashMap<OmsCall, String> omsList = annuaire.getAnnuaire();
+		Set<OmsCall> listOms = omsList.keySet();
+		
+		WebSocket callerWs = caller.getWebSocket();
+		callerWs.send("answer:" + this.getUserName());
+		caller.setIsCaller(true);
+		
+		Random ran = new Random();
+		int randomNb = ran.nextInt();
+		
+		OmsCall callee = this;
+		List<OmsCall> listOmsCallInConf2 =  new ArrayList<OmsCall>();
+		
+		if(conf.isClientJoined(callee)){
+						
+			caller.getVipConnexion().getReponse("mt1 shutup");
+			conf.stopPlay();
+			
+			conferenceParam = new ConferenceParameters(callee.getConfname());
+			conferenceParam.setName(caller.getUserName());			
+			conf.add(caller, conferenceParam);				
+			
+			listOmsCallInConf2 = conf.getListOmsCallInConf(callee.getConfname());
+			
+			ArrayList<OmsCall> clonedList = new ArrayList<OmsCall>();
+			ArrayList<OmsCall> clonedList2 = new ArrayList<OmsCall>();
+			clonedList.addAll(listOmsCallInConf2);
+			clonedList2.addAll(listOmsCallInConf2);
+			
+			Iterator<OmsCall> ite2 = clonedList.iterator();	
+			Iterator<OmsCall> ite3;		
+			OmsCall c2, c3;
+			
+			while (ite2.hasNext()) {
+				c2 = ite2.next();	
+				ite3 = clonedList2.iterator();
+				while(ite3.hasNext()){
+					c3 = ite3.next();
+					if(!c3.equals(c2))
+						c2.getWebSocket().send("hide:" + c3.getUserName());
+				}			
+			}
+			
+		} else {
+			
+			caller.getVipConnexion().getReponse("mt1 shutup");
+			this.getVipConnexion().getReponse("mt1 shutup");
+			
+			if (conf.isClientJoined(caller)) {
+				caller.setExConfName(caller.getConfname());
+				conf.delete(caller);
+			}
+
+			conferenceParam = new ConferenceParameters(Integer.toString(randomNb));
+			conferenceParam.setEntertone("false");
+			conferenceParam.setExittone("false");
+			
+			conferenceParam.setName(caller.getUserName());
+			conf.create(caller, conferenceParam);
+			conferenceParam.setName(callee.getUserName());
+			conf.add(callee, conferenceParam);
+		}
+		
+		conf.showParticipant(caller.getConfname(), true);
+		//conf.participantsStatus(caller);
+		//conf.participantsStatus(callee);
+		
+		//conf.infos(filePath);
+		//logger.info(filePath + " is available");
+		
+		Iterator<OmsCall> ite = listOms.iterator();
+		OmsCall c;
+		
+		while(ite.hasNext()){
+			
+			c = ite.next();
+			conf.participantsStatus(c);
+		}			
+	}
+	
+	/*public void updateStatusAfterAnswer(Annuaire annuaire, OmsConference conf) throws OmsException{
+		
+		HashMap<OmsCall, String> omsList = annuaire.getAnnuaire();		
+		Set<OmsCall> listOms = omsList.keySet();
+				
+		Iterator<OmsCall> ite = listOms.iterator();
+		OmsCall c;
+					
+		while(ite.hasNext()){
+			
+				c = ite.next();
+				conf.showPeopleInConf(c);
+			}
+			
+		}*/
+				
+	/*public void updateStatusAfterHangup(Annuaire annuaire,OmsConference conf) throws OmsException{
+		
+		HashMap<OmsCall, String> omsList = annuaire.getAnnuaire();
+		
+		Set<OmsCall> listOms = omsList.keySet();
+				
+		Iterator<OmsCall> ite = listOms.iterator();
+		OmsCall c;
+					
+		while(ite.hasNext()){
+				
+				c = ite.next();
+				conf.showPeopleAfterHangup(c);
+			}
+			
+		}*/
+	
+	public void reject(OmsCall caller, OmsConference conf) throws OmsException{
 		
 		if(caller == null)
 			throw new IllegalArgumentException("Argument cannot be null");
 		
+		caller.getVipConnexion().getReponse("mt1 shutup");
+		
+		caller.setIsCaller(false);
 		WebSocket callerWs = caller.getWebSocket();
 		String userName = this.getUserName();
 		
 		callerWs.send("reject:" + userName);
+				
+		if(conf.isClientJoined(this)){			
+			conf.stopPlay();
+		}
+		else
+			this.getVipConnexion().getReponse("mt1 shutup");
 	}
 	
 	
-	public void hangup(OmsCall omsCall, OmsConference conf) throws OmsException{
-			
-		OmsCall callee, caller;
-		
+	public void hangup(OmsCall omsCall, OmsConference conf, Annuaire annuaire) throws OmsException, 
+	IOException{
+					
 		//Vérifier le status de la conférence conf.status(call.getConfname())		
 		if(omsCall == null)
 			throw new IllegalArgumentException("Argument OmsCall cannot be null");
-		else if(conf == null)
+		if(conf == null)
+			throw new IllegalArgumentException("Argument Annuaire cannot be null");
+		else if(annuaire == null)
 			throw new IllegalArgumentException("Argument OmsConference cannot be null");
+		
+		List<OmsCall> listOmsCallInConf2 = new ArrayList<OmsCall>();
+		
+		OmsCall callee, caller;
+		String userName = this.getUserName();
+		String userName2 = omsCall.getUserName();
+		WebSocket callerWs = omsCall.getWebSocket();
+		
+		HashMap<OmsCall, String> omsList = annuaire.getAnnuaire();
+		Set<OmsCall> listOms = omsList.keySet();
+		
+		Iterator<OmsCall> ite = listOms.iterator();
+		OmsCall c;		
 					
+		while(ite.hasNext()){
+						
+			c = ite.next();
+			
+			//if(!c.equals(omsCall) && !this.equals(c)){
+				
+				c.getWebSocket().send("showUserNameConnectedToOMS:" + userName+ ":hangup");
+				c.getWebSocket().send("showUserNameConnectedToOMS:" + userName2+ ":hangup");
+			//}
+				
+		}
+							
 			if(this.getIsCaller()){
 				
-				conf.delete(omsCall);
-				conf.delete(this);
+				listOmsCallInConf2 = conf.getListOmsCallInConf(this.getConfname());
+				//conf.delete(omsCall);
+				//conf.delete(this);
 				this.setIsCaller(false);
 				callee = omsCall;
-				caller = this;
+				caller = this;								
 			}
 			else{
 				
-				conf.delete(this);
-				conf.delete(omsCall);
+				listOmsCallInConf2 = conf.getListOmsCallInConf(omsCall.getConfname());
+				//conf.delete(this);
+				//conf.delete(omsCall);
 				omsCall.setIsCaller(false);
 				callee = this;
 				caller = omsCall;
 			}
+			//callerWs.send("hangup:" + userName);
 			
+			
+			//Iterator<OmsCall> ite;
+			Iterator<OmsCall> ite2 = listOmsCallInConf2.iterator();
+			OmsCall c2;
+			//String userName;				
+						
+			while (ite2.hasNext()) {
+				
+				c2 = ite2.next();
+				//userName = c2.getUserName();
+				
+				if(!this.equals(c2)){
+					
+					c2.getWebSocket().send("hangup:" + this.getUserName());
+					c2.getWebSocket().send("deleteUserNameInConf:" + this.getUserName());
+					this.getWebSocket().send("deleteUserNameInConf:" + c2.getUserName());
+					
+				}									
+			}
+			
+			conf.delete(callee);
+			conf.delete(caller);
+						
 			//Vérifier si je faisais parti d'une conférence avant l'appel que j'ai reçu
 			 //trouver le nom de son ancienne conférence
 			
@@ -553,7 +870,8 @@ public class OmsCall extends Thread {
 				
 				String exConfName = callee.getExConfName();
 				
-				conferenceParam = new ConferenceParameters(callee.getExConfName());				
+				conferenceParam = new ConferenceParameters(callee.getExConfName());	
+				conferenceParam.setName(callee.getUserName());
 				if(conf.status(exConfName))
 					conf.add(callee, conferenceParam);
 				else 
@@ -561,15 +879,25 @@ public class OmsCall extends Thread {
 				
 				callee.setExConfName(null);
 				//conf.add(callee, conferenceParam);	
-				logger.info("Callee back in his conference");
+				logger.info("Callee back in his conference");			
 			}		
 			
 			if(caller.getExConfName() != null){
 				
 				caller.setExConfName(null);
 				conferenceParam = new ConferenceParameters(caller.getExConfName());
+				conferenceParam.setName(caller.getUserName());
 				conf.add(caller, conferenceParam);
 			}
+			
+			//conf.infos(filePath);
+			
+			ite = listOms.iterator();				
+			while(ite.hasNext()){
+				
+				c = ite.next();
+				conf.participantsStatus(c);
+			}	
 	}
 	
 	public boolean getIsCaller(){

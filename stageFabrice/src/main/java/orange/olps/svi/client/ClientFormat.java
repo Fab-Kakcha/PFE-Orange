@@ -5,6 +5,8 @@ import java.text.SimpleDateFormat;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.log4j.Level;
+import org.apache.log4j.Logger;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -17,22 +19,20 @@ public class ClientFormat {
 	
 	private static final DateFormat df2 =  new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
 	
-	private Client client;
-	private OmsClientSvi omsClientSvi;
+	//private Client client;
+	private OmsClientSvi client;
 	private StringBuffer buf = null;
 		
 	protected static Log logger = LogFactory.getLog(ClientFormat.class.getName());
-	
+	private static Logger log = Logger.getLogger(ClientFormat.class);
 
-	public ClientFormat (Client c) {
+	
+	public ClientFormat (OmsClientSvi c) {
+		log.setLevel(Level.DEBUG);
 		client = c;
 		buf = new StringBuffer();
 	}
-	public ClientFormat(OmsClientSvi omsClientSvi) {
-		// TODO Auto-generated constructor stub
-		
-		this.omsClientSvi = omsClientSvi;
-	}
+
 	/**
 	 * retourne le buffer 
 	 */
@@ -50,7 +50,7 @@ public class ClientFormat {
 	 * @param client =client appelant
 	 */
 	public  void formaterBrut() {
-
+		
 		logger.debug(" formaterBrut - Entree ("+client.getValeur(Client.VAR_APPELANT)+")" );
 		buf.setLength(0);
 	
@@ -62,8 +62,7 @@ public class ClientFormat {
 				buf.append("null");
 			}
 			else
-				buf.append(client.getValeur(var));	
-			
+				buf.append(client.getValeur(var));			
 		}
 	
 		logger.debug(" formaterBrut - Sortie ("+buf+")" );

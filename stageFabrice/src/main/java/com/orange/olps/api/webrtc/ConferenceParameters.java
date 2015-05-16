@@ -45,6 +45,11 @@ public class ConferenceParameters {
 		return conferenceid;
 	}
 
+	
+	public void setConferenceid(String conferenceid){
+		this.conferenceid = conferenceid;
+	}
+	
 	/**
 	 * Get the maximum numbers participants in a conference
 	 * @return maximum number of participants

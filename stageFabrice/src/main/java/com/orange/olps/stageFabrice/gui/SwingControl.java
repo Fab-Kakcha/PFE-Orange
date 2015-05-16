@@ -18,8 +18,8 @@ import javax.swing.JPanel;
 
 import org.apache.log4j.Logger;
 
+import com.orange.olps.stageFabrice.OmsServiceEx;
 import com.orange.olps.stageFabrice.sip.MonServiceSip;
-import com.orange.olps.stageFabrice.webrtc.OmsService;
 
 /**
  * @author JWPN9644
@@ -34,7 +34,7 @@ public class SwingControl {
 	private JPanel controlPanel;
 
 	private boolean isServiceLaunch = false;
-	private static Logger logger = Logger.getLogger(OmsService.class);
+	private static Logger logger = Logger.getLogger(OmsServiceEx.class);
 	
 	/**
 	 * @param args
@@ -113,10 +113,10 @@ public class SwingControl {
 				mainFrame.dispatchEvent(new WindowEvent(mainFrame, WindowEvent.WINDOW_CLOSING));
 							
 					try {
-						OmsService oms = null;
-						oms = new OmsService();
+						 
+						OmsServiceEx oms = new OmsServiceEx();
 						oms.start(); 
-						OmsService.dort(500);
+						OmsServiceEx.dort(500);
 						logger.info("OmsGateway started on port: " + oms.getPort());
 					} catch (InterruptedException | IOException e1) {
 						// TODO Auto-generated catch block

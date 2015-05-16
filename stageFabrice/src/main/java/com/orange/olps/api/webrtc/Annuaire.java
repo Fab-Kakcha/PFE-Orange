@@ -70,8 +70,9 @@ public class Annuaire {
 	 * exit in the conference
 	 * @param call OmsCall to associate with the userName
 	 * @param userName userName provided by the OmsCall/Client/Browser
+	 * @throws OmsException 
 	 */
-	public void setUserName(OmsCall call, String userName){
+	public void setUserName(OmsCall call, String userName) throws OmsException{
 		
 		if(call == null)
 			throw new IllegalArgumentException("Argument OmsCall cannot be null");		
@@ -79,8 +80,11 @@ public class Annuaire {
 			throw new IllegalArgumentException("Argument String cannot be null");
 		
 		if (!annuaire.containsValue(userName)){		
+			call.setUserName(userName);
 			annuaire.put(call, userName);
-		}	
+		}
+		else 
+			throw new OmsException("userName "+ userName + " already used");
 	}
 	
 	
@@ -113,6 +117,8 @@ public class Annuaire {
 			Set<OmsCall> listCli = annuaire.keySet();
 			Iterator<OmsCall> ite = listCli.iterator();
 			String userName2 = annuaire.get(call);
+			
+			String status;
 
 			Collection<String> c = annuaire.values();
 			Iterator<String> ite1;
@@ -122,6 +128,7 @@ public class Annuaire {
 				while (ite.hasNext()) {
 					
 					omsCall = ite.next();
+					
 					ws = omsCall.getWebSocket();
 					ite1 = c.iterator();
 					while (ite1.hasNext()) {
@@ -129,11 +136,12 @@ public class Annuaire {
 						userName = ite1.next();
 						if (ws.equals(call.getWebSocket())) {
 							if (!userName2.equals(userName))
-								ws.send("showUserNameConnectedToOMS:" + userName);
-
+								ws.send("showUserNameConnectedToOMS:" + userName);							
+								//ws.send("showUserNameConnectedToOMS:" + userName+":notInConf");							
 						} else {
 							if (userName2.equals(userName))
-								ws.send("showUserNameConnectedToOMS:" + userName);
+								ws.send("showUserNameConnectedToOMS:" + userName);							
+								//ws.send("showUserNameConnectedToOMS:" + userName+":notInConf");
 						}
 					}
 				}
@@ -169,7 +177,7 @@ public class Annuaire {
 	 * @return new value of String param in the form of "userName:confName:mode" is returned if the user is
 	 * found in the annuaire and null is returned otherwise.
 	 */
-	public String updatingStringParam(OmsCall call, String param){
+	/*public String updatingStringParam(OmsCall call, String param){
 		
 		if(call == null)
 			throw new IllegalArgumentException("Argument OmsCall cannot be null");
@@ -184,7 +192,7 @@ public class Annuaire {
 			return param;			
 		}else 
 			return null;
-	}
+	}*/
 	
 	
 	public OmsCall getOmsCall(String userName){

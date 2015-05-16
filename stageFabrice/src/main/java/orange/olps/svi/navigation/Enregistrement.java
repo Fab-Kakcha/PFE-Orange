@@ -281,7 +281,7 @@ public class Enregistrement extends Navigation {
 			}
 			else {
 				// mode texte, c'est fini
-				//enregDansFichier(client);
+				enregDansFichier(client);
 				client.setActionNavigation(Navigation.RIEN);
 				client.setNavCourante(getSuivant());
 			}
@@ -291,7 +291,7 @@ public class Enregistrement extends Navigation {
 			// action suivante
 			String nomWave = client.getValeur(Client.VAR_TMP);
 			if (nomWave != null && !"".equals(nomWave)) {
-				//enregDansFichier(client);
+				enregDansFichier(client);
 			}
 			client.setActionNavigation(Navigation.RIEN);
 			client.setNavCourante(getSuivant());
@@ -306,7 +306,7 @@ public class Enregistrement extends Navigation {
 			}
 			else {
 				// mode texte, c'est fini
-				//enregDansFichier(client);
+				enregDansFichier(client);
 				client.setActionNavigation(Navigation.RIEN);
 				client.setNavCourante(getSuivant());
 			}
@@ -318,7 +318,7 @@ public class Enregistrement extends Navigation {
 	 *  que l'on soit en mode AUDIO ou TEXTE
 	 * @param client : donnees du client 
 	 */
-	private void enregDansFichier(Client client) {
+	private void enregDansFichier(OmsClientSvi client) {
 		if (nomFic != null && !"".equals(nomFic)) {
 			
 			ClientFormat f = new ClientFormat(client);
@@ -341,7 +341,7 @@ public class Enregistrement extends Navigation {
 	 * les ouvre si necessaire apres avoir cree le repertoire yyyymmdd
 	 * @param t - date en millisecondes
 	 */
-	private void determinerWriter(Client client) {
+	private void determinerWriter(OmsClientSvi client) {
 		File f;
 		String rep;
 		String dt = Util.formaterDate(client.getTopDepart()).substring(0, 8);

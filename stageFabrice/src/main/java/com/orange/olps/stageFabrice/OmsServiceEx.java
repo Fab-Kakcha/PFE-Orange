@@ -1,4 +1,4 @@
-package com.orange.olps.api.webrtc;
+package com.orange.olps.stageFabrice;
 
 import java.io.BufferedWriter;
 import java.io.IOException;
@@ -12,6 +12,12 @@ import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
 
 //import com.orange.olps.OmsException;
+
+
+
+import com.orange.olps.api.webrtc.OmsCall;
+import com.orange.olps.api.webrtc.OmsConference;
+import com.orange.olps.api.webrtc.OmsException;
 
 import java.io.*;
 import java.util.HashMap;

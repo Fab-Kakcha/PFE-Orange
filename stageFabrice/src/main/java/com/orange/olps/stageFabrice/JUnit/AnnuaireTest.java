@@ -49,10 +49,4 @@ public static void main(String[] args){
 		assertFalse("omsCall doesn't exist in annuaire",annuaire.checkOmsCall(omsCall));
 	}
 	
-	public void testSetuserName(){
-		annuaire.setUserName(omsCall, "testJUnit");
-		String param = annuaire.updatingStringParam(omsCall, "conf1");
-		assertEquals("testJUnit:conf1",param);
-	}
-	
 }

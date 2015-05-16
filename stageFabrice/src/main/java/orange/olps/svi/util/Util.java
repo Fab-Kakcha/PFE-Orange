@@ -22,7 +22,7 @@ import java.util.Properties;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import orange.olps.svi.client.Client;
+//import orange.olps.svi.client.Client;
 import orange.olps.svi.config.Config;
 import orange.olps.svi.navigation.Navigation;
 import orange.olps.svi.navigation.NavigationManager;
