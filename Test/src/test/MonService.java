@@ -26,8 +26,8 @@ public class MonService extends OmsService implements OmsMessageListener {
 	 */
 	
 	private static Logger logger = Logger.getLogger(MonService.class);
-	//private static final String WEBRTC_CONF = "/opt/testlab/utils/stageFabrice/src/main/java/";
-	private static final String WEBRTC_CONF = "C:\\opt\\application\\testlab\\utils\\OmsGateway\\";
+	private static final String WEBRTC_CONF = "/opt/testlab/utils/stageFabrice/src/main/java/";
+	//private static final String WEBRTC_CONF = "C:\\opt\\application\\testlab\\utils\\OmsGateway\\";
 	protected static String hostVip = "127.0.0.1";
 	protected static String portVip = "4670";
 	private static String portWs = "8887";
@@ -105,7 +105,7 @@ public class MonService extends OmsService implements OmsMessageListener {
 
 		String message = msgEvt.getMessage();
 		//logger.info("Nouveau message: " + message);
-		//logger.info("ReÃ§u de: " + call + "l'adresse ip: "
+		//logger.info("Reçu de: " + call + "l'adresse ip: "
 				//+ call.getIpAddress());
 		OmsMessage msg = new OmsMessage(message);
 		String typeMesg = msg.getType();
@@ -120,15 +120,18 @@ public class MonService extends OmsService implements OmsMessageListener {
 				if (!annuaire.checkUserName(call, userName2)) {
 					call.connect(hostVip, portVip);
 					call.init(sdp);
-					call.say(
-							"Bienvenue sur le serveur de conference. Pour entrer dans la conference. "
-									+ "Tapez conference", true);
+				//	call.say(
+						//	"Bienvenue sur le serveur de conference. Pour entrer dans la conference. "
+								//	+ "Tapez conference", true);
+					call.play("/opt/application/64poms/current/tmp/bienvenuconf.a8k", false);
 					annuaire.setUserName(call, userName2);
 					annuaire.showPeopleConnectedToOms(call, true);
+					//conf.showPeopleInConf(call);
+					conf.participantsStatus(call);
 				}
 				//} else {
 					//call.answer(sdp);
-					//logger.info("la mÃ©thode answer a reussit");
+					//logger.info("la méthode answer a reussit");
 				//}
 			break;
 		case "cmd":
@@ -150,39 +153,57 @@ public class MonService extends OmsService implements OmsMessageListener {
 		String param = msg.getParam();
 		try{
 		switch (cmd) {
-			case "logout":
-				//c.send("logout");
-				//annuaire.remove(param);
+			case "unjoin":
+				conf.updateName(annuaire.getOmsCall(param));
+				conf.delete(annuaire.getOmsCall(param));			
+				conf.participantsStatus(call);
+				//conf.showParticipant(call.getConfname(), false);
 				break;
 			case "call":
-				call.call(annuaire.getOmsCall(param));
-				//Dans call, récupérer l'userName de l'appelant et l'envoyer à l'appelé			
+				call.call(annuaire.getOmsCall(param), conf);
+				//Dans call, recuperer l'userName de l'appelant et l'envoyer a l'appele			
 				break;
-			case "answer":
-				//L'appelé accepte l'appel. Il renvoie l'userName de celui qui l'a appelé afin de lui notifier
+			case "answerAndLeave":
+				//L'appele accepte l'appel. Il renvoie l'userName de celui qui l'a appele afin de lui notifier
 				//notifier de son acception
-				call.answer(annuaire.getOmsCall(param), conf, true);
+				//if(call.getHasCreatedConf()){
+				//	call.updateStatusAfterHangup(annuaire, conf);
+				//}
+				//conf.updateParticipantsStatus(annuaire);
+				//call.answer(annuaire.getOmsCall(param), conf, true);
+				//call.updateStatusAfterAnswer(annuaire, conf);
+				
+				call.answerAndLeave(annuaire.getOmsCall(param), conf, annuaire);				
+				break;
+			case "answerAndStay": // Answer par defaut
+				//L'appele accepte l'appel. Il renvoie l'userName de celui qui l'a appele afin de lui notifier
+				//notifier de son acception
+				//call.answer(annuaire.getOmsCall(param), conf, false);
+				//conf.updateParticipantsStatus(annuaire);
+				//call.updateStatusAfterAnswer(annuaire, conf);
+				
+				call.answerAndStay(annuaire.getOmsCall(param), conf, annuaire);				
 				break;
 			case "reject":
-				//L'appelé accepte l'appel. Il renvoie l'userName de celui qui l'a appelé afin de lui notifier
+				//L'appele accepte l'appel. Il renvoie l'userName de celui qui l'a appele afin de lui notifier
 				//notifier de son rejet
-				call.reject(annuaire.getOmsCall(param));
+				call.reject(annuaire.getOmsCall(param), conf);
 				break;
 			case "createConf":				
-				if(annuaire.checkOmsCall(call))
-					param = annuaire.updatingStringParam(call, param);
 				
-				splitParam = param.split(":");
-				username = splitParam[0];
-				//mode = splitParam[1];
-				confName = splitParam[1];
+				//splitParam = param.split(":");
+				//username = splitParam[0];
+				//confName = splitParam[1];
 				
-				conferenceParam = new ConferenceParameters(confName);					
-				conf.create(call, conferenceParam);				
+				conferenceParam = new ConferenceParameters(param);		
+				conferenceParam.setName(call.getUserName());
+				conf.create(call, conferenceParam);	
+				//conf.showParticipant(call.getConfname());
+				annuaire.showPeopleConnectedToOms(call, true);
 				//conf.create(call, confName);
 				break;
 			case ("joinConf"):
-				// Le client demande a entrer dans la confÃ©rennce ouverte dans
+				// Le client demande a entrer dans la conferennce ouverte dans
 				// le constructeur
 				// Elle est enregistree dans /tmp/conf1.wav
 				// Il aurait pu la creer lui-meme
@@ -190,22 +211,18 @@ public class MonService extends OmsService implements OmsMessageListener {
 				// conf.join(call) ou call.join(conf)
 				// call.join(conf, param);
 
-				if (annuaire.checkOmsCall(call))
-					param = annuaire.updatingStringParam(call, param);
-
 				splitParam = param.split(":");
-				username = splitParam[0];
-				mode = splitParam[1];
-				confName = splitParam[2];
+				mode = splitParam[0];
+				confName = splitParam[1];
 
 				conferenceParam = new ConferenceParameters(confName);
-				conferenceParam.setConfrole(mode);
-				conferenceParam.setName(username);
+				conferenceParam.setName(call.getUserName());
 
 				if (!conf.isClientJoined(call)) {
 					//conf.add(call, param);
 					conf.add(call, conferenceParam);
-					conf.showParticipant(call.getConfname());
+					//conf.showParticipant(call.getConfname());
+					//annuaire.showPeopleConnectedToOms(call, true);
 				}
 				break;
 			case "say":			
@@ -262,19 +279,23 @@ public class MonService extends OmsService implements OmsMessageListener {
 					conf.unmuteAll(call.getConfname());
 				break;
 			case ("confInfos"):
-				conf.infos(call,filePath);
+				conf.infos(filePath);
 				break;
 			case "hangup":
 				//conf.delete(call);
-				call.hangup(annuaire.getOmsCall(param), conf);
+				//Envoyer un message a tout l'annuaire pour leur donner le nouveau 
+				//stauts des participants qui ont raccroche
+				//call.updateStatusAfterHangup(annuaire, conf);
+				
+				call.hangup(annuaire.getOmsCall(param), conf, annuaire);
 				break;
 			case "disconnect":
 				if(annuaire.checkOmsCall(call))
 					annuaire.showPeopleConnectedToOms(call, false);			
-				//quitter la conf (function unjoin retourne vrai si c'est le dernier Ã  quitter la conf)
-				//dÃ©truire la conf si c'est le dernier client Ã  quitter la conf
-				//conf.infos(call,filePath);	
-				conf.delete(call);
+				
+				if(conf.isClientJoined(call))
+					//conf.deleteafterclose(call);
+					conf.delete(call);
 				call.delete();
 				break;
 			default :
