@@ -16,11 +16,11 @@ import org.java_websocket.WebSocket;
  */
 public class Annuaire {
 
-	protected static HashMap<WebSocket, String> annuaire = null;
+	protected static HashMap<OmsCall, String> annuaire = null;
 
 	public Annuaire() {
 
-		annuaire = new HashMap<WebSocket, String>();
+		annuaire = new HashMap<OmsCall, String>();
 	}
 	
 	/**
@@ -59,7 +59,7 @@ public class Annuaire {
 		if(omsCall == null)
 			throw new IllegalArgumentException("Argument OmsCall cannot be null");
 		
-		if(annuaire.containsKey(omsCall.getWebSocket()))
+		if(annuaire.containsKey(omsCall))
 			return true;
 		else 
 			return false;		
@@ -79,7 +79,7 @@ public class Annuaire {
 			throw new IllegalArgumentException("Argument String cannot be null");
 		
 		if (!annuaire.containsValue(userName)){		
-			annuaire.put(call.getWebSocket(), userName);
+			annuaire.put(call, userName);
 		}	
 	}
 	
@@ -102,14 +102,17 @@ public class Annuaire {
 		
 		if(call == null)
 			throw new IllegalArgumentException("Argument OmsCall cannot be null");
-		
-		
-		if (annuaire.containsKey(call.getWebSocket())) {
+			
+		if (annuaire.containsKey(call)) {
 
-			Set<WebSocket> listCli = annuaire.keySet();
-			Iterator<WebSocket> ite = listCli.iterator();
 			String userName;
-			String userName2 = annuaire.get(call.getWebSocket());
+			OmsCall omsCall;
+			WebSocket ws;
+			
+			//Set<WebSocket> listCli = annuaire.keySet();
+			Set<OmsCall> listCli = annuaire.keySet();
+			Iterator<OmsCall> ite = listCli.iterator();
+			String userName2 = annuaire.get(call);
 
 			Collection<String> c = annuaire.values();
 			Iterator<String> ite1;
@@ -117,18 +120,19 @@ public class Annuaire {
 			if (bool) {
 
 				while (ite.hasNext()) {
-
-					WebSocket ws = ite.next();
+					
+					omsCall = ite.next();
+					ws = omsCall.getWebSocket();
 					ite1 = c.iterator();
 					while (ite1.hasNext()) {
 
 						userName = ite1.next();
-						if (ws == call.getWebSocket()) {
-							if (userName2 != userName)
+						if (ws.equals(call.getWebSocket())) {
+							if (!userName2.equals(userName))
 								ws.send("showUserNameConnectedToOMS:" + userName);
 
 						} else {
-							if (userName2 == userName)
+							if (userName2.equals(userName))
 								ws.send("showUserNameConnectedToOMS:" + userName);
 						}
 					}
@@ -138,7 +142,8 @@ public class Annuaire {
 
 				while (ite.hasNext()) {
 
-					WebSocket ws = ite.next();
+					omsCall = ite.next();
+					ws = omsCall.getWebSocket();
 					ite1 = c.iterator();
 
 					if (ws != call.getWebSocket()) {
@@ -146,7 +151,7 @@ public class Annuaire {
 					}
 				}
 
-				annuaire.remove(call.getWebSocket());
+				annuaire.remove(call);
 			}
 		} else
 			throw new OmsException(
@@ -171,9 +176,9 @@ public class Annuaire {
 		else if(param == null)
 			throw new IllegalArgumentException("Argument String cannot be null");		
 		
-		if(annuaire.containsKey(call.getWebSocket())){
+		if(annuaire.containsKey(call)){
 			
-			String name = annuaire.get(call.getWebSocket());
+			String name = annuaire.get(call);
 			param = name +":"+param;	
 			
 			return param;			
@@ -182,11 +187,36 @@ public class Annuaire {
 	}
 	
 	
+	public OmsCall getOmsCall(String userName){
+		
+		if(userName == null)
+			throw new IllegalArgumentException("Argument String cannot be null");
+		
+		if(annuaire.containsValue(userName)){
+			
+			OmsCall call;			
+			Set<OmsCall> listCli = annuaire.keySet();
+			Iterator<OmsCall> ite = listCli.iterator();
+			String userName1;
+					
+			while (ite.hasNext()) {
+
+				call = ite.next();				
+				userName1 = annuaire.get(call);
+				if(userName.equals(userName1))
+					return call;
+			}			
+		}
+		
+		return null;		
+	}
+	
+	
 	/**
 	 * To get the annuaire 
 	 * @return the annuaire
 	 */
-	public HashMap<WebSocket, String> getAnnuaire(){
+	public HashMap<OmsCall, String> getAnnuaire(){
 		 return annuaire;
 	}
 	

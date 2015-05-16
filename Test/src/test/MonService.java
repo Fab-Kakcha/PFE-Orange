@@ -27,7 +27,7 @@ public class MonService extends OmsService implements OmsMessageListener {
 	
 	private static Logger logger = Logger.getLogger(MonService.class);
 	//private static final String WEBRTC_CONF = "/opt/testlab/utils/stageFabrice/src/main/java/";
-	private static final String WEBRTC_CONF = "C:\\Users\\JWPN9644\\opt\\application\\64poms\\current\\conf\\";
+	private static final String WEBRTC_CONF = "C:\\opt\\application\\testlab\\utils\\OmsGateway\\";
 	protected static String hostVip = "127.0.0.1";
 	protected static String portVip = "4670";
 	private static String portWs = "8887";
@@ -45,14 +45,16 @@ public class MonService extends OmsService implements OmsMessageListener {
 	boolean isAnswer = false;
 	//private List<OmsCall> listOmsCall = new ArrayList<OmsCall>();
 	//private String filePath = "/opt/application/64poms/current/tmp/infosOnConferences.log";
-	//private String filePath = "C:\\Users\\JWPN9644\\Documents\\infosOnConferences.log";
-	private String filePath2 = "/opt/application/64poms/current/tmp/Animaux.a8k";
-	
-	
+	private String filePath = "C:\\opt\\infosOnConferences.log";
+    //private String filePath2 = "/opt/application/64poms/current/tmp/Animaux.a8k";
+	private String enregFile = "/opt/application/64poms/current/tmp/enregFile";
+		
 	private OmsConference conf;
 	private Annuaire annuaire;
 	private ConferenceParameters conferenceParam;
 	
+	private String mode, username, confName;
+	private String[] splitParam;
 	
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
@@ -103,7 +105,7 @@ public class MonService extends OmsService implements OmsMessageListener {
 
 		String message = msgEvt.getMessage();
 		//logger.info("Nouveau message: " + message);
-		//logger.info("Reçu de: " + call + "l'adresse ip: "
+		//logger.info("ReÃ§u de: " + call + "l'adresse ip: "
 				//+ call.getIpAddress());
 		OmsMessage msg = new OmsMessage(message);
 		String typeMesg = msg.getType();
@@ -112,23 +114,22 @@ public class MonService extends OmsService implements OmsMessageListener {
 		case "sdp":
 			// Le message est du sdp
 			String sdp = msg.getSdp();
-			String userName = msg.getUserName();			
+			String userName2 = msg.getUserName();			
 			
-			if (!isAnswer) {
-					if (!annuaire.checkUserName(call, userName)) {
-						call.connect(hostVip, portVip);
-						call.init(sdp);
-						call.say(
-								"Bienvenue sur le serveur de conference. Pour entrer dans la conference. "
-										+ "Tapez conference", true);	
-						annuaire.setUserName(call, userName);
-						annuaire.showPeopleConnectedToOms(call, true);
-					}
-					// listOmsCall.add(call);
-				} else {
-					call.answer(sdp);
-					logger.info("la méthode answer a reussit");
+			//if (!isAnswer) {
+				if (!annuaire.checkUserName(call, userName2)) {
+					call.connect(hostVip, portVip);
+					call.init(sdp);
+					call.say(
+							"Bienvenue sur le serveur de conference. Pour entrer dans la conference. "
+									+ "Tapez conference", true);
+					annuaire.setUserName(call, userName2);
+					annuaire.showPeopleConnectedToOms(call, true);
 				}
+				//} else {
+					//call.answer(sdp);
+					//logger.info("la mÃ©thode answer a reussit");
+				//}
 			break;
 		case "cmd":
 			// Le message est une commande
@@ -153,31 +154,59 @@ public class MonService extends OmsService implements OmsMessageListener {
 				//c.send("logout");
 				//annuaire.remove(param);
 				break;
-			case ("call"):
-				/*if(annuaire.containsKey(param)){
-					webSock.send(param+"Connected");
-					OmsCall call2 = calls.get(annuaire.get(param));
-					try {
-						call.call(call2);
-					} catch (OmsException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
-				}
-				else{
-					webSock.send(param+"NotConnected");
-				}*/
+			case "call":
+				call.call(annuaire.getOmsCall(param));
+				//Dans call, récupérer l'userName de l'appelant et l'envoyer à l'appelé			
 				break;
-			case "createConf":
-				//conf.create(call, "conf1");
+			case "answer":
+				//L'appelé accepte l'appel. Il renvoie l'userName de celui qui l'a appelé afin de lui notifier
+				//notifier de son acception
+				call.answer(annuaire.getOmsCall(param), conf, true);
+				break;
+			case "reject":
+				//L'appelé accepte l'appel. Il renvoie l'userName de celui qui l'a appelé afin de lui notifier
+				//notifier de son rejet
+				call.reject(annuaire.getOmsCall(param));
+				break;
+			case "createConf":				
 				if(annuaire.checkOmsCall(call))
-					param = annuaire.updatingStringParam(call, param);					
-				conferenceParam = new ConferenceParameters("confName");
+					param = annuaire.updatingStringParam(call, param);
 				
-				//conf.create(call, conferenceParam);
-				//conf.create(call, param);
-				//conf.notification(listOmsCall);
-				//conf.create(param);
+				splitParam = param.split(":");
+				username = splitParam[0];
+				//mode = splitParam[1];
+				confName = splitParam[1];
+				
+				conferenceParam = new ConferenceParameters(confName);					
+				conf.create(call, conferenceParam);				
+				//conf.create(call, confName);
+				break;
+			case ("joinConf"):
+				// Le client demande a entrer dans la confÃ©rennce ouverte dans
+				// le constructeur
+				// Elle est enregistree dans /tmp/conf1.wav
+				// Il aurait pu la creer lui-meme
+				// Param sert pour muteOn ou muteOff
+				// conf.join(call) ou call.join(conf)
+				// call.join(conf, param);
+
+				if (annuaire.checkOmsCall(call))
+					param = annuaire.updatingStringParam(call, param);
+
+				splitParam = param.split(":");
+				username = splitParam[0];
+				mode = splitParam[1];
+				confName = splitParam[2];
+
+				conferenceParam = new ConferenceParameters(confName);
+				conferenceParam.setConfrole(mode);
+				conferenceParam.setName(username);
+
+				if (!conf.isClientJoined(call)) {
+					//conf.add(call, param);
+					conf.add(call, conferenceParam);
+					conf.showParticipant(call.getConfname());
+				}
 				break;
 			case "say":			
 				call.say("Vous avez cliquez sur say", true);
@@ -188,7 +217,8 @@ public class MonService extends OmsService implements OmsMessageListener {
 					//conf.play();
 				break;
 			case "playFile":
-				conf.myPlay(call.getConfname(), filePath2);
+				//conf.myPlay(call.getConfname(), filePath2);
+				call.play(enregFile + ".a8k", false);
 				break;
 			case "stopPlay":
 				conf.stopPlay();
@@ -204,22 +234,6 @@ public class MonService extends OmsService implements OmsMessageListener {
 					//call.stopRecord();
 				if(conf.status(call.getConfname()))
 					conf.stopRecording(call.getConfname());
-				break;
-			case ("joinConf"):
-				// Le client demande a entrer dans la conférennce ouverte dans le constructeur
-				// Elle est enregistree dans /tmp/conf1.wav
-				// Il aurait pu la creer lui-meme
-				// Param sert pour muteOn ou muteOff
-				// conf.join(call) ou call.join(conf)
-				//call.join(conf, param);
-				
-				if(annuaire.checkOmsCall(call))
-					param = annuaire.updatingStringParam(call, param);
-				
-				if(!conf.isClientJoined(call)){				
-					conf.add(call, param);
-					conf.showParticipant(call.getConfname());
-				}
 				break;
 			case ("dtmf"):
 				// Le client saisit une pseudo dtmf. En fait, il clique sur un bouton
@@ -248,15 +262,19 @@ public class MonService extends OmsService implements OmsMessageListener {
 					conf.unmuteAll(call.getConfname());
 				break;
 			case ("confInfos"):
-				//conf.infos(call,filePath);
+				conf.infos(call,filePath);
+				break;
+			case "hangup":
+				//conf.delete(call);
+				call.hangup(annuaire.getOmsCall(param), conf);
 				break;
 			case "disconnect":
 				if(annuaire.checkOmsCall(call))
 					annuaire.showPeopleConnectedToOms(call, false);			
-				//quitter la conf (function unjoin retourne vrai si c'est le dernier à quitter la conf)
-				//détruire la conf si c'est le dernier client à quitter la conf
-				//conf.infos(call,filePath);
-				conf.delete(call);			
+				//quitter la conf (function unjoin retourne vrai si c'est le dernier Ã  quitter la conf)
+				//dÃ©truire la conf si c'est le dernier client Ã  quitter la conf
+				//conf.infos(call,filePath);	
+				conf.delete(call);
 				call.delete();
 				break;
 			default :

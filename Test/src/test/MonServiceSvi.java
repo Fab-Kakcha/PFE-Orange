@@ -118,7 +118,7 @@ public class MonServiceSvi extends OmsService implements OmsMessageListener {
 
 		String message = msgEvt.getMessage();
 		//logger.info("Nouveau message: " + message);
-		//logger.info("Reçu de: " + call + "l'adresse ip: "
+		//logger.info("ReÃ§u de: " + call + "l'adresse ip: "
 				//+ call.getIpAddress());
 		OmsMessage msg = new OmsMessage(message);
 		String typeMesg = msg.getType();
@@ -210,8 +210,8 @@ public class MonServiceSvi extends OmsService implements OmsMessageListener {
 
 				break;
 			case "disconnect":		
-				//quitter la conf (function unjoin retourne vrai si c'est le dernier à quitter la conf)
-				//détruire la conf si c'est le dernier client à quitter la conf
+				//quitter la conf (function unjoin retourne vrai si c'est le dernier Ã  quitter la conf)
+				//dÃ©truire la conf si c'est le dernier client Ã  quitter la conf
 				//conf.infos(call,filePath);
 				conf.delete(call);			
 				call.delete();
