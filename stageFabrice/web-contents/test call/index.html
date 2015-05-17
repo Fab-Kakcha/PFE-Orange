@@ -450,7 +450,7 @@ function createWebSocket(host) {
 					node.appendChild(participantNode);
 					liste.appendChild(node);
 
-					$("div#listOfPeopleConnected li:contains("+nameClient+")").remove();
+					$("ul#listOfPeopleConnected li:contains("+nameClient+")").remove();
 				}
 			}
 			else if (evt.data.substring(0,deleteUserName.length) == deleteUserName) {
@@ -461,14 +461,14 @@ function createWebSocket(host) {
 				if(listArrayClient.indexOf(nameClient) != -1){
 
 					liste= document.getElementById("listOfPeopleConnected");
-  					$('div#listOfPeopleConnected li:contains(' + nameClient + ')').remove();
+  					$('ul#listOfPeopleConnected li:contains(' + nameClient + ')').remove();
   					listArrayClient.splice(listArrayClient.indexOf(nameClient), 1);
 				}
 
 				if(listOfPeopleInConf.indexOf(nameClient) != -1){
 
 					liste = document.getElementById("listOfPeopleInConf");
-					$('div#listOfPeopleInConf li:contains(' + nameClient + ')').remove();
+					$('ul#listOfPeopleInConf li:contains(' + nameClient + ')').remove();
 					listOfPeopleInConf.splice(listOfPeopleInConf.indexOf(nameClient), 1);
 				}
 			}

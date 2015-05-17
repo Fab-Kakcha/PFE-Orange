@@ -70,6 +70,8 @@ var socketAS;
 var active = "active";
 var disabled = "disabled";
 
+var sound = new Audio("Dime.mp3");
+
 function createWebSocket(host) {
 	if(window.MozWebSocket) {
 		window.WebSocket=window.MozWebSocket;
@@ -103,6 +105,8 @@ function createWebSocket(host) {
 				//Afficher un msg qui indique le refus de l'appel
 
 				var str = evt.data.split(":");
+				sound.pause();
+				sound.currentTime = 0;
 				alert("Call rejected by " + str[str.length - 1]);
 
 			}else if (evt.data.startsWith("answer:")) {
@@ -110,6 +114,8 @@ function createWebSocket(host) {
 				//Afficher un msg qui indique l'acception de l'appel
 
 				var str = evt.data.split(":");
+				sound.pause();
+				sound.currentTime = 0;
 				alert("Call accepted by " + str[str.length - 1]);
 
 			}
@@ -208,6 +214,7 @@ function outgoingCall(){//Call fabrice
 		//trace("Connexion au serveur " + serveurWs);
 			//alert("Message to sent...");
 		socket.send(JSON.stringify({"cmd":"call","param":"tata"}));
+		sound.play();
 	//}
 
 	//pc = new RTCPeerConnection(servers,pc_constraints);

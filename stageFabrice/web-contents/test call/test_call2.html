@@ -72,6 +72,8 @@ var socketAS;
 var active = "active";
 var disabled = "disabled";
 
+var sound = new Audio("Dime.mp3");
+
 function createWebSocket(host) {
 	if(window.MozWebSocket) {
 		window.WebSocket=window.MozWebSocket;
@@ -114,6 +116,7 @@ function createWebSocket(host) {
 				document.getElementById("reject").className = active;
 				document.getElementById("hangup").className = active;
 
+				sound.play();
 			}
 			else {
 				var signal = JSON.parse(evt.data);
@@ -200,6 +203,7 @@ function rejectCall(){
 
 	//Refuser un appel en envoyant le nom de l'appelant
 	socket.send(JSON.stringify({"cmd":"reject","param":"eeee"}));
+	sound.pause();
 	sound.currentTime = 0;
 
   }
@@ -213,7 +217,9 @@ function disconnect(){
 
 function answerCall() {
 	
-	socket.send(JSON.stringify({"cmd":"answerAndLeave","param":"eeee"}));
+	socket.send(JSON.stringify({"cmd":"answer","param":"eeee"}));
+	sound.pause();
+	sound.currentTime = 0;
 
 }
 
