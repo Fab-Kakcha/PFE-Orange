@@ -18,8 +18,8 @@ import javax.swing.JPanel;
 
 import org.apache.log4j.Logger;
 
+//import com.orange.olps.api.sip.MonServiceSip;
 import com.orange.olps.stageFabrice.OmsServiceEx;
-import com.orange.olps.stageFabrice.sip.MonServiceSip;
 
 /**
  * @author JWPN9644
@@ -101,7 +101,7 @@ public class SwingControl {
 				isServiceLaunch = true;
 				mainFrame.dispatchEvent(new WindowEvent(mainFrame, WindowEvent.WINDOW_CLOSING));
 				
-				new MonServiceSip();				
+				//new MonServiceSip();				
 			}
 		});
 		

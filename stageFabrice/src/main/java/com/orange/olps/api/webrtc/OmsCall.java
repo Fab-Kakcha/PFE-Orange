@@ -50,16 +50,13 @@ public class OmsCall extends Thread {
 	private String confName = null;
 	private String userName = null;
 	private String exConfName = null;
-	private boolean hasClientPressDisc = false;
+	private boolean hasClientPressDisc = true;
 	private boolean hasCreatedConf = false;
 	
-	private String filePath = "C:\\opt\\infosOnConferences.log";
+	//private String filePath = "C:\\opt\\infosOnConferences.log";
 	//private List<WebSocket> listOfPeopleCalled = new ArrayList<WebSocket>();
 	
 	private ConferenceParameters conferenceParam;
-	
-	
-	
 	private String[] hosPortVip;
 	
 	
@@ -70,6 +67,7 @@ public class OmsCall extends Thread {
 	private String getExConfName(){
 		return this.exConfName;
 	}
+	
 	/**
 	 * 
 	 */
@@ -78,7 +76,7 @@ public class OmsCall extends Thread {
 	}
 
 	/**
-	 * To get the Browser or client websocket and IP address
+	 * To set the Browser or client websocket and IP address
 	 * @param conn client websocket
 	 * @param ipAddress client IP address
 	 */
@@ -199,7 +197,7 @@ public class OmsCall extends Thread {
 		if(!setParam.equals("OK"))
 			throw new OmsException("cannot execute mt1 setparam bind=s1");
 		
-		sleep(600);
+		//sleep(600);
 		
 		String respSay = connOMS.getReponse("s1 say \"" + say + "\"");
 		if (!respSay.equals("OK"))
@@ -413,35 +411,27 @@ public class OmsCall extends Thread {
 			e.printStackTrace();
 		}
 	}
-
-	/**
-	 * To call someone
-	 * @param omsCall the callee's identifiers
-	 * @throws OmsException
-	 * @throws InterruptedException 
-	 * @throws IOException 
-	 */
 	
+	/**
+	 * To call a Browser/OmsCall, a message incomingCall is sent to the callee.
+	 * @param callee the OmsCall's to call
+	 * @param conf the
+	 * @throws OmsException
+	 * @throws IOException
+	 * @throws InterruptedException
+	 */
 	public void call(OmsCall callee, OmsConference conf) throws OmsException, IOException, InterruptedException {
-
-		//int num = this.getNbOfClientConnected();
-		//num += 1;
-		//this.setNbOfClientConnected(num);
 		
 		if(callee == null)
-			throw new IllegalArgumentException("Argument cannot be null");
+			throw new IllegalArgumentException("Argument OmsCall cannot be null");
+		else if(conf == null)
+			throw new IllegalArgumentException("Argument OmsConference cannot be null");
 		
 		WebSocket calleeWs = callee.getWebSocket();
-		//omsCall.setVipConnexion(this.connOMS);
-		//omsCall.setNbOfClientConnected(this.getNbOfClientConnected());
-		//omsCall.setIsCallee(true);
-		//this.listOmsCall.add(omsCall);
-
 		String userName = this.getUserName();	
 		calleeWs.send("incomingCall:"+userName);		
 		
 		this.play("/opt/application/64poms/current/tmp/Ringback_Tone.a8k", true);
-		//callee.play("/opt/application/64poms/current/tmp/Beatles-Hey_Jude.a8k", true);
 		
 		if(conf.isClientJoined(callee)){			
 			conf.myPlay(callee.getConfname(), "/opt/application/64poms/current/tmp/Beatles-Hey_Jude.a8k");
@@ -451,90 +441,14 @@ public class OmsCall extends Thread {
 		
 	}
 	
-
 	/**
-	 * 
-	 * @param caller
-	 * @param conf OmsConference
-	 * @param bool true answer the call and get out of the conference we are, and false bring the caller
-	 * into the conference we are. 
+	 * To answer an incoming call and leave the conference where we are.
+	 * @param caller the caller
+	 * @param conf the conference
+	 * @param annuaire 
 	 * @throws OmsException
-	 * @throws IOException 
+	 * @throws IOException
 	 */
-	public void answer(OmsCall caller, OmsConference conf, boolean bool) throws OmsException, IOException{	
-		
-		//Mettre un troisième paramètre qui permet en cas de réponse à appel, de savoir si l'appelé veux 
-		//faire rentrer l'appelant dans sa conference
-				
-		if(caller == null)
-			throw new IllegalArgumentException("Argument OmsCall cannot be null");
-		
-		if(conf == null)
-			throw new IllegalArgumentException("Argument OmsConference cannot be null");
-		
-		WebSocket callerWs = caller.getWebSocket();
-		callerWs.send("answer:" + this.getUserName());
-		
-		caller.setIsCaller(true);
-		//set le parametre caller pour caller
-		
-		Random ran = new Random();
-		int randomNb = ran.nextInt();
-		
-		OmsCall callee = this;
-							
-		if(conf.isClientJoined(callee)){
-			
-			//Accepter l'appel de Claude en le faisant rentrer dans la conférence
-			// ou bien sortie de la conférence, aller discuter puis revenir dans la conférence			
-			//faire entrer Claude das la conférence où il se trouve
-			//conf.add(caller, conf.getConfName());
-			
-			if(bool){//vrai, alors j'accepte de sortir de ma conf
-								
-				conferenceParam = new ConferenceParameters(Integer.toString(randomNb));	
-				conferenceParam.setEntertone("false");
-				conferenceParam.setExittone("false");
-								
-				if(conf.isClientJoined(caller)){
-					
-					caller.setExConfName(caller.getConfname());
-					conf.delete(caller);			
-				}
-				
-				conf.create(caller, conferenceParam);
-				callee.setExConfName(this.getConfname()); //Methode setExConfName private
-				conf.delete(callee);// Attention détruira la conférence si c'est lui qui l'a crée
-				callee.setHasCreatedConf(false);
-				conf.add(callee, conferenceParam);
-			}
-			else //Je refuse de sortir de ma conf, et j'invite l'appelant à la rejoindre				
-				conf.add(caller, callee.getConfname());		
-			
-		}else{
-			
-			if(conf.isClientJoined(caller)){
-				
-				caller.setExConfName(caller.getConfname());
-				conf.delete(caller);			
-			}
-			
-			conferenceParam = new ConferenceParameters(Integer.toString(randomNb));	
-			conferenceParam.setEntertone("false");
-			conferenceParam.setExittone("false");
-			
-			conf.create(caller, conferenceParam);
-			conf.add(callee, conferenceParam);
-		}		
-		
-		conf.showParticipant(caller.getConfname(), true);
-		conf.participantsStatus(caller);
-		conf.participantsStatus(callee);
-		
-		conf.infos(filePath);
-	}
-	
-	
 	public void answerAndLeave(OmsCall caller, OmsConference conf, Annuaire annuaire) throws OmsException, 
 	IOException{
 		
@@ -596,8 +510,7 @@ public class OmsCall extends Thread {
 					userName = c2.getUserName();
 					c2.getWebSocket().send("hangup:" + callee.getUserName());
 
-					callee.getWebSocket().send("hangup:" + c2.getUserName());
-					
+					callee.getWebSocket().send("hangup:" + c2.getUserName());				
 					ite = listOms.iterator();
 					while (ite.hasNext()) {
 
@@ -620,12 +533,7 @@ public class OmsCall extends Thread {
 			//conf.participantsStatus(caller);
 			//conf.participantsStatus(callee);
 			
-			//conf.infos(filePath);
-			//logger.info(filePath + " created");
-			
-			Iterator<OmsCall> ite3 = listOms.iterator();
-			//OmsCall c;
-			
+			Iterator<OmsCall> ite3 = listOms.iterator();			
 			while(ite3.hasNext()){
 				
 				c = ite3.next();
@@ -635,8 +543,15 @@ public class OmsCall extends Thread {
 			throw new OmsException("Cannot leave the conference, because you are not in a conference");
 	}
 	
-	//Answser par défaut, si le callee n'est pas une conférence, alors une nouvelle conférence
-	//sera crée
+	/**
+	 * Answering an incoming call and stay in the conference we are, in this case, the caller is brought in
+	 * the conference
+	 * @param caller
+	 * @param conf
+	 * @param annuaire
+	 * @throws OmsException
+	 * @throws IOException
+	 */
 	public void answerAndStay(OmsCall caller, OmsConference conf, Annuaire annuaire) throws OmsException, 
 	IOException{
 		
@@ -646,9 +561,6 @@ public class OmsCall extends Thread {
 			throw new IllegalArgumentException("Argument Annuaire cannot be null");
 		else if(annuaire == null)
 			throw new IllegalArgumentException("Argument OmsConference cannot be null");
-		
-		//this.getVipConnexion().getReponse("mt1 shutup");
-		//caller.getVipConnexion().getReponse("mt1 shutup");
 		
 		HashMap<OmsCall, String> omsList = annuaire.getAnnuaire();
 		Set<OmsCall> listOms = omsList.keySet();
@@ -717,9 +629,6 @@ public class OmsCall extends Thread {
 		//conf.participantsStatus(caller);
 		//conf.participantsStatus(callee);
 		
-		//conf.infos(filePath);
-		//logger.info(filePath + " is available");
-		
 		Iterator<OmsCall> ite = listOms.iterator();
 		OmsCall c;
 		
@@ -730,43 +639,18 @@ public class OmsCall extends Thread {
 		}			
 	}
 	
-	/*public void updateStatusAfterAnswer(Annuaire annuaire, OmsConference conf) throws OmsException{
-		
-		HashMap<OmsCall, String> omsList = annuaire.getAnnuaire();		
-		Set<OmsCall> listOms = omsList.keySet();
-				
-		Iterator<OmsCall> ite = listOms.iterator();
-		OmsCall c;
-					
-		while(ite.hasNext()){
-			
-				c = ite.next();
-				conf.showPeopleInConf(c);
-			}
-			
-		}*/
-				
-	/*public void updateStatusAfterHangup(Annuaire annuaire,OmsConference conf) throws OmsException{
-		
-		HashMap<OmsCall, String> omsList = annuaire.getAnnuaire();
-		
-		Set<OmsCall> listOms = omsList.keySet();
-				
-		Iterator<OmsCall> ite = listOms.iterator();
-		OmsCall c;
-					
-		while(ite.hasNext()){
-				
-				c = ite.next();
-				conf.showPeopleAfterHangup(c);
-			}
-			
-		}*/
-	
+	/**
+	 * To reject an incoming call
+	 * @param caller
+	 * @param conf
+	 * @throws OmsException
+	 */
 	public void reject(OmsCall caller, OmsConference conf) throws OmsException{
 		
 		if(caller == null)
-			throw new IllegalArgumentException("Argument cannot be null");
+			throw new IllegalArgumentException("Argument OmsCall cannot be null");
+		else if(conf == null)
+			throw new IllegalArgumentException("Argument OmsConference cannot be null");
 		
 		caller.getVipConnexion().getReponse("mt1 shutup");
 		
@@ -774,8 +658,7 @@ public class OmsCall extends Thread {
 		WebSocket callerWs = caller.getWebSocket();
 		String userName = this.getUserName();
 		
-		callerWs.send("reject:" + userName);
-				
+		callerWs.send("reject:" + userName);				
 		if(conf.isClientJoined(this)){			
 			conf.stopPlay();
 		}
@@ -783,7 +666,14 @@ public class OmsCall extends Thread {
 			this.getVipConnexion().getReponse("mt1 shutup");
 	}
 	
-	
+	/**
+	 * To hang up a call
+	 * @param omsCall
+	 * @param conf
+	 * @param annuaire
+	 * @throws OmsException
+	 * @throws IOException
+	 */
 	public void hangup(OmsCall omsCall, OmsConference conf, Annuaire annuaire) throws OmsException, 
 	IOException{
 					
@@ -800,7 +690,7 @@ public class OmsCall extends Thread {
 		OmsCall callee, caller;
 		String userName = this.getUserName();
 		String userName2 = omsCall.getUserName();
-		WebSocket callerWs = omsCall.getWebSocket();
+		//WebSocket callerWs = omsCall.getWebSocket();
 		
 		HashMap<OmsCall, String> omsList = annuaire.getAnnuaire();
 		Set<OmsCall> listOms = omsList.keySet();
@@ -810,21 +700,16 @@ public class OmsCall extends Thread {
 					
 		while(ite.hasNext()){
 						
-			c = ite.next();
-			
+			c = ite.next();			
 			//if(!c.equals(omsCall) && !this.equals(c)){
 				
 				c.getWebSocket().send("showUserNameConnectedToOMS:" + userName+ ":hangup");
 				c.getWebSocket().send("showUserNameConnectedToOMS:" + userName2+ ":hangup");
-			//}
-				
-		}
-							
+			//}				
+		}						
 			if(this.getIsCaller()){
 				
 				listOmsCallInConf2 = conf.getListOmsCallInConf(this.getConfname());
-				//conf.delete(omsCall);
-				//conf.delete(this);
 				this.setIsCaller(false);
 				callee = omsCall;
 				caller = this;								
@@ -832,31 +717,23 @@ public class OmsCall extends Thread {
 			else{
 				
 				listOmsCallInConf2 = conf.getListOmsCallInConf(omsCall.getConfname());
-				//conf.delete(this);
-				//conf.delete(omsCall);
 				omsCall.setIsCaller(false);
 				callee = this;
 				caller = omsCall;
 			}
-			//callerWs.send("hangup:" + userName);
-			
-			
-			//Iterator<OmsCall> ite;
+
 			Iterator<OmsCall> ite2 = listOmsCallInConf2.iterator();
 			OmsCall c2;
-			//String userName;				
 						
 			while (ite2.hasNext()) {
 				
 				c2 = ite2.next();
-				//userName = c2.getUserName();
-				
+				//userName = c2.getUserName();				
 				if(!this.equals(c2)){
 					
 					c2.getWebSocket().send("hangup:" + this.getUserName());
 					c2.getWebSocket().send("deleteUserNameInConf:" + this.getUserName());
-					this.getWebSocket().send("deleteUserNameInConf:" + c2.getUserName());
-					
+					this.getWebSocket().send("deleteUserNameInConf:" + c2.getUserName());					
 				}									
 			}
 			
@@ -889,9 +766,7 @@ public class OmsCall extends Thread {
 				conferenceParam.setName(caller.getUserName());
 				conf.add(caller, conferenceParam);
 			}
-			
-			//conf.infos(filePath);
-			
+						
 			ite = listOms.iterator();				
 			while(ite.hasNext()){
 				
@@ -983,7 +858,6 @@ public class OmsCall extends Thread {
 		if(vipConn != null){		
 			delResources();
 			vipConn.getSocket().close();
-			//listOmsCall.clear();
 		}					
 	}
 
@@ -1084,26 +958,16 @@ public class OmsCall extends Thread {
 	}
 	
 	
-	/*public void setNbOfClientConnected(int num){
-		this.nbOfClientConnected = num;
-	}
-	
-
-	public int getNbOfClientConnected(){
-		return this.nbOfClientConnected;
-	}*/
-	
-
 	/*public void setIsCaller(boolean isCaller){
 		this.isCaller = isCaller;
 	}
 	
 	public void setIsCallee(boolean isCallee){
 		this.isCallee = isCallee;
-	}
+	}*/
 	
 
-	public boolean getIsCaller(){
+	/*public boolean getIsCaller(){
 		return this.isCaller;
 	}
 	

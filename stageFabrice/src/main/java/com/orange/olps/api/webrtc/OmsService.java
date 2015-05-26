@@ -57,11 +57,9 @@ public class OmsService extends WebSocketServer {
 		System.out.println("Reception : " + conn.getRemoteSocketAddress().getAddress().getHostAddress() 
 				+ " : " + message );
 		
-		//logger.info("NAV ==> AS : " + message );
-				
 		OmsCall call = calls.get(conn);		
-		if(message.indexOf("disconnect") != -1)
-			call.setHasClientPressDisc(true);
+		//if(message.indexOf("disconnect") != -1)
+			//call.setHasClientPressDisc(true);
 		
 		OmsMessageEvent msgEvent = new OmsMessageEvent(call, message);
 		Iterator<OmsMessageListener> i = _listeners.iterator();
@@ -103,12 +101,13 @@ public class OmsService extends WebSocketServer {
 		
 		// Quand un client se deconnecte, on detruit tout ce qui lui appartient
 		OmsCall call = calls.get(conn);
-		bool = call.getHasClientPressDisc();
+		call.setHasClientPressDisc(false);
+		//bool = call.getHasClientPressDisc();
 		
-		if(!bool){
+		//if(!bool){
 			JsonObject json = new JsonObject();
 			json.addProperty("cmd", "disconnect");
-			json.addProperty("param", " ");
+			json.addProperty("param", call.getUserName());
 			String message = json.toString();
 			
 			OmsMessageEvent msgEvent = new OmsMessageEvent(call, message);
@@ -116,7 +115,7 @@ public class OmsService extends WebSocketServer {
 			while(i.hasNext())  {
 				((OmsMessageListener) i.next()).omsMessagePerformed(msgEvent);
 			}		
-		}
+		//}
 		calls.remove(conn);
 		conn.close();
 		

@@ -118,8 +118,6 @@ public class Annuaire {
 			Iterator<OmsCall> ite = listCli.iterator();
 			String userName2 = annuaire.get(call);
 			
-			String status;
-
 			Collection<String> c = annuaire.values();
 			Iterator<String> ite1;
 
@@ -167,7 +165,7 @@ public class Annuaire {
 							+ " not in the annuaire");	
 	}
 	
-	/**
+	/*
 	 * Updating param, normally param is in form of "confName:mode", but we need to add the userName given by 
 	 * the client when connecting to OMS. This userName will be concatenated to param, and no need for the client 
 	 * to provide its userName twice. The userName he previously provided is taken from the annuaire.
@@ -194,7 +192,12 @@ public class Annuaire {
 			return null;
 	}*/
 	
-	
+	/**
+	 * To get the OmsCall from its userName, will return null if the the userName doesn't match
+	 * nay OmsCall
+	 * @param userName username
+	 * @return the OmsCall
+	 */
 	public OmsCall getOmsCall(String userName){
 		
 		if(userName == null)
@@ -218,10 +221,9 @@ public class Annuaire {
 		
 		return null;		
 	}
-	
-	
+		
 	/**
-	 * To get the annuaire 
+	 * To get the annuaire with all OmsCall connected to OMS
 	 * @return the annuaire
 	 */
 	public HashMap<OmsCall, String> getAnnuaire(){
