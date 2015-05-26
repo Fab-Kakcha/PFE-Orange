@@ -32,7 +32,7 @@ public class MonService extends OmsService implements OmsMessageListener {
 	protected static String portVip = "4670";
 	private static String portWs = "8887";
 	//private static String hostVipConf ;
-	private static String portVipConf ;
+	private static String portVipConf = "10000";
 	static Properties prop = new Properties();
 	static FileInputStream propFic = null;
 	static BufferedWriter ficSdp = null;
