@@ -1,21 +1,22 @@
 package com.orange.olps.api.sip;
 
 
-public class CallDescription {
+class CallDescription {
 	
 	private String caller;
 	private String callee;
 	private String callId;
 	private String codec;
-	private String port;
 	
 	public CallDescription(){
 		
 	}
 	
+	
 	public String toString(){
 		
-		System.out.println("Call description: "+ caller + " " + callee + " "+ callId);
+		System.out.println("Call description: Caller-"+ caller + " Callee-" + callee + 
+				" Callid-"+ callId);
 		return null;
 	}
 	public void setCaller(String caller){

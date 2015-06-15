@@ -2,8 +2,6 @@ package com.orange.olps.api.sip;
 
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import org.apache.log4j.Logger;
 
@@ -18,34 +16,23 @@ public class OmsCallSip extends Thread {
 	private String regexEqual = "=";
 	private String regexMult = "[\\s\";]";
 	
-	//private static Pattern pat = Pattern.compile("local=([^\\s/>]+)");
+	private String clientIpAddress = null;
+	private String clientPort = null;
+	private String clientCodec = null;
+	private String acodecParam = null;
+	private String omsIpAddress = null;
+	private String rviMediaPort = null;
+	private int partNumberConf = -10000;
 
-	private String clientIpAddress;
-	private String clientPort;
-	private String clientCodec;
-	private String acodecParam;
-	private String omsIpAddress;
-	private String rviMediaPort;
-	private int partNumberConf = 0;
-
-	private String[] array;
-	private CallDescription callDescription;
-	private OmsConference omsConference;
-	
-	private int callNumber;
-	private String[] hosPortVip;
-	private String confName = "conf";
+	private String[] array = null;
+	private CallDescription callDescription = null;
+	private int callNumber = 0;
+	private String[] hosPortVip = null;
+	private String confName = null;
+	private boolean isTrombone = false;
 	
 	//problème avec l'enregistrement et la lecture vidéo
 	
-
-	/**
-	 * To get OMS's IP address and port
-	 * @return IP address and port of OMS
-	 */
-	public String[] getHostPortVip(){
-		return hosPortVip;
-	}
 	
 	public OmsCallSip() {
 
@@ -55,11 +42,11 @@ public class OmsCallSip extends Thread {
 
 	/**
 	 * To connect to OMS at IP address hostVip and port portVip
-	 * @param hostVip OMS's IP address
-	 * @param portVip OMS's port 
+	 * @param hostVip OMS IP address
+	 * @param portVip OMS port 
 	 * @throws OmsException
 	 */
-	public void connect(String hostVip, String portVip) throws OmsException {
+	protected void connect(String hostVip, String portVip) throws OmsException {
 		
 		hosPortVip = new String[2];
 		hosPortVip[0] = hostVip;
@@ -79,52 +66,20 @@ public class OmsCallSip extends Thread {
 		
 	}
 
-	/**
-	 * 
-	 * @param hostVip
-	 * @param portVip
-	 * @param portVipConf
-	 * @throws OmsException
-	 */
-	public void connect(String hostVip, String portVip, String portVipConf) throws OmsException {
+	public void shutup() throws OmsException{
 		
-		hosPortVip = new String[2];
-		hosPortVip[0] = hostVip;
-		hosPortVip[1] = portVip;
-		
-		callDescription = new CallDescription();
-		this.omsIpAddress = hostVip;
-		
-		this.connOMS = new VipConnexion(hostVip, portVip);
-		String rviSip = this.connOMS.getReponse("new t1 sip");
-		if (!rviSip.equals("OK"))
-			throw new OmsException("cannot create rvi sip :" + rviSip);
-
-		String rviMedia = this.connOMS.getReponse("new mt1 media");
-		if (!rviMedia.equals("OK"))
-			throw new OmsException("cannot create rvi media " + rviMedia);
-				
+		String shutup = connOMS.getReponse("t1 shutup");
+		if(shutup.indexOf("OK") == -1)
+			throw new OmsException("shutup command failed: " + shutup);
 	}
 	
-	/**
-	 * 
-	 * @param hostVipConf
-	 * @param portVipConf
-	 * @throws OmsException
-	 * @throws IOException
-	 */
-	public void initConference(String hostVipConf, String portVipConf) throws OmsException, IOException{
+	private void processingWithListen() throws OmsException{
 		
-		omsConference = new OmsConference(hostVipConf, portVipConf);
-	}
-	
-	public void listenConf() throws OmsException{
-		
-		connOMS.getReponse("t1 listen sip:conf=*@");
-				
 		String respWait = connOMS.getReponse("wait evt=t1.*");
-		logger.info("respWait: " + respWait);
-				
+		if(respWait.indexOf("OK") == -1)
+			throw new OmsException("Issues with the incoming event: " + respWait);
+		
+		
 		String[] splitRespWait = respWait.split(regexSpace);
 		for (String s : splitRespWait) {
 
@@ -146,11 +101,131 @@ public class OmsCallSip extends Thread {
 			}
 		}
 
-		callDescription.toString();
 		String callee = callDescription.getCallee();
 		array = callee.split("conf=");
 		confName = array[array.length - 1].split("@")[0];
-		logger.info("confName2: " + confName);
+		this.setConfName(confName);
+		
+		String respMedia = connOMS.getReponse("wait evt=t1.media,t1.hangup");
+		
+		//Afficher la valeur du codec
+		logger.info(respMedia);
+		
+		if(respMedia.indexOf("OK") == -1)
+			throw new OmsException("issues with wait command: " + respMedia);			
+
+		String[] splitRespMedia = respMedia.split(regexMult);
+		for (String s : splitRespMedia) {
+
+			if (s.startsWith("content")) {
+				array = s.split(regexEqual);
+				clientIpAddress = array[array.length - 1];
+
+			} else if (s.startsWith("aport")) {
+				array = s.split(regexEqual);
+				clientPort = array[array.length - 1];
+
+			} else if (s.startsWith("acodecparam")) {
+				array = s.split(regexEqual);
+				acodecParam = array[array.length - 1];
+
+			} else if (s.startsWith("acodec")) {
+				array = s.split(regexEqual);
+				clientCodec = array[array.length - 1];
+			}else if(s.startsWith("cause")){// hangup due to a "CANCEL" request			
+				deleteRvi();
+				System.exit(0);
+			}
+		}
+	
+		String respStart = connOMS
+				.getReponse("mt1 startlocal type=audio codec=" + clientCodec + " codecparam=payload=" + 
+		acodecParam + ",ptime=20");
+		
+		if(respStart.indexOf("OK") == -1)
+			throw new OmsException("Issues with startlocal command: " + respStart);
+
+		String[] splitRespStart = respStart.split(regexSpace);
+		for (String s : splitRespStart) {
+
+			if (s.startsWith("local.aport")) {
+				array = s.split(regexEqual);
+				rviMediaPort = array[array.length - 1];
+			}
+		}
+		
+		logger.info("rvi Media port: " + rviMediaPort);
+		
+		sleep(6000);
+		String repAnswer = connOMS.getReponse("t1 answer \"media=ip=" + getOmsIpAddress()
+				+ " aport=" + rviMediaPort + " acodec=" + clientCodec + "\"");
+		if(repAnswer.indexOf("OK") == -1)
+			throw new OmsException("Answer command failed: " + repAnswer);
+	
+		respStart = connOMS.getReponse("mt1 startremote type=audio host=" + clientIpAddress
+				+ " port=" + clientPort + "" + " codec=" + clientCodec
+				+ " codecparam=payload=" + acodecParam + ",ptime=20");
+		if(respStart.indexOf("OK") == -1)
+			throw new OmsException("Issues with startremote command: " + respStart);
+
+		String respWaitEvent = connOMS.getReponse("wait evt=t1*,mt1.*");
+		String[] splitResp = respWaitEvent.split(regexSpace);
+		for(String s : splitResp){
+			
+			if(s.startsWith("cause")){ //hangup due to a "CANCEL" request
+				logger.info("The call has been cancelled");
+				deleteRvi();
+				System.exit(0);
+			}									
+		}
+		
+		if(respWaitEvent.indexOf("OK") == -1)
+			throw new OmsException("connected evt failed: " + respWaitEvent);
+	}
+	
+	/**
+	 * To listen to incoming calls to join a conference
+	 * @throws OmsException
+	 */
+	protected synchronized void listenConf() throws OmsException{
+		
+		String listen = connOMS.getReponse("t1 listen sip:conf=*@");
+		if(listen.indexOf("OK") == -1)
+			throw new OmsException("Cannot start listening to incoming calls: " + listen);
+				
+		processingWithListen();
+		
+		/*String respWait = connOMS.getReponse("wait evt=t1.*");
+		if(respWait.indexOf("OK") == -1)
+			throw new OmsException("Issues with the incoming event: " + respWait);
+		
+		
+		String[] splitRespWait = respWait.split(regexSpace);
+		for (String s : splitRespWait) {
+
+			if (s.startsWith("local")) {//on récupère le local
+				array = s.split("local=");
+				logger.info(Arrays.toString(array));
+				callDescription.setCallee(array[array.length - 1]);
+			} else if (s.startsWith("remote")) {//On récupère le remote
+				array = s.split(regexEqual);
+				callDescription.setCaller(array[array.length - 1]);
+			} else if (s.startsWith("call")) {//On récupère le callId
+				array = s.split(regexEqual);
+				String callId = array[array.length - 1];
+				//if(callId.endsWith(".")) //Faut il supprimer le point à la
+				// fin???
+				// callId = callId.substring(0, callId.length() - 1);
+
+				callDescription.setCallId(callId);
+			}
+		}
+
+		String callee = callDescription.getCallee();
+		array = callee.split("conf=");
+		confName = array[array.length - 1].split("@")[0];
+		logger.info("confName: " + confName);
+		this.setConfName(confName);
 		
 		String respMedia = connOMS.getReponse("wait evt=t1.media,t1.hangup");
 		logger.info("respMedia: " + respMedia);
@@ -193,8 +268,10 @@ public class OmsCallSip extends Thread {
 		}
 		
 		sleep(6000);
-		connOMS.getReponse("t1 answer \"media=ip=" + getOmsIpAddress()
+		String repAnswer = connOMS.getReponse("t1 answer \"media=ip=" + getOmsIpAddress()
 				+ " aport=" + rviMediaPort + " acodec=" + clientCodec + "\"");
+		if(repAnswer.indexOf("OK") == -1)
+			throw new OmsException("Answer command failed: " + repAnswer);
 	
 		connOMS.getReponse("mt1 startremote type=audio host=" + clientIpAddress
 				+ " port=" + clientPort + "" + " codec=" + clientCodec
@@ -210,29 +287,29 @@ public class OmsCallSip extends Thread {
 				System.exit(0);
 			}									
 		}
-				
-		logger.info("Connected");
-		if(omsConference.status(confName))			
+		
+		if(respWaitEvent.indexOf("OK") == -1)
+			throw new OmsException("connected evt failed: " + respWaitEvent);*/
+		
+		/*if(omsConference.status(confName))			
 			omsConference.add(this, confName);
 		else 
-			omsConference.create(this, confName);		
-		
-		logger.info("Conference sucessfully created");
-		respWaitEvent = connOMS.getReponse("wait evt=t1*,mt1.*");
-		logger.info(respWaitEvent);
+			omsConference.create(this, confName);*/		
 	}
 	
 	/**
-	 * To listen to incoming calls and establish a media session
+	 * To listen to incoming calls for voicing services
 	 * @throws OmsException
 	 */
-	// il faut chaque OmsCall puisse écouter sur des numéros différents
-	public void listen(String c) throws OmsException { // Call c
+	protected synchronized void listen() throws OmsException { // Call c
 			
-			connOMS.getReponse("t1 listen sip:"+ c +"*@");
-			String respWait = connOMS.getReponse("wait evt=t1.*");
-			//logger.info(respWait);
-
+			String listen = connOMS.getReponse("t1 listen sip:*@");
+			if(listen.indexOf("OK") == -1)
+				throw new OmsException("Cannot start listening to incoming calls: " + listen);
+			
+			processingWithListen();
+			
+			/*String respWait = connOMS.getReponse("wait evt=t1.*");
 			String[] splitRespWait = respWait.split(regexSpace);
 			for (String s : splitRespWait) {
 
@@ -295,9 +372,11 @@ public class OmsCallSip extends Thread {
 			}
 			
 			sleep(6000);
-			connOMS.getReponse("t1 answer \"media=ip=" + getOmsIpAddress()
-					+ " aport=" + rviMediaPort + " acodec=" + clientCodec + "\"");
-		
+			String repAnswer = connOMS.getReponse("t1 answer \"media=ip=" + getOmsIpAddress()
+					+ " aport=" + rviMediaPort + " acodec=" + clientCodec + "\"");		
+			if(repAnswer.indexOf("OK") == -1)
+				throw new OmsException("Answer command failed: " + repAnswer);
+			
 			connOMS.getReponse("mt1 startremote type=audio host=" + clientIpAddress
 					+ " port=" + clientPort + "" + " codec=" + clientCodec
 					+ " codecparam=payload=" + acodecParam + ",ptime=20");
@@ -311,22 +390,28 @@ public class OmsCallSip extends Thread {
 					deleteRvi();
 					System.exit(0);
 				}			
-			}					
+			}*/					
 	}
 
 	/**
-	 * To forward a call once a media session is set up
+	 * To forward a call once a media session has been set up
 	 * @param isBlind says is the forwarding is in blind or in consultation
-	 * @param ipDestOrRvi IP adress or rvi name of the destination
+	 * @param ipDestOrRvi IP address or rvi name of the destination
 	 * @throws OmsException
 	 */
 	public void callForwarding(boolean isBlind, String ipDestOrRvi) throws OmsException{
 		
 		String status ="";
+		String redirect;
 		if(isBlind){
 			
-			connOMS.getReponse("t1 redirect blind sip:" + ipDestOrRvi);			
+			redirect = connOMS.getReponse("t1 redirect blind sip:" + ipDestOrRvi);
+			if(redirect.indexOf("OK") == -1)
+				throw new OmsException("Cannot excute redirect command: " + redirect);
+			
 			String forwardStatus =  connOMS.getReponse("wait evt=t1.redirected");
+			if(forwardStatus.indexOf("OK") == -1)
+				throw new OmsException("redirected event failed: " + forwardStatus);
 			
 			String[] split = forwardStatus.split(regexSpace);
 			for(String s : split){
@@ -337,9 +422,15 @@ public class OmsCallSip extends Thread {
 				}
 			}
 			
-		}else{			
-			connOMS.getReponse("t1 redirect consultation " + ipDestOrRvi);
+		}else{
+			
+			redirect = connOMS.getReponse("t1 redirect consultation " + ipDestOrRvi);
+			if(redirect.indexOf("OK") == -1)
+				throw new OmsException("Cannot excute redirect command: " + redirect);
+			
 			String forwardStatus =  connOMS.getReponse("wait evt=t1.redirected");
+			if(forwardStatus.indexOf("OK") == -1)
+				throw new OmsException("redirected event failed: " + forwardStatus);
 			
 			String[] split = forwardStatus.split(regexSpace);
 			for(String s : split){
@@ -353,44 +444,66 @@ public class OmsCallSip extends Thread {
 		
 		if(status.equals("OK")){
 			String notify = connOMS.getReponse("wait evt=t1.notify");
-			logger.info(notify);
-			connOMS.getReponse("wait evt=t.hangup");
+			if(notify.indexOf("OK") == -1)
+				throw new OmsException("notify evts failed: " + notify);
+			
+			notify = connOMS.getReponse("wait evt=t.hangup");
+			if(notify.indexOf("OK") == -1)
+				throw new OmsException("notify evts failed: " + notify);
+			
 		}else if(status.equals("FAILED"))
-			logger.error("Cannot redirect call");
+			logger.error("Cannot redirect call");		
+	}
+	
+	
+	private void trombone(String rviM1, String rviM2) throws OmsException{
 		
+		String repTrom = connOMS.getReponse(rviM1 + " extend trombone " + rviM2);
+		if(repTrom.indexOf("OK") == -1)
+			throw new OmsException("Cannot trombone the two rvi media: " + repTrom);
+	}
+	
+	private void unTrombone(String rviM1, String rviM2) throws OmsException{
+		
+		String repUntrom = connOMS.getReponse(rviM1 + " extend untrombone " + rviM2);
+		if(repUntrom.indexOf("OK") == -1)
+			throw new OmsException("Cannot untrombone the two rvi media: " + repUntrom);		
+	}
+	
+	
+	public void hold() throws OmsException{
+		
+		String hold = connOMS.getReponse("t1 hold");
+		if(hold.indexOf("OK") == -1)
+			throw new OmsException("hold command failed: " + hold);
+	}
+	
+	
+	public void unhold() throws OmsException{
+		
+		String unhold = connOMS.getReponse("t1 unhold");
+		if(unhold.indexOf("OK") == -1)
+			throw new OmsException("hold command failed: " + unhold);
 	}
 	
 	/**
-	 * To join two media RVIs 
-	 * @param rviM1 media RVI
-	 * @param rviM2 media RVI
-	 * @throws OmsException
+	 * To get the media informations from OMS
+	 * @return media informations
+	 * @throws OmsException cannot get mediatypes: + error messsage
 	 */
-	public void trombone(String rviM1, String rviM2) throws OmsException{
+	public String getMediatypes() throws OmsException{
 		
-		connOMS.getReponse(rviM1 + " extend trombone " + rviM2);
+		String media = connOMS.getReponse("t1 getmediatypes");
+		if(media.indexOf("OK") == -1)
+			throw new OmsException("cannot get mediatypes: " + media);
+		
+		return media;	
 	}
 	
-	/**
-	 * To unjoin two media RVIs
-	 * @param rviM1 media RVi
-	 * @param rviM2 media RVI
-	 * @throws OmsException
-	 */
-	public void unTrombone(String rviM1, String rviM2) throws OmsException{
-		
-		connOMS.getReponse(rviM1 + " extend untrombone " + rviM2);
-	}
-	
-	/**
-	 * To delete RVIs 
-	 * @throws OmsException
-	 */
-	public void deleteRvi() throws OmsException{
-		
-		//int num = getCallNumber();
+	private void deleteRvi() throws OmsException{
 		
 		int num = 1;
+		String delete;
 		for(int i =1 ; i <= num ; i++){
 		
 			String delT1 = connOMS.getReponse("delete t"+i);
@@ -404,8 +517,11 @@ public class OmsCallSip extends Thread {
 		if(!delT1.equals("OK"))
 			throw new OmsException("cannot delete rvi sip t1: " + delT1);*/
 
-		if(isRviEnregExist)
-			connOMS.getReponse("delete recorder");
+		if(isRviEnregExist){
+			delete = connOMS.getReponse("delete recorder");
+			if(delete.indexOf("OK") == -1)
+				throw new OmsException("cannot delete rvi enreg: " + delete);
+		}	
 		else if(isRviSyntExist){
 		
 			String delS1 = connOMS.getReponse("delete s1");
@@ -435,42 +551,37 @@ public class OmsCallSip extends Thread {
 			throw new OmsException("cannot delete remote media: " + delRemote);*/
 		
 		//connOMS.getReponse("delete mt1");
-		//connOMS.getReponse("wait evt=mt1.starving");
-		
-		try {
-			connOMS.getSocket().close();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-			throw new OmsException("Error: cannot close the connection to OMS");
-		}		
+		//connOMS.getReponse("wait evt=mt1.starving");	
 	}
 	
 	/**
-	 * To hangup a phone call 
+	 * To delete an ongoing call to OMS
 	 * @throws OmsException
+	 * @throws IOException 
 	 */
-	public void hangUp() throws OmsException {
-
-		connOMS.getReponse("t1 hangup");
-		connOMS.getReponse("wait evt=t1.hangup");
+	public void delete() throws OmsException, IOException {
+		
 		deleteRvi();
+		connOMS.getSocket().close();	
 	}
 
 	/**
 	 * To synthesize a speech
-	 * @param say the message to synthesize 
-	 * @param interrupt true if the message can be interrupt by something else and false otherwise
+	 * @param say message to synthesize 
+	 * @param interrupt true if the message can be interrupt and false otherwise
 	 * @throws OmsException
 	 */
 	public void say(String say, boolean interrupt) throws OmsException {
 
 		if (!isRviSyntExist) {
 			String resp1 = connOMS.getReponse("new s1 synt");
-
 			if (!resp1.equals("OK"))
 				throw new OmsException("Error: Cannot create rvi synt " + resp1);
-			String setParam = connOMS.getReponse("s1 setparam bindto=mt1");//
+			
+			String setParam = connOMS.getReponse("s1 setparam bindto=mt1");
+			if(setParam.indexOf("OK") == -1)
+				throw new OmsException("Error with setparam command: " + setParam);
+			
 			isRviSyntExist = true;
 		}
 
@@ -492,24 +603,52 @@ public class OmsCallSip extends Thread {
 	}
 	
 	/**
-	 * To call someone with sip address sip:number@ipAddress, and trombone the two calls
+	 * To hang up and unjoin an ongoing call between two users
+	 * @throws OmsException
+	 */
+	public void hangupCall() throws OmsException{
+		
+		int callNum = 2;
+		
+		unTrombone("mt1", "mt"+callNum);
+		isTrombone = false;
+		String del = connOMS.getReponse("delete t"+callNum);
+		if(del.indexOf("OK") == -1)
+			throw new OmsException("cannot delete rvi sip: " + del);
+		
+		del = connOMS.getReponse("delete mt"+callNum);
+		if(del.indexOf("OK") == -1)
+			throw new OmsException("cannot delete rvi media: " + del);
+	}
+	
+	/**
+	 * To make an outgoing call to a sip number in the form sip:number@ipAddress
 	 * @param number field number of the sip address
-	 * @param ipAddress field ipAddress of the sip address
+	 * @param ipAddress ipAddress field in the sip address
 	 * @throws OmsException
 	 */
 	public void call(String number, String ipAddress) throws OmsException {
 
-		int callNum = getCallNumber();
-		callNum += 1;
+		//int callNum = getCallNumber();
+		int callNum = 2;
 		//setCallNumber(callNum);
+		String rviSip;
 		
 		String port = "";
-		connOMS.getReponse("new t"+ callNum +" sip");
-		connOMS.getReponse("new mt"+callNum+" media");
+		rviSip = connOMS.getReponse("new t"+ callNum +" sip");
+		if (!rviSip.equals("OK"))
+			throw new OmsException("cannot create rvi sip :" + rviSip);
+		
+		rviSip = connOMS.getReponse("new mt"+callNum+" media");
+		if (!rviSip.equals("OK"))
+			throw new OmsException("cannot create rvi media :" + rviSip);
+		
 		String reservePort = connOMS.getReponse("mt"+callNum+" reserveport type=audio");
 		//String reservePort = connOMS.getReponse("mt"+callNum+" reserveport type=video");
-		String[] splitReserve = reservePort.split(regexSpace);
+		if(reservePort.indexOf("OK") == -1)
+			throw new OmsException("Cannot reserve a local port: " + reservePort);
 		
+		String[] splitReserve = reservePort.split(regexSpace);		
 		for(String s : splitReserve){
 			
 			if(s.startsWith("local.aport")){
@@ -518,14 +657,21 @@ public class OmsCallSip extends Thread {
 			}
 		}
 		
+		logger.info("rvi media port: "+ port);
+		
 		String respDial = connOMS.getReponse("t"+callNum+" dial sig=to=sip:"+number+"@"+ipAddress+" "
 				+ "\"media=ip="+ getOmsIpAddress()+" aport="+port+"\"");
-		
-		logger.info(respDial);
-		
+		if(respDial.indexOf("OK") == -1)
+			throw new OmsException("Cannot dial: " + respDial);
+				
 		String respMedia = connOMS.getReponse("wait evt=t"+callNum+".media,t"+callNum+".hangup");
+		
+		//Afficher la valeur du codec
 		logger.info(respMedia);
 		
+		if(respMedia.indexOf("OK") == -1)
+			throw new OmsException("issues with wait command: " + respMedia);
+				
 		String[] splitRespMedia = respMedia.split(regexMult);
 		for (String s : splitRespMedia) {
 
@@ -553,17 +699,23 @@ public class OmsCallSip extends Thread {
 		}
 			
 		String respWaitEvent = connOMS.getReponse("wait evt=t"+callNum+"*,mt"+callNum+".*");
+		if(respWaitEvent.indexOf("OK") == -1)
+			throw new OmsException("connected evt failed: " + respWaitEvent);
+		
 		trombone("mt1", "mt"+callNum);
+		isTrombone = true;
 		//answer();
 		// t dial sig=to=sip:96648953@10.184.50.179 "media=ip=10.184.48.159 aport=6010"
 	} 
 	
-	// /var/opt/data/flat/64poms/files/logs/20150210/recording.a8k
-	// /opt/application/64poms/current/tmp/recordingSip.a8k
-
+	public boolean isTrombone(){
+		
+			return isTrombone;
+	}
+	
 	/**
 	 * To play an a8k extension audio file
-	 * @param filePath file's path
+	 * @param filePath path of the file
 	 * @param interrupt true if the audio file can be interrupt, false otherwise
 	 * @throws OmsException
 	 */
@@ -572,10 +724,14 @@ public class OmsCallSip extends Thread {
 		if (!isRviSyntExist) {
 			String resp1 = this.connOMS.getReponse("new s1 synt");
 
-			if (resp1.equals("OK"))
+			if(!resp1.equals("OK"))
 				throw new OmsException("Error: Cannot create rvi synt " + resp1);
 			//String setParam = connOMS.getReponse("mt1 setparam bindto=s1");
+			
 			String setParam = connOMS.getReponse("s1 setparam bindto=mt1");
+			if(setParam.indexOf("OK") == -1)
+				throw new OmsException("Error with setparam command: " + setParam);
+			
 			isRviSyntExist = true;
 		}
 
@@ -595,10 +751,10 @@ public class OmsCallSip extends Thread {
 		}
 
 	}
-
+	
 	/**
-	 * To return the pressed key by users on a softphone (X-LITE)
-	 * @return the pressed key or null if users pressed hangup
+	 * To return the key the user pressed on a softphone (X-LITE)
+	 * @return the key pressed by the user or null if hangup was pressed
 	 * @throws OmsException either "cannot create a dtmf rvi" or "cannot start a dtmf"
 	 */
 	public String dtmf() throws OmsException {
@@ -613,6 +769,9 @@ public class OmsCallSip extends Thread {
 			
 			//String setParam = connOMS.getReponse("mt1 setparam bindto=d");
 			String setParam = connOMS.getReponse("d setparam bind=mt1");
+			if(setParam.indexOf("OK") == -1)
+				throw new OmsException("Error with command setparam: " + setParam);
+			
 			String dStart = connOMS.getReponse("d start");
 			if(!dStart.equals("OK"))
 				throw new OmsException("cannot start a dtmf: "+ newDtmf);
@@ -622,8 +781,9 @@ public class OmsCallSip extends Thread {
 
 		// do {
 		String respWait = connOMS.getReponse("wait evt=d.dtmf,t1.hangup");	
-		logger.info(respWait);
-
+		if(respWait.indexOf("OK") == -1)
+			throw new OmsException("dtmf evt failed: " + respWait);
+		
 		String[] splitRespWait = respWait.split(regexSpace);
 		for (String s : splitRespWait) {
 
@@ -632,8 +792,10 @@ public class OmsCallSip extends Thread {
 				digit = array[array.length - 1];
 				
 			}else if(s.startsWith("cause")){				
-				connOMS.getReponse("d stop");
-				deleteRvi();
+				respWait = connOMS.getReponse("d stop");
+				if(respWait.indexOf("OK") == -1)
+					throw new OmsException("cannot stop the dtmf rvi");
+					
 				return null;
 			}
 		}
@@ -644,32 +806,33 @@ public class OmsCallSip extends Thread {
 	}
 
 	/**
-	 * To record a communication into a a8k extension audio file
-	 * @param filePath file's path
-	 * @throws OmsException either "cannot create an enreg rvi" or "cannot start recording"
+	 * To record a communication into a audio file with a8k extension
+	 * @param filePath path of the file
+	 * @throws OmsException
 	 */
 	public void enreg(String filePath) throws OmsException {
 
 		if (!isRviEnregExist) {
 			String newEnreg = connOMS.getReponse("new recorder enreg");
 			if(!newEnreg.equals("OK"))
-				throw new OmsException("cannot create an enreg rvi " + newEnreg);
+				throw new OmsException("cannot create an enreg rvi: " + newEnreg);
 			
 			//connOMS.getReponse("mt1 setparam bindto=recorder");
-			connOMS.getReponse("recorder setparam bind=mt1");
-
+			String setParam = connOMS.getReponse("recorder setparam bind=mt1");
+			if(setParam.indexOf("OK") == -1)
+				throw new OmsException("Error with command setparam: " + setParam);
 			isRviEnregExist = true;
 		}
 
 		String startEnreg = connOMS.getReponse("recorder start " + filePath);
 		//String startEnreg = connOMS.getReponse("recorder start /opt/application/64poms/current/tmp"
 				//+ "/recordingSip.a8k");
-		if(!startEnreg.equals("OK"))
+		if(startEnreg.indexOf("OK") == -1)
 			throw new OmsException("cannot start recording: " + startEnreg);
 	}
 
 	/**
-	 * To stop recording a communication.
+	 * To stop recording a communication
 	 * @throws OmsException cannot stop recording. Rvi enreg not created
 	 */
 	public void stopEnreg() throws OmsException {
@@ -677,47 +840,83 @@ public class OmsCallSip extends Thread {
 		if (isRviEnregExist){
 			
 			String stopRecord = connOMS.getReponse("recorder stop");
-			if(!stopRecord.equals("OK"))
+			if(stopRecord.indexOf("OK") == -1)
 				throw new OmsException("cannot stop recording: " + stopRecord);
 		}else
-			throw new OmsException("cannot stop recording. Rvi enreg not created");
+			throw new OmsException("cannot stop recording. You should start recording first");
 	}
 	
+	/**
+	 * To get the status of a rvi
+	 * @param rviName rvi name
+	 * @return the rvi status
+	 * @throws OmsException Cannot get the rvi status: + error message
+	 */
 	public String status(String rviName) throws OmsException{
 		
 		String resp = connOMS.getReponse(rviName + " status");
+		if(resp.indexOf("OK") == -1)
+			throw new OmsException("Cannot get the rvi status: " + resp);
+		
 		return resp;
 	}
 	
+	/**
+	 * To start recording a video
+	 * @param filePath path of the file to save the recording
+	 * @throws OmsException
+	 */
 	public void videoRecording(String filePath) throws OmsException{
 		
-		connOMS.getReponse("mt1 startrecord file=" + filePath);		
+		String repRecord = connOMS.getReponse("mt1 startrecord file=" + filePath);
+		if(repRecord.indexOf("OK") == -1)
+			throw new OmsException("Cannot start recording the video: " + repRecord);
 	}
 	
+	/**
+	 * To stop recording a video
+	 * @throws OmsException
+	 */
 	public void stopVideoRecording() throws OmsException{
 		
-		connOMS.getReponse("mt1 stoprecord ");
+		String repStop = connOMS.getReponse("mt1 stoprecord");
+		if(repStop.indexOf("OK") == -1)
+			throw new OmsException("Cannot stop recording a video: " + repStop);
 	}
 	
+	/**
+	 * To start playing a video file
+	 * @param filePath path of the file
+	 * @throws OmsException
+	 */
 	public void playVideo(String filePath) throws OmsException{
 		
-		connOMS.getReponse("mt1 startplay file=" + filePath);
+		String repPlay = connOMS.getReponse("mt1 startplay file=" + filePath);
+		if(repPlay.indexOf("OK") == -1)
+			throw new OmsException("Cannot start playing the video file: " + repPlay);
 	}
 	
-	public void stopPlayVideo() throws OmsException{		
-		connOMS.getReponse("mt1 stopplay");
+	/**
+	 * To stop playing a video file
+	 * @throws OmsException
+	 */
+	public void stopPlayVideo() throws OmsException{
+		
+		String repStop = connOMS.getReponse("mt1 stopplay");
+		if(repStop.indexOf("OK") == -1)
+			throw new OmsException("Cannot stop playing a video file: " + repStop);
 	}
 	
-	public void setCallNumber(int callNumber){		
+	protected void setCallNumber(int callNumber){		
 		this.callNumber = callNumber;
 	}
 	
-	public int getCallNumber(){	
+	protected int getCallNumber(){	
 		return this.callNumber;
 	}
 	
 	/**
-	 * To get the caller's ID (SIP number)
+	 * To get the caller ID (SIP number)
 	 * @return caller's ID
 	 */
 	public String getCaller(){
@@ -725,7 +924,7 @@ public class OmsCallSip extends Thread {
 	}
 	
 	/**
-	 * To get the callee's ID (SIP number)
+	 * To get the callee ID (SIP number)
 	 * @return callee's ID
 	 */
 	public String getCallee(){
@@ -733,7 +932,7 @@ public class OmsCallSip extends Thread {
 	}
 	
 	/**
-	 * To get the call's unique identifier
+	 * To get the call unique identifier
 	 * @return call's unique identifier
 	 */
 	public String getCallId(){
@@ -741,7 +940,7 @@ public class OmsCallSip extends Thread {
 	}
 	
 	/**
-	 * To get the codec used
+	 * To get the codec used for the call
 	 * @return codec's name
 	 */
 	public String getCodec(){
@@ -749,7 +948,7 @@ public class OmsCallSip extends Thread {
 	}
 	
 	/**
-	 * To get the client or caller IP address
+	 * To get the user caller IP address
 	 * @return Client's IP address
 	 */
 	public String getClientIpAddress(){		
@@ -757,25 +956,25 @@ public class OmsCallSip extends Thread {
 	}
 
 	/**
-	 * To get OMS's IP address
-	 * @return OMS's IP address
+	 * To get OMS IP address
+	 * @return OMS IP address
 	 */
-	public String getOmsIpAddress() {
+	protected String getOmsIpAddress() {
 		return omsIpAddress;
 	}
 	
-	public VipConnexion getVipConnexion(){
+	protected VipConnexion getVipConnexion(){
 		return connOMS;
 	}
 	
-	/**
-	 * To set a number for the client in the conference
-	 * @param num number for the client
-	 */
-	public void setPartNumberConf(int num){	
+	protected void setPartNumberConf(int num){	
 		partNumberConf = num;
 	}
 	
+	/**
+	 * To get the user unique identifier in the conference, 
+	 * @return user unique identifier, which is a positive value
+	 */
 	public int getPartNumberConf(){	
 		return partNumberConf;
 	}
@@ -788,6 +987,24 @@ public class OmsCallSip extends Thread {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+	}
+
+	protected void setConfName(String confName2) {
+		// TODO Auto-generated method stub
+		confName = confName2;
+	}
+
+	/**
+	 * To get the conference name if the user has joined a conference
+	 * @return name of the conference in case the user has joined a conference
+	 */
+	public String getConfname() {
+		// TODO Auto-generated method stub
+		return confName;
+	}
+	
+	protected String[] getHostPortVip(){
+		return hosPortVip;
 	}
 
 }

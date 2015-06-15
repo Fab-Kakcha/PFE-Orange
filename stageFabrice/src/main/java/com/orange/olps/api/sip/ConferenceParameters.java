@@ -30,163 +30,145 @@ public class ConferenceParameters {
 	private String user = "user";
 	
 	/**
-	 * Construction to initialize the conrference's name name
-	 * @param conferenceid the conference name's
+	 * Constructor to initialize the conference name
+	 * @param conferenceid conference name
 	 */
 	public ConferenceParameters(String conferenceid){
 		this.conferenceid = conferenceid;
 	}
 	
-	/**
-	 * Get the conference's name
-	 * @return
-	 */
-	public String getConferenceid() {
+	
+	protected String getConferenceid() {
 		return conferenceid;
 	}
 
-	
+	/**
+	 * To set the conference name
+	 * @param conferenceid
+	 */
 	public void setConferenceid(String conferenceid){
 		this.conferenceid = conferenceid;
 	}
 	
-	/**
-	 * Get the maximum numbers participants in a conference
-	 * @return maximum number of participants
-	 */
-	public int getMaxparticipant() {
+	protected int getMaxparticipant() {
 		return maxparticipant;
 	}
 
 	/**
-	 * Set the maximum participant for a conference
-	 * @param maxparticipant
+	 * To set the maximum participants of a conference, this parameter is optional when creating a
+	 * new conference and its default value is 10.
+	 * @param maxparticipant maximum number of participant allow in a conference
 	 */
 	public void setMaxparticipant(int maxparticipant) {
 		this.maxparticipant = maxparticipant;
 	}
 	
-	/**
-	 * Get the useful life of a conference in minutes
-	 * @return
-	 */
-	public int getTimeout() {
+	protected int getTimeout() {
 		return timeout;
 	}
 
 	/**
-	 * Set the useful life of a conference in minutes
-	 * @param timeout
+	 * To set the life expectancy of a conference in minutes, this parameter is optional when creating a
+	 * new conference and its default value is 600.
+	 * @param timeout life expectancy of a conference in minutes
 	 */
 	public void setTimeout(int timeout) {
 		this.timeout = timeout;
 	}
 
-	public int getRelaydtmf() {
+	protected int getRelaydtmf() {
 		return relaydtmf;
 	}
-
+	
+	/**
+	 * To activate (value 1) or deactivate (value 0) the dtmf transmission, this parameter is optional when
+	 * creating a new conference and its default value is 0
+	 * @param relaydtmf either 0 or 1
+	 */
 	public void setRelaydtmf(int relaydtmf) {
 		this.relaydtmf = relaydtmf;
 	}
 
-	/**
-	 * Get the type of conference to create
-	 * @return
-	 */
-	public String getType() {
+	protected String getType() {
 		return type;
 	}
 
 	/**
-	 * Set the type of conference to create
-	 * @param type
+	 * Set the type of conference to create (either a normal or a large conference), this parameters is 
+	 * optional when creating a new conference and its default value is normal
+	 * @param type either normal or large
 	 */
 	public void setType(String type) {
 		this.type = type;
 	}
 
-	/**
-	 * Get the activatetone parameter of a conference
-	 * @return
-	 */
-	public String getActivetone() {
+	protected String getActivetone() {
 		return activetone;
 	}
 	
 	/**
-	 * Get the activatetone parameter of a conference
-	 * @param activetone
+	 * To activate (value true) or deactivate (value false) for a created conference, the entry and exit tone of 
+	 * participants, this parameter is optional when creating a new conference, and its default value is true
+	 * @param activetone either false or true
 	 */
 	public void setActivetone(String activetone) {
 		this.activetone = activetone;
 	}
 
-	/**
-	 * Get the entertone parameter of a conference
-	 * @return
-	 */
-	public String getEntertone() {
+	protected String getEntertone() {
 		return entertone;
 	}
 
 	/**
-	 * Set the entertone parameter of a conference
-	 * @param entertone
+	 * To activate or deactivate the entry tone of a participant in a conference, this parameters is optional
+	 * when joining an existing conference ad its default value is true.
+	 * @param entertone either true or false
 	 */
 	public void setEntertone(String entertone) {
 		this.entertone = entertone;
 	}
 
-	/**
-	 * Get exitone
-	 * @return
-	 */
-	public String getExittone() {
+	protected String getExittone() {
 		return exittone;
 	}
 
 	/**
-	 * Set exittone
-	 * @param exittone
+	 * To activate or deactivate the exit tone of a participant in a conference, this parameters is optional
+	 * when joining an existing conference ad its default value is true.
+	 * @param exittone either true or false
 	 */
 	public void setExittone(String exittone) {
 		this.exittone = exittone;
 	}
 
-	/**
-	 * Get the codec being used
-	 * @return
-	 */
-	public String getCodec() {
+
+	protected String getCodec() {
 		return codec;
 	}
 
 	/**
-	 * Get the codec to use for creating the conference
-	 * @param codec
+	 * To set the codec value, this parameter is optional when joining an existing conference and its default
+	 * value is G711A
+	 * @param codec its possible values are: G711A, G711MU, G729, G722, AMRWB
 	 */
 	public void setCodec(String codec) {
 		this.codec = codec;
 	}
 
-	/**
-	 * Get the userName
-	 * @return username
-	 */
-	public String getName() {
+	protected String getName() {
 		return name;
 	}
 
 	/**
-	 * Set the userName
-	 * @param name
+	 * To associate a textual identifier with the participant joining the conference, this parameter is optional 
+	 * when joining an existing conference
+	 * @param name textual identifier for the participant
 	 */
 	public void setName(String name) {
 		this.name = name;
 	}
 
-	public String getFrom() {
+	protected String getFrom() {
 		return from;
 	}
 
@@ -194,59 +176,89 @@ public class ConferenceParameters {
 		this.from = from;
 	}
 
-	/**
-	 * Get the confrole
-	 * @return
-	 */
-	public String getConfrole() {
+
+	protected String getConfrole() {
 		return confrole;
 	}
 
+	/**
+	 * To set the profile of a participant joining a conference, this parameter is optional and its default value is
+	 * speaker
+	 * @param confrole four possible values: speaker, mute, coach or student
+	 */
 	public void setConfrole(String confrole) {
 		this.confrole = confrole;
 	}
 
-	public String getExceptlist() {
+	protected String getExceptlist() {
 		return exceptlist;
 	}
-
+	
+	/**
+	 * To set the list of participants (list of participants id) not impacted by muteall or umuteall command, this 
+	 * parameter is optional for these two commands and the semicolon character is used as delimiter between two participants id
+	 * @param exceptlist list of participants id not impacted by muteall or umuteall command
+	 */
 	public void setExceptlist(String exceptlist) {
 		this.exceptlist = exceptlist;
 	}
 
-	public String getParticpantid() {
+	protected String getParticipantid() {
 		return particpantid;
 	}
-
-	public void setParticpantid(String particpantid) {
+	
+	/**
+	 * To set a participant unique identifier, this parameter is optional when playing/stopping an audio file and the 
+	 * file to a participant or when requesting the status of a participant
+	 * @param particpantid unique identifier of a participant
+	 */
+	public void setParticipantid(String particpantid) {
 		this.particpantid = particpantid;
 	}
 
-	public boolean isMixplay() {
+	
+	protected boolean isMixplay() {
 		return mixplay;
 	}
 
+	/**
+	 * To interrupt (value false) or not (value true) the audio mixing of participants when a file is being played 
+	 * in a conference, this parameter is optional for play command ant its default value is false
+	 * @param mixplay either false or true
+	 */
 	public void setMixplay(boolean mixplay) {
 		this.mixplay = mixplay;
 	}
 
-	public int getPriority() {
+	protected int getPriority() {
 		return priority;
 	}
 
+	/**
+	 * To set the priority of the audio file to be played in a conference, this parameter is optional for play 
+	 * command ant its default value is 0
+	 * @param priority possible values are: 0 and 1. 0: all the audio files are played one after the other, 1: 
+	 * the ongoing play command 
+	 * is interrupted to play the new command
+	 */
 	public void setPriority(int priority) {
 		this.priority = priority;
 	}
 
-	public String getRepeat() {
+	protected String getRepeat() {
 		return repeat;
 	}
 
+	/**
+	 * To set how many time the audio file is to be played, this parameter is optional for play command ant its 
+	 * default value is 1
+	 * @param repeat possible values are: n>=0 or forever.
+	 */
 	public void setRepeat(String repeat) {
 		this.repeat = repeat;
 	}
 
-	public String getUser() {
+	protected String getUser() {
 		return user;
 	}
 

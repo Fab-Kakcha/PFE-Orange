@@ -9,7 +9,6 @@ import java.net.UnknownHostException;
 
 import org.apache.log4j.Logger;
 
-
 public class VipConnexion extends Connexion {
 	
 	private Logger logger = Logger.getLogger(VipConnexion.class);
@@ -17,6 +16,13 @@ public class VipConnexion extends Connexion {
 	private PrintWriter out = null;
 	private BufferedReader in = null;
 
+	
+	/**
+	 * To create a socket connection with OMS
+	 * @param serveur serveur OMS's IP address
+	 * @param portStr portStr OMS's port
+	 * @throws OmsException
+	 */
 	public VipConnexion(String serveur, String portStr) throws OmsException {
 		
 		try {
@@ -66,6 +72,7 @@ public class VipConnexion extends Connexion {
 
 		return recu;
 	}
+
 
 	public void send(String question) {
 		System.out.println(">VIP: " + question);
