@@ -107,8 +107,8 @@ public class MonServiceSvi2 extends OmsService implements OmsMessageListener {
 		String typeMesg = msg.getType();
 		String param = "";
 		
-		try{
-		switch (typeMesg) {
+		try {
+			switch (typeMesg) {
 			case "sdp":
 				// Le message est du sdp
 				String sdp = msg.getSdp();
@@ -116,109 +116,117 @@ public class MonServiceSvi2 extends OmsService implements OmsMessageListener {
 				actionNavigation = Navigation.RIEN;
 				call.connect(hostVip, portVip);
 				call.init(sdp);
-				//param = "";
+				// param = "";
 
-				// actionNavigation = NavigationManager.getInstance().calculerActionNavigation(call);
-				 //logger.info("actionNavigation: " + actionNavigation);
+				// actionNavigation =
+				// NavigationManager.getInstance().calculerActionNavigation(call);
+				// logger.info("actionNavigation: " + actionNavigation);
 				// tabPrompt = call.getPrompt();
-				 
-				/*for (String prompt : tabPrompt) {
+
+				/*
+				 * for (String prompt : tabPrompt) { prompt = a8kFile + "/" +
+				 * prompt + ".a8k"; logger.info("prompt: " + prompt);
+				 * call.play(prompt, true); }
+				 */
+
+				break;
+			case "cmd":
+
+				// String cmd = msg.getCmd(); //On recevra toujours des dtmf
+				param = msg.getParam();
+				// Le message est une commande
+				call.setSaisie(param);
+				// actionNavigation =
+				// NavigationManager.getInstance().calculerActionNavigation(call);
+				// logger.info("actionNavigation: " + actionNavigation);
+
+				break;
+			default:
+				// Le message est de type inconnu
+				logger.error("Format de message inconnu : " + message
+						+ ". Ce n'est pas du JSON");
+			}
+
+			// while(!param.equals("disconnect")){
+
+			actionNavigation = NavigationManager.getInstance()
+					.calculerActionNavigation(call);
+			logger.info("actionNavigation: " + actionNavigation);
+
+			switch (actionNavigation) {
+			case Navigation.DIFFUSION:
+
+				tabPrompt = call.getPrompt();
+
+				for (String prompt : tabPrompt) {
 					prompt = a8kFile + "/" + prompt + ".a8k";
 					logger.info("prompt: " + prompt);
 					call.play(prompt, true);
-				}*/
-				
-				break;
-		case "cmd":
-			
-			//String cmd = msg.getCmd(); //On recevra toujours des dtmf
-			param = msg.getParam();
-			// Le message est une commande
-			call.setSaisie(param);
-			//actionNavigation = NavigationManager.getInstance().calculerActionNavigation(call);
-			//logger.info("actionNavigation: " + actionNavigation);									
-			
-			break;						
-		default:
-			// Le message est de type inconnu
-			logger.error("Format de message inconnu : " + message + ". Ce n'est pas du JSON");
-		}
-		
-		//while(!param.equals("disconnect")){
-			
-			actionNavigation = NavigationManager.getInstance().calculerActionNavigation(call);
-			 logger.info("actionNavigation: " + actionNavigation);
-			 
-			 switch (actionNavigation) {
-				case Navigation.DIFFUSION:
-					
-					tabPrompt = call.getPrompt();
-					
-					for (String prompt : tabPrompt) {
-						prompt = a8kFile + "/" + prompt + ".a8k";
-						logger.info("prompt: " + prompt);
-						call.play(prompt, true);
-					}
-					
-					actionNavigation = NavigationManager.getInstance().calculerActionNavigation(call);
-					logger.info("actionNavigation: " + actionNavigation);
-					tabPrompt = call.getPrompt();
-					
-					for (String prompt : tabPrompt) {
-						prompt = a8kFile + "/" + prompt + ".a8k";
-						logger.info("prompt: " + prompt);
-						call.play(prompt, true);
-					}			
-					break;
-				case Navigation.MENU_SAISIE:
-					tabPrompt = call.getPrompt();
-					for (String prompt : tabPrompt) {
-						prompt = a8kFile + "/" + prompt + ".a8k";
-						logger.info("prompt: " + prompt);
-						call.play(prompt, true);
-					}
-					break;
-				case Navigation.SAISIE_DTMF:
-					tabPrompt = call.getPrompt();
-					break;
-				case Navigation.DIFFUSION_INACTIVITE:
-					tabPrompt = call.getPrompt();
-					break;
-				case Navigation.TRANSFERT:
-					
-					Transfert nav1= (Transfert)NavigationManager.getInstance().getNavigation(call.getService(), call.getNavPrecedente());
-				    
-				    String numTransfert=nav1.getNumeroTransfertAvecParam(call);
-					logger.info("numTransfert: " + numTransfert);
-					
-					ClientFormat f = new ClientFormat(call);
-					f.formaterBrut();
-										
-					break;
-				case Navigation.DECONNEXION:
-					tabPrompt = call.getPrompt();
-					
-					actionNavigation = NavigationManager.getInstance().calculerActionNavigation(call);
-					 logger.info("actionNavigation: " + actionNavigation);
-					
-					String retour = "NORMAL";
-				    Navigation nav= NavigationManager.getInstance().getNavigation(call.getService(), call.getNavCourante());
-				    if (nav != null) {
-				        if (nav.getClass().getName().equals(Deconnexion.class.getName())) {
-				    	   retour = ((Deconnexion) nav).getValeurRetour();
-				    	}        
-				    }
-						    
-					break;
-				case Navigation.DISSUASION:
-					tabPrompt = call.getPrompt();
-					break;
-				default:
-					break;
 				}
-		//}
-				 								
-		}catch(OmsException | IOException e){
+
+				actionNavigation = NavigationManager.getInstance()
+						.calculerActionNavigation(call);
+				logger.info("actionNavigation: " + actionNavigation);
+				tabPrompt = call.getPrompt();
+
+				for (String prompt : tabPrompt) {
+					prompt = a8kFile + "/" + prompt + ".a8k";
+					logger.info("prompt: " + prompt);
+					call.play(prompt, true);
+				}
+				break;
+			case Navigation.MENU_SAISIE:
+				tabPrompt = call.getPrompt();
+				for (String prompt : tabPrompt) {
+					prompt = a8kFile + "/" + prompt + ".a8k";
+					logger.info("prompt: " + prompt);
+					call.play(prompt, true);
+				}
+				break;
+			case Navigation.SAISIE_DTMF:
+				tabPrompt = call.getPrompt();
+				break;
+			case Navigation.DIFFUSION_INACTIVITE:
+				tabPrompt = call.getPrompt();
+				break;
+			case Navigation.TRANSFERT:
+
+				Transfert nav1 = (Transfert) NavigationManager.getInstance()
+						.getNavigation(call.getService(),
+								call.getNavPrecedente());
+				String numTransfert = nav1.getNumeroTransfertAvecParam(call);
+				logger.info("numTransfert: " + numTransfert);
+
+				ClientFormat f = new ClientFormat(call);
+				f.formaterBrut();
+
+				break;
+			case Navigation.DECONNEXION:
+				tabPrompt = call.getPrompt();
+
+				actionNavigation = NavigationManager.getInstance()
+						.calculerActionNavigation(call);
+				logger.info("actionNavigation: " + actionNavigation);
+
+				String retour = "NORMAL";
+				Navigation nav = NavigationManager.getInstance().getNavigation(
+						call.getService(), call.getNavCourante());
+				if (nav != null) {
+					if (nav.getClass().getName()
+							.equals(Deconnexion.class.getName())) {
+						retour = ((Deconnexion) nav).getValeurRetour();
+					}
+				}
+				break;
+			case Navigation.DISSUASION:
+				tabPrompt = call.getPrompt();
+				break;
+			default:
+				break;
+			}
+			// }
+
+		} catch (OmsException | IOException e) {
 			e.printStackTrace();
 		}
 	}

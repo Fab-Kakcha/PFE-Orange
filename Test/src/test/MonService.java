@@ -21,13 +21,10 @@ import com.orange.olps.api.webrtc.*;
 
 public class MonService extends OmsService implements OmsMessageListener {
 
-	/**
-	 * @param args
-	 */
-	
 	private static Logger logger = Logger.getLogger(MonService.class);
-	private static final String WEBRTC_CONF = "/opt/testlab/utils/stageFabrice/src/main/java/";
-	//private static final String WEBRTC_CONF = "C:\\opt\\application\\testlab\\utils\\OmsGateway\\";
+	private static final String osName = System.getProperty("os.name").toLowerCase();
+	private static String WEBRTC_CONF = "/opt/testlab/utils/stageFabrice/src/main/java/";
+	//private static String WEBRTC_CONF = "C:\\opt\\application\\testlab\\utils\\OmsGateway\\";
 	protected static String hostVip = "127.0.0.1";
 	protected static String portVip = "4670";
 	private static String portWs = "8887";
@@ -58,12 +55,11 @@ public class MonService extends OmsService implements OmsMessageListener {
 	
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
-		new MonService();		
-	}
-
-	public MonService() {
 		
-		super(Integer.parseInt(portWs));
+		System.out.println("OS = " + osName);		
+		if(osName.indexOf("windows") != -1)
+			WEBRTC_CONF = "C:\\Users\\JWPN9644\\opt\\application\\64poms\\current\\conf\\";
+		
 		PropertyConfigurator.configure(WEBRTC_CONF + "log4j.properties");
 
 		try {
@@ -83,7 +79,13 @@ public class MonService extends OmsService implements OmsMessageListener {
 		portVip = prop.getProperty("oms.port", DEFAULT_OMS_PORT);
 		portWs = prop.getProperty("ws.port", DEFAULT_WS_PORT);
 		portVipConf = prop.getProperty("conf.port", DEFAULT_CONF_PORT);
+				
+		new MonService(portWs);		
+	}
+
+	public MonService(String portWs) {
 		
+		super(Integer.parseInt(portWs));	
 		addEventListener(this);
 		this.start();
 		logger.info("Service  started on port: " + getPort());	
@@ -120,10 +122,9 @@ public class MonService extends OmsService implements OmsMessageListener {
 				if (!annuaire.checkUserName(call, userName2)) {
 					call.connect(hostVip, portVip);
 					call.init(sdp);
-				//	call.say(
-						//	"Bienvenue sur le serveur de conference. Pour entrer dans la conference. "
-								//	+ "Tapez conference", true);
-					call.play("/opt/application/64poms/current/tmp/bienvenuconf.a8k", false);
+					call.say("Bienvenue sur le serveur de conference. Pour entrer dans la conference. "
+									+ "Tapez conference", true);
+					//call.play("/opt/application/64poms/current/tmp/bienvenuconf.a8k", false);
 					annuaire.setUserName(call, userName2);
 					annuaire.showPeopleConnectedToOms(call, true);
 					//conf.showPeopleInConf(call);
@@ -195,11 +196,11 @@ public class MonService extends OmsService implements OmsMessageListener {
 				//username = splitParam[0];
 				//confName = splitParam[1];
 				
-				conferenceParam = new ConferenceParameters(param);		
-				conferenceParam.setName(call.getUserName());
-				conf.create(call, conferenceParam);	
+				//conferenceParam = new ConferenceParameters(param);		
+				//conferenceParam.setName(call.getUserName());
+				conf.create(call, "conf1");	
 				//conf.showParticipant(call.getConfname());
-				annuaire.showPeopleConnectedToOms(call, true);
+				//annuaire.showPeopleConnectedToOms(call, true);
 				//conf.create(call, confName);
 				break;
 			case ("joinConf"):
