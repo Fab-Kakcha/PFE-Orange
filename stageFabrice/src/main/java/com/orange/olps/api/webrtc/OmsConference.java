@@ -82,10 +82,9 @@ public class OmsConference{
 	/**
 	 * To initiate a connection with OMS to do a conference
 	 * 
-	 * @param hostVipConf
-	 *            OMS's IP address
+	  * @param hostVipConf confManager IP address
 	 * @param portVipConf
-	 *            OMS's listening port for the conference
+	 *            confManager port for the conference
 	 * @throws OmsException
 	 * @throws IOException
 	 */
@@ -97,8 +96,9 @@ public class OmsConference{
 	}
 
 	/**
-	 * To show the status of others participants, to see whether or not they are in a conference
-	 * @param omsCall OmsCall to send the status
+	 * To show the status of others users already in a conference, a "showUserNameConnectedToOMS:" message will
+	 * be sent to user given in parameters
+	 * @param omsCall user to send other users status
 	 * @throws OmsException
 	 */
 	public void participantsStatus(OmsCall omsCall) throws OmsException{
@@ -214,12 +214,10 @@ public class OmsConference{
 	}*/
 
 	/**
-	 * To create the conference, and if a conference has already been created,
-	 * then a message "confAlreadyExist" is sent to the Browser through its WebSocket for letting 
-	 * him know the conference exists.
-	 * @param omsCall OmsCall who wants to create the Conference
-	 * @param param is a String concatenating the Client's userName, mode(student, coach, mute)
-	 * and the Conference name in the form of "firstname:mode:conferencename"
+	 * To create a new conference with name given by argument param, and if a conference with that name exists,
+	 * then a message "confAlreadyExist" is sent to the user through its WebSocket
+	 * @param omsCall user to create the conference
+	 * @param param conference name to create
 	 * @throws OmsException
 	 */
 	
@@ -259,9 +257,9 @@ public class OmsConference{
 	}
 		
 	/**
-	 * To create a conference
-	 * @param omsCall OmsCall to create the conference
-	 * @param conferenceParam contain all the optional parameters to be used to create a conference
+	 * To create a new conference with name given in argument conferenceParam
+	 * @param omsCall user to create the conference
+	 * @param conferenceParam contain all optional parameters to be used to create a conference
 	 * @throws OmsException
 	 */
 	public void create(OmsCall omsCall, ConferenceParameters conferenceParam) throws OmsException{
@@ -286,15 +284,12 @@ public class OmsConference{
 	}
 	
 	/**
-	 * To add a OMS call into the conference, and if the conference does not yet
-	 * exist, then a message "confDoesNotExist" is sent to the Browser through its WebSocket for 
-	 * letting him know there is no conference with the name he entered.
+	 * To add a user in conference with name given by argument param, and if the conference does not yet
+	 * exist, then a message "confDoesNotExist" is sent to the user through its WebSocket
 	 * 
 	 * @param omsCall
-	 *            OMS call to join the conference
-	 * @param param a String concatenating the Client's userName, mode(student, coach, mute)
-	 * and the Conference name
-	 * 	in the form of "firstname:mode:conferencename"
+	 *            user to join the conference
+	 * @param param conference name
 	 * @throws OmsException
 	 */
 	public void add(OmsCall omsCall, String param) throws OmsException {
@@ -488,15 +483,15 @@ public class OmsConference{
 				}*/
 				
 			}else
-				throw new OmsException("Cannot add omsCall/Client/Browser to conference " + getName() +
-						", because omsCall has already joined the conference named " + omsCall.getConfname());						
+				throw new OmsException("Cannot add user to conference " + getName() +
+						", because omsCall has already joined that conference");						
 		}
 	}
 	
 	/**
-	 * To add an OmsCall to a conference
-	 * @param omsCall OmsCall to join the conference
-	 * @param conferenceParam contain all the optional parameters to be used to join a conference
+	 * To add an user in a already existing conference with name given in conferenceParam
+	 * @param omsCall user to join the conference
+	 * @param conferenceParam contain all optional parameters to be used to join a conference
 	 * @throws OmsException
 	 */
 	public void add(OmsCall omsCall, ConferenceParameters conferenceParam) throws OmsException{
@@ -622,9 +617,9 @@ public class OmsConference{
 	}
 
 	/**
-	 * To remove a OMS call from the conference
+	 * To remove an user from a conference
 	 * 
-	 * @param omsCall the OmsCall to remove
+	 * @param omsCall user to be removed from a conference
 	 * @throws OmsException
 	 */
 	public void delete(OmsCall omsCall) throws OmsException {
@@ -710,9 +705,11 @@ public class OmsConference{
 	}
 
 	/**
-	 * To update the status of all OmsCall in a conference, that was useful for the service implemented on
-	 * 13rd May 2015
-	 * @param omsCall
+	 * To update the status of the user given in parameter to other users in the same conference, his status will 
+	 * be updated when he leaves the conference, and a "updateName" message will be sent to other users. The
+	 * method was useful for the service implemented on 13rd May 2015. 
+	 * @param omsCall user leaving the conference and whom the name is to be updated by other user in the same
+	 * conference 
 	 * @throws OmsException
 	 */
 	public void updateName(OmsCall omsCall) throws OmsException {
@@ -772,7 +769,7 @@ public class OmsConference{
 	
 	/**
 	 * To destroy a conference
-	 * @param omsCall destroyer of the conference
+	 * @param omsCall user destroyer of the conference
 	 * @throws OmsException
 	 */
 	public void destroy(OmsCall omsCall) throws OmsException {
@@ -834,7 +831,9 @@ public class OmsConference{
 	
 	
 	/**
-	 * Printing out userNames of all participants in a given conference, and userNames are send through WebSocket, 
+	 * To print out to anyone in the conference which name is given by parameter 
+	 * confName the usernames of others in the same conference, a "showUserNameInConf" message is sent
+	 *  
 	 * and the format is ClientWebSocket.send("showUserNameInConf:"+userName)
 	 * @param confName the conference's name
 	 * @throws OmsException
@@ -889,9 +888,7 @@ public class OmsConference{
 			}
 			
 		}else{
-						
-			logger.info(listOmsCallInConf.isEmpty());
-			
+									
 			Iterator<OmsCall> ite = listOmsCallInConf.iterator();
 			while (ite.hasNext()) {
 				
@@ -924,7 +921,7 @@ public class OmsConference{
 	
 	
 	/**
-	 * To start recording a conference
+	 * To start recording participant of a conference
 	 * @param conf conference name
 	 * @throws OmsException
 	 * @throws IOException
@@ -1063,8 +1060,9 @@ public class OmsConference{
 	}
 	
 	/**
-	 * 
-	 * @param conf
+	 * ConfManager stopPlay() method to stop playing an audio file to all participants of the conference which 
+	 * name is given by parameter conf, but the method is not working yet.
+	 * @param conf conference name
 	 * @throws OmsException
 	 */
 	public void stopplay(String conf) throws OmsException{
@@ -1080,19 +1078,22 @@ public class OmsConference{
 				.getReponse("<conference><stopplay requestid=\"req5\" conferenceid=\"" + conf
 						+ "\"/></conference>");
 		if(rep.indexOf("OK") == -1)
-			throw new OmsException("cannot stopplay");
+			throw new OmsException("cannot stopplay: "+ rep);
 			
 	}
 	
 	/**
-	 * ConfManager stopPlay() method. Not working yet, because the confManager's play method is not working
-	 * @param conf
+	 * ConfManager stopPlay() method, to stop playing an audio file to a specific participant 
+	 * of the conference which name is given by parameter conf and the participant id is defined in
+	 * parameter ConferenceParameters
+	 * Not working yet, because the confManager's play method is not working
+	 * @param conf conference name
 	 * @param conferenceParam
 	 * @throws OmsException
 	 */
 	public void stopplay(String conf, ConferenceParameters conferenceParam) throws OmsException{
 		
-		String participantid = conferenceParam.getParticpantid();
+		String participantid = conferenceParam.getParticipantid();
 		String rep;
 		
 		if(participantid == null)
@@ -1103,14 +1104,14 @@ public class OmsConference{
 					.getReponse("<conference><stopplay requestid=\"req5\" conferenceid=\""+ conf
 							+ " participantid=\""+participantid+"\"/></conference>");
 			if(rep.indexOf("OK") == -1)
-				throw new OmsException("cannot stopplay");
+				throw new OmsException("cannot stopplay: " + rep);
 		}		
 	}
 	
 	/**
 	 * To subscribe to an event
 	 * @param conf conference's name
-	 * @param type event's name to subscribe
+	 * @param type event's name to subscribe to
 	 * @throws OmsException
 	 */
 	public void subscribe(String conf, String type) throws OmsException{
@@ -1119,7 +1120,7 @@ public class OmsConference{
 				.getReponse("<conference><subscribe requestid=\"101\" conferenceid=\""
 						+ conf + "\"><event type=\""+type+"\"/></subscribe></conference>");
 		if(subs.indexOf("OK") == -1)
-			throw new OmsException("cannot subscribe");
+			throw new OmsException("cannot subscribe: " + subs);
 	}
 	
 	/**
@@ -1135,12 +1136,14 @@ public class OmsConference{
 						+ conf + "\"><event type=\""+type+"\"/></unsubscribe></conference>");
 		
 		if(unsubs.indexOf("OK") == -1)
-			throw new OmsException("cannot subscribe");		
+			throw new OmsException("cannot unsubscribe:" + unsubs);		
 	}
 	
 	/**
-	 * 
-	 * @return
+	 * To request the conference server about the entire ongoing conference
+	 * @return a XML message with informations on the total number of ongoing conferences, the number of
+	 * participants in each conference as well as the maximum number of participants allowed in each
+	 * conference
 	 * @throws OmsException
 	 */
 	public String list() throws OmsException{
@@ -1149,21 +1152,22 @@ public class OmsConference{
 				.getReponse("<conference><list requestid=\"req\"/></conference>");
 		
 		if(rep.indexOf("OK") == -1)
-			throw new OmsException("cannot list");
+			throw new OmsException("cannot get the list: " + rep);
 		
 		return rep;
 	}
 	
 	/**
-	 * To get the conference's status, or a specific participant status
-	 * @param conf conference's name
-	 * @param conferenceParam 
-	 * @return the status in XML format
+	 * To request informations about one participant or all participants in the conference
+	 * @param conf conference name
+	 * @param conferenceParam contains the participants id in case informations about one specific
+	 * participant is requested
+	 * @return informations about the conference and participants in XML format
 	 * @throws OmsException
 	 */
 	public String status(String conf, ConferenceParameters conferenceParam) throws OmsException{
 		
-		String participantid = conferenceParam.getParticpantid();
+		String participantid = conferenceParam.getParticipantid();
 		String rep;
 		
 		if(participantid == null){
@@ -1186,8 +1190,9 @@ public class OmsConference{
 	}
 	
 	/**
-	 * To get the stats from the conference's server
-	 * @return
+	 * To request informations from the conference server
+	 * @return informations about the conference server commencement date, the total number of conference
+	 * created since that date, the total number of ongoing conference as well.  
 	 * @throws OmsException
 	 */
 	public String stats() throws OmsException{
@@ -1200,7 +1205,13 @@ public class OmsConference{
 		return rep;
 	}
 	
-	
+	/**
+	 * To edit the parameters of the current session, or dynamically edit the the conference server
+	 * configuration
+	 * @param conferenceParam To define the connection type, choice between two values: "admin" or
+	 * "user"
+	 * @throws OmsException
+	 */
 	public void set(ConferenceParameters conferenceParam) throws OmsException{
 		
 		String user = conferenceParam.getUser();
@@ -1211,7 +1222,7 @@ public class OmsConference{
 	}
 	
 	/**
-	 * To stop playing a audio file to particular participant in the conference
+	 * To stop playing a audio file to a particular participant in the conference
 	 * @param call
 	 * @throws OmsException 
 	 */
@@ -1408,10 +1419,10 @@ public class OmsConference{
 
 	
 	/**
-	 * To play a file to all participants into a conference, and this mehod is not working yet, but is going
+	 * To play a file to all participants in a conference, and this mehod is not working yet, but is going
 	 * to work pretty soon.
-	 * @param conferenceName the conference's name
-	 * @param filePath path towards the file to play in the conference
+	 * @param conferenceName conference name
+	 * @param filePath path of the file to play in the conference
 	 * @throws OmsException
 	 */
 	public void play(String conferenceName, String filePath) throws OmsException {
@@ -1435,15 +1446,15 @@ public class OmsConference{
 	}
 	 
 	/**
-	 * To play an audio file to all participants in the conference, or to a particular participant
-	 * @param conf conference's name
+	 * To play an audio file to a particular participant in the conference, this method is not working yet
+	 * @param conf conference name
 	 * @param filePath path of file to play
-	 * @param conferenceParam optional parameters useful for the play command 
+	 * @param conferenceParam contains optional parameters useful for the play command 
 	 * @throws OmsException
 	 */
 	public void play(String conf, String filePath, ConferenceParameters conferenceParam) throws OmsException{
 		
-		String participantid = conferenceParam.getParticpantid();
+		String participantid = conferenceParam.getParticipantid();
 		Boolean mixplay = conferenceParam.isMixplay();
 		int priority = conferenceParam.getPriority();
 		String repeat = conferenceParam.getRepeat();
@@ -1469,7 +1480,7 @@ public class OmsConference{
 		}
 		
 		if (rep.indexOf("OK") == -1)
-			throw new OmsException("Error: cannot play file: "+ rep);
+			throw new OmsException("Error cannot play file: "+ rep);
 	}
 	
 	
@@ -1593,8 +1604,8 @@ public class OmsConference{
 	}
 	
 	/**
-	 * To mute a OmsCall in the conference
-	 * @param omsCall OmsCall to mute
+	 * To mute an user in a conference
+	 * @param omsCall user to mute
 	 * @throws OmsException
 	 */
 	public void mute(OmsCall omsCall) throws OmsException {
@@ -1615,8 +1626,8 @@ public class OmsConference{
 	}
 
 	/**
-	 * To unmute a OmsCall in the conference
-	 * @param omsCall OmsCall to unmute
+	 *  To unmute an user in a conference
+	 * @param omsCall user to unmute
 	 * @throws OmsException
 	 */
 	public void unmute(OmsCall omsCall) throws OmsException {
@@ -1638,9 +1649,8 @@ public class OmsConference{
 	}
 	
 	/**
-	 * To mute all participants in a conference, a muteAll message is sent through WebSocket in the format
-	 * ClientWebSocket.send("muteAll")
-	 * @param conf conference's name
+	 * To mute all participants of a conference, a "muteAll" message is sent through WebSocket
+	 * @param conf conference name
 	 * @throws OmsException
 	 */
 	public void muteAll(String conf) throws OmsException {
@@ -1669,10 +1679,9 @@ public class OmsConference{
 	}
 	
 	/**
-	 * To mute all participants in a conference, a muteAll message is sent through WebSocket in the format
-	 * ClientWebSocket.send("muteAll")
-	 * @param conf conference's name
-	 * @param conferenceParam optional parameters useful for the muteall command
+	 * To mute all participants of a conference, a "muteAll" message is sent through WebSocket
+	 * @param conf conference name
+	 * @param conferenceParam contains optional parameters useful for muteall command
 	 * @throws OmsException
 	 */
 	public void muteAll(String conf, ConferenceParameters conferenceParam) throws OmsException{
@@ -1700,9 +1709,8 @@ public class OmsConference{
 	}
 	
 	/**
-	 * To unmute all participants in a conference. An unmuteAll message is sent through WebSocket in the format
-	 * ClientWebSocket.send("unmuteAll")
-	 * @param conf conference's name
+	 * To unmute all participants of a conference. An "unmuteAll" message is sent through WebSocket
+	 * @param conf conference name
 	 * @throws OmsException
 	 */
 	public void unmuteAll(String conf) throws OmsException {
@@ -1731,9 +1739,9 @@ public class OmsConference{
 	}
 
 	/**
-	 * To unmute all participants in a conference
-	 * @param conf conference's name
-	 * @param conferenceParam optional parameters for unmute command
+	 * To unmute all participants of a conference
+	 * @param conf conference name
+	 * @param conferenceParam contains optional parameters for unmute command
 	 * @throws OmsException
 	 */
 	public void unmuteAll(String conf, ConferenceParameters conferenceParam) throws OmsException{
@@ -1752,8 +1760,8 @@ public class OmsConference{
 	}
 	
 	/**
-	 * 
-	 * @param conf conference's name
+	 * To activate the entry tone of a participant in a conference
+	 * @param conf conference name
 	 * @throws OmsException
 	 */
 	public void activatetone(String conf) throws OmsException{
@@ -1766,8 +1774,8 @@ public class OmsConference{
 	}
 	
 	/**
-	 * 
-	 * @param conf conference's name
+	 * To deactivate the entry tone of a participant in a conference
+	 * @param conf conference name
 	 * @throws OmsException
 	 */
 	public void deactivatetone(String conf) throws OmsException{
@@ -1780,9 +1788,9 @@ public class OmsConference{
 	}
 	
 	/**
-	 * To get the conference's status
+	 * To get the conference status
 	 * 
-	 * @param name conference's name
+	 * @param name conference name
 	 * @return true if the conference exists, no otherwise
 	 * @throws OmsException
 	 */
@@ -1820,9 +1828,9 @@ public class OmsConference{
 	
 	
 	/**
-	 * Return the list of all OmsCall/participants in a given conference
+	 * Return the list of all partcipants in a conference
 	 * @param conf conference name
-	 * @return list of OmsCall in a conference
+	 * @return list of participants of a conference
 	 * @throws OmsException
 	 */
 	public List<OmsCall> getListOmsCallInConf(String conf) throws OmsException{
@@ -1839,8 +1847,8 @@ public class OmsConference{
 
 	/**
 	 * check whether or not a client has already joined a conference
-	 * @param omsCall OmsCall to check if he has joined a conference
-	 * @return true if the Client/Browser has already joined conference, and false otherwise
+	 * @param omsCall client to check if he has joined a conference
+	 * @return true if the user has already joined conference, and false otherwise
 	 * @throws OmsException 
 	 */
 	public boolean isClientJoined(OmsCall omsCall) throws OmsException  { 
@@ -2024,8 +2032,8 @@ public class OmsConference{
 
 
 	/**
-	 * To get the number of participant in the conference
-	 * @param conf conference's name
+	 * To get the number of participant in a conference
+	 * @param conf conference name
 	 * @return total number of participants in the conference
 	 */	
 	public int getParticipantsNumber(String conf) {
@@ -2037,31 +2045,24 @@ public class OmsConference{
 			return listOmsCallInConf.size();					
 	}
  
-	/**
-	 * To get the connection to OMS for the conference
-	 * 
-	 * @return the connection to OMS
-	 */
-	public VipConnexion getVipConnexion() {
+	protected VipConnexion getVipConnexion() {
 		return connOMSConf;
 	}
 
-	public void setName(String name){
+	protected void setName(String name){
 		confName = name;
 	}
 	
 	/**
 	 * To get the conference id or name
 	 * 
-	 * @return conference's name
+	 * @return conference name
 	 */
 	public String getName() {
 		return confName;
 	}
 
-	/**
-	 * For launching the thread responsible to start recording the conference.
-	 */
+
 	/*@Override
 	public void run() {
 		// TODO Auto-generated method stub

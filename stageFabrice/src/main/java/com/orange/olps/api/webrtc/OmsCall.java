@@ -90,8 +90,8 @@ public class OmsCall extends Thread {
 	
 	/**
 	 * To connect to OMS
-	 * @param hostVip OMS's IP address 
-	 * @param portVip OMS's listening port
+	 * @param hostVip OMS IP address 
+	 * @param portVip OMS listening port
 	 * @throws OmsException
 	 * @throws IOException 
 	 */
@@ -169,7 +169,7 @@ public class OmsCall extends Thread {
 	
 	/**
 	 * To synthesize a message
-	 * @param say the message to synthesize
+	 * @param say message to synthesize
 	 * @param interrupt true if the message can be interrupted
 	 * @throws OmsException
 	 */
@@ -203,18 +203,18 @@ public class OmsCall extends Thread {
 		if (!respSay.equals("OK"))
 			throw new OmsException("Cannot send cmd say to OMS " + respSay);	
 		
-		if(!interrupt){			
+		/*if(!interrupt){			
 			String resp = connOMS.getReponse("wait evt=mt1.starving");
 			if(!resp.startsWith("OK")){
 				System.out.println("cmd wait evt=mt1.starving failed: " + resp);
 			}
-		}
+		}*/
 
 	}
 	
 	/**
-	 * To play an audio file
-	 * @param filePath the audio file to play
+	 * To play an a8k extension audio file
+	 * @param filePath path of the file to be played
 	 * @param interrupt true if the play file can be interrupted
 	 * @throws OmsException
 	 */
@@ -247,17 +247,33 @@ public class OmsCall extends Thread {
 		if (!respPlay.equals("OK"))
 			throw new OmsException("Cannot execute cmd play file " + respPlay);
 		
-		if(!interrupt){		
+		/*if(!interrupt){		
 			String resp = connOMS.getReponse("wait evt=mt1.starving");
 			if(!resp.startsWith("OK")){
 				System.out.println("cmd wait evt=mt1.starving failed: " + resp);
 			}
-		}		
+		}*/		
 	}
 	
 	/**
-	 * To record a voice into a file
-	 * @param filePathEnreg the file's path 
+	 * To wait until the audio file is entirely read to the user
+	 * @throws OmsException
+	 */
+	public void starve() throws OmsException{
+		
+		if(isRviWebrtcExist){
+			
+			String resp = connOMS.getReponse("wait evt=mt1.starving");
+			if(!resp.startsWith("OK"))
+				throw new OmsException("cmd wait evt=mt1.starving failed: " + resp);			
+		}else
+			throw new OmsException("Cannot starve: rvi webrtc doesn't exist");
+	}
+	
+	
+	/**
+	 * To record a communication to OMS into a a8k extension audio file
+	 * @param filePathEnreg path of the file
 	 * @throws OmsException
 	 */
 	public void record(String filePathEnreg) throws OmsException{
@@ -271,14 +287,14 @@ public class OmsCall extends Thread {
 		
 		String enreg = this.connOMS.getReponse("e start "+ filePathEnreg);//Start the recording into the file
 		if(!enreg.equals("OK"))
-			throw new OmsException("cannot create an rvi enreg " + enreg);
+			throw new OmsException("cannot create an rvi enreg:" + enreg);
 		
 		//e stop to stop the recording
 	}
 	
 
 	/**
-	 * To stop the recording
+	 * To stop recording a communication to OMS
 	 * @throws OmsException
 	 */
 	public void stopRecord() throws OmsException{
@@ -293,7 +309,7 @@ public class OmsCall extends Thread {
 	
 	
 	/**
-	 * Voice recognition 
+	 * Voice recognition, NOT WORKING 
 	 * @throws OmsException
 	 */
 	public void recognize() throws OmsException{
@@ -317,7 +333,7 @@ public class OmsCall extends Thread {
 	
 	/**
 	 * To get the status of the webrtc rvi
-	 * @return the rvi webrtc status
+	 * @return webrtc rvi status
 	 * @throws OmsException
 	 */
 	
@@ -413,9 +429,9 @@ public class OmsCall extends Thread {
 	}
 	
 	/**
-	 * To call a Browser/OmsCall, a message incomingCall is sent to the callee.
-	 * @param callee the OmsCall's to call
-	 * @param conf the
+	 * To call a user, a message incomingCall is sent to the callee.
+	 * @param callee user who is to be called
+	 * @param conf conference object
 	 * @throws OmsException
 	 * @throws IOException
 	 * @throws InterruptedException
@@ -443,9 +459,9 @@ public class OmsCall extends Thread {
 	
 	/**
 	 * To answer an incoming call and leave the conference where we are.
-	 * @param caller the caller
-	 * @param conf the conference
-	 * @param annuaire 
+	 * @param caller user who makes the call
+	 * @param conf conference object
+	 * @param annuaire annuaire with informations on all others users connected to OMS
 	 * @throws OmsException
 	 * @throws IOException
 	 */
@@ -545,10 +561,10 @@ public class OmsCall extends Thread {
 	
 	/**
 	 * Answering an incoming call and stay in the conference we are, in this case, the caller is brought in
-	 * the conference
-	 * @param caller
-	 * @param conf
-	 * @param annuaire
+	 * that conference
+	 * @param caller user who makes the call
+	 * @param conf conference object
+	 * @param annuaire annuaire with informations on all others users connected to OMS
 	 * @throws OmsException
 	 * @throws IOException
 	 */
@@ -640,9 +656,9 @@ public class OmsCall extends Thread {
 	}
 	
 	/**
-	 * To reject an incoming call
-	 * @param caller
-	 * @param conf
+	 * To reject an incoming call, and "reject:" message is sent
+	 * @param caller user who makes the call
+	 * @param conf conference object
 	 * @throws OmsException
 	 */
 	public void reject(OmsCall caller, OmsConference conf) throws OmsException{
@@ -667,10 +683,10 @@ public class OmsCall extends Thread {
 	}
 	
 	/**
-	 * To hang up a call
-	 * @param omsCall
-	 * @param conf
-	 * @param annuaire
+	 * To hang up an already established call with another user, "hangup" message is sent
+	 * @param omsCall the other user in the communication
+	 * @param conf conference object
+	 * @param annuaire annuaire with informations on all others users connected to OMS
 	 * @throws OmsException
 	 * @throws IOException
 	 */
@@ -775,11 +791,11 @@ public class OmsCall extends Thread {
 			}	
 	}
 	
-	public boolean getIsCaller(){
+	protected boolean getIsCaller(){
 		return isCaller;
 	}
 	
-	public void setIsCaller(boolean bool){
+	protected void setIsCaller(boolean bool){
 		isCaller = bool;;
 	}
 		
@@ -831,8 +847,8 @@ public class OmsCall extends Thread {
 	}*/
 	
 	/**
-	 * Exchanging one's sdp before connecting to OMS
-	 * @param sdp 
+	 * To exchange the user Browser's sdp with OMS's sdp before establishing a media session
+	 * @param sdp user Browser's sdp
 	 * @throws OmsException
 	 */
 	
@@ -847,7 +863,7 @@ public class OmsCall extends Thread {
 	}
 	
 	/**
-	 * To close the connection to OMS
+	 * TO delete the user connection to OMS
 	 * @throws OmsException
 	 * @throws IOException 
 	 */
@@ -861,78 +877,78 @@ public class OmsCall extends Thread {
 		}					
 	}
 
-	public void setVipConnexion(VipConnexion connOMS) {
+	protected void setVipConnexion(VipConnexion connOMS) {
 		this.connOMS = connOMS;
 	}
 
-	/**
-	 * To get the connection to OMS
-	 * @return the connection to OMS
-	 */
-	public VipConnexion getVipConnexion() {
+	protected VipConnexion getVipConnexion() {
 		return this.connOMS;
 	}
 	
 	/**
-	 * To get the client websocket
-	 * @return websocket of the client
+	 * To get the user websocket
+	 * @return websocket of the user
 	 */
 	public WebSocket getWebSocket(){	
 		return this.conn;
 	}
 	
 	/**
-	 * To get the client IP address 
-	 * @return IP address of the client
+	 * To get the user IP address 
+	 * @return IP address of the user
 	 */
 	public String getIpAddress(){	
 		return ipAddress;
 	}
 	
 	/**
-	 * To get OMS's IP address and port
+	 * To get OMS IP address and port
 	 * @return IP address and port of OMS
 	 */
-	public String[] getHostPortVip(){
+	protected String[] getHostPortVip(){
 		return hosPortVip;
 	}
 	
-	/**
-	 * To set a number for the client in the conference
-	 * @param num number for the client
-	 */
-	public void setPartNumberConf(int num){	
+	protected void setPartNumberConf(int num){	
 		partNumberConf = num;
 	}
 	
 	/**
-	 * To get the number for the client in the conference
-	 * @return the number for the client
+	 * To get the number for the user in the conference, which is also its unique identifier
+	 * @return user unique identifier in the conference
 	 */
 	public int getPartNumberConf(){	
 		return partNumberConf;
 	}
 	
-	public void setHasCreatedConf(boolean bool){
+	protected void setHasCreatedConf(boolean bool){
 		hasCreatedConf = bool;		
 	}
 	
-	public boolean getHasCreatedConf(){
+	protected boolean getHasCreatedConf(){
 		return hasCreatedConf;
 	}
 	
-	public void setConfName(String conf){
+	protected void setConfName(String conf){
 		confName = conf;
 	}
 	
+	/**
+	 * To get the conference name that the user has joined
+	 * @return
+	 */
 	public String getConfname(){	
 		return confName;
 	}
 	
-	public void setUserName(String userName){
+	protected void setUserName(String userName){
 		this.userName = userName;
 	}
 	
+	/**
+	 * To get the client username
+	 * @return client username
+	 */
 	public String getUserName(){
 		return userName;
 	}
@@ -943,7 +959,7 @@ public class OmsCall extends Thread {
 	 * you want to develop the service.
 	 * @return a boolean checking whether the Browser clicks on disconnect or not
 	 */
-	public boolean getHasClientPressDisc(){
+	protected boolean getHasClientPressDisc(){
 		return hasClientPressDisc;
 	}
 	
@@ -953,7 +969,7 @@ public class OmsCall extends Thread {
 	 * you want to develop the service.
 	 * @param bool is set to true if client clicks on true before leaving the web page
 	 */
-	public void setHasClientPressDisc(boolean bool){
+	protected void setHasClientPressDisc(boolean bool){
 		hasClientPressDisc = bool;
 	}
 	

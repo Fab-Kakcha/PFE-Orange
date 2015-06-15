@@ -14,7 +14,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 
-//import orange.olps.svi.navigation.NavigationManager;
+import orange.olps.svi.navigation.NavigationManager;
 
 import org.apache.log4j.Logger;
 import org.java_websocket.WebSocket;
@@ -48,7 +48,7 @@ public class OmsService extends WebSocketServer {
 		WebSocketImpl.DEBUG = false;
 		
 		calls = new HashMap<WebSocket, OmsCall>();
-		//clientsSvi = new HashMap<WebSocket, OmsClientSvi>();
+		clientsSvi = new HashMap<WebSocket, OmsClientSvi>();
 		annuaire = new HashMap<String, WebSocket>();
 	}
 
@@ -100,12 +100,12 @@ public class OmsService extends WebSocketServer {
 				+ conn.getRemoteSocketAddress().getAddress().getHostAddress());
 		
 		// Quand un client se deconnecte, on detruit tout ce qui lui appartient
-		OmsCall call = calls.get(conn);
-		call.setHasClientPressDisc(false);
+		//OmsCall call = calls.get(conn);
+		//call.setHasClientPressDisc(false);
 		//bool = call.getHasClientPressDisc();
 		
 		//if(!bool){
-			JsonObject json = new JsonObject();
+			/*JsonObject json = new JsonObject();
 			json.addProperty("cmd", "disconnect");
 			json.addProperty("param", call.getUserName());
 			String message = json.toString();
@@ -114,14 +114,14 @@ public class OmsService extends WebSocketServer {
 			Iterator<OmsMessageListener> i = _listeners.iterator();
 			while(i.hasNext())  {
 				((OmsMessageListener) i.next()).omsMessagePerformed(msgEvent);
-			}		
+			}	*/	
 		//}
-		calls.remove(conn);
-		conn.close();
+		//calls.remove(conn);
+		//conn.close();
 		
 		//OmsClientSvi omsClientSvi = clientsSvi.get(conn);
-		//clientsSvi.remove(conn);
-		//conn.close();
+		clientsSvi.remove(conn);
+		conn.close();
 	}
 
 	@Override

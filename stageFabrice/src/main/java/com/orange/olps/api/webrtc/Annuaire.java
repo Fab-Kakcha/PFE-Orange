@@ -17,21 +17,23 @@ import org.java_websocket.WebSocket;
 public class Annuaire {
 
 	protected static HashMap<OmsCall, String> annuaire = null;
-
+	
+	
+	/**
+	 * Constructor to initiate the annuaire used to save the user connected to oms
+	 */
 	public Annuaire() {
 
 		annuaire = new HashMap<OmsCall, String>();
 	}
 	
 	/**
-	 * Check whether or not the userName provided by the OmsCall/Client already exists in the annuaire. 
-	 * A message will be sent to the client/Browser
-	 * if the userName already exists. That message is CilentWebSocket.send("userNameExist").
-	 * @param call OmsCall/Client/Browser who is trying to connect to OMS
-	 * @param userName userName provided by OmsCall/Client/Browser when connecting to OMS
-	 * @return true if the userName already exists, so a message is sent through the WebSocket to the 
-	 * Client/Browser letting him know the userName exists, and false otherwise if the userName doesn't exist
-	 * in the annuaire.
+	 * Check whether or not the name provided by the user is already used, and a message ("userNameExist") 
+	 * will be sent to the user in case the name is already used
+	 * @param call user on his web Browser who is attempting to connect to OMS
+	 * @param userName name provided by the user when connecting to OMS
+	 * @return true if the userName already exists, thus a message is sent to the 
+	 * user through its WebSocket , and false otherwise
 	 */
 	public boolean checkUserName(OmsCall call, String userName) {
 
@@ -50,9 +52,9 @@ public class Annuaire {
 	
 	
 	/**
-	 * Checking if an OmsCall exists in the annuaire
-	 * @param omsCall omsCall to check if exist in the annuaire
-	 * @return true if the OmsCall exists in the annuaire, and false otherwise
+	 * Checking if an user exists in the annuaire
+	 * @param omsCall client to check if exist in the annuaire
+	 * @return true if the client exists, and false otherwise
 	 */
 	public boolean checkOmsCall(OmsCall omsCall){
 		
@@ -66,10 +68,9 @@ public class Annuaire {
 	}
 	
 	/**
-	 * set the userName as the client's userName if the userName doesn't 
-	 * exit in the conference
-	 * @param call OmsCall to associate with the userName
-	 * @param userName userName provided by the OmsCall/Client/Browser
+	 * To set the userName given in parameter as the user's name if the userName is not already used
+	 * @param call user to link with the userName
+	 * @param userName name provided by the user through its web Browser
 	 * @throws OmsException 
 	 */
 	public void setUserName(OmsCall call, String userName) throws OmsException{
@@ -89,17 +90,14 @@ public class Annuaire {
 	
 	
 /**
- * To show userNames of all OmsCall/Client/Browser currently connected to OMS. 
- * @param call the latest OmsCall/Client/Browser to connect to OMS, or the call who is to leave OMS. 
- * His userName will be sent to other already connected to OMS, and it will received the userName 
+ * To show userNames of all others users already connected to oms to the user is connecting to oms
+ * @param call user to connect to OMS, or the call who is to leave OMS. 
+ * His userName will be sent to other already connected to OMS, and it will receive the userName 
  * of the latter when connecting, or he will only sent his userName to others when disconnecting
- * userNames are send through WebSocket.
- * @param bool true if the parameter OmsCall/Client/Browser has connected to OMS, then 
- *  WebSocket.send("showUserNameConnectedtoOMS:"+userName) is sent to others Clients, so they can 
- *  print out his name. He will print out the latter's userNames as well.
- * and false if OmsCall/Client/Browser has disconnected from OMS, then 
- *  WebSocket.send("deleteUserName:"+userName) is sent to others clients, so they can remove his userName from 
- *  the list of people connected to OMS
+ * @param bool true if the parameter call is connecting to OMS, then a "showUserNameConnectedtoOMS" message
+ * is sent to others clients, so they can print out his name. He will print out others users names as well.
+ * and false if the parameter call is disconnecting from OMS, then  a "deleteUserName" message 
+ * is sent to others clients, so they can remove his userName from the list of people connected to OMS
  * @throws OmsException 
  */
 	public void showPeopleConnectedToOms(OmsCall call, boolean bool) throws OmsException{
@@ -193,10 +191,10 @@ public class Annuaire {
 	}*/
 	
 	/**
-	 * To get the OmsCall from its userName, will return null if the the userName doesn't match
-	 * nay OmsCall
-	 * @param userName username
-	 * @return the OmsCall
+	 * To get the client from its userName, will return null if the the userName doesn't match
+	 * any client
+	 * @param userName name of the user
+	 * @return user who has the parameter userName as name
 	 */
 	public OmsCall getOmsCall(String userName){
 		
@@ -223,8 +221,8 @@ public class Annuaire {
 	}
 		
 	/**
-	 * To get the annuaire with all OmsCall connected to OMS
-	 * @return the annuaire
+	 * To get the annuaire containing all clients connected to OMS
+	 * @return annuaire with all clients
 	 */
 	public HashMap<OmsCall, String> getAnnuaire(){
 		 return annuaire;

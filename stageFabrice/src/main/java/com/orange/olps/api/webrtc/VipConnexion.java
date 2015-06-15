@@ -9,9 +9,6 @@ import java.net.UnknownHostException;
 
 import org.apache.log4j.Logger;
 
-//import com.orange.olps.stageFabrice.Connexion;
-//import com.orange.olps.stageFabrice.OmsException;
-
 public class VipConnexion extends Connexion {
 	
 	private Logger logger = Logger.getLogger(VipConnexion.class);
@@ -25,7 +22,6 @@ public class VipConnexion extends Connexion {
 	 * @param serveur serveur OMS's IP address
 	 * @param portStr portStr OMS's port
 	 * @throws OmsException
-	 * @throws IOException
 	 */
 	
 	public VipConnexion(String serveur, String portStr) throws OmsException {
@@ -53,6 +49,7 @@ public class VipConnexion extends Connexion {
 		}
 	}
 	
+
 	public String getReponse(String question) throws OmsException {
 
 		out.println(question);
