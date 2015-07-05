@@ -128,7 +128,7 @@ public class MonService extends OmsService implements OmsMessageListener {
 					annuaire.setUserName(call, userName2);
 					annuaire.showPeopleConnectedToOms(call, true);
 					//conf.showPeopleInConf(call);
-					conf.participantsStatus(call);
+					//conf.participantsStatus(call);
 				}
 				//} else {
 					//call.answer(sdp);
@@ -155,9 +155,11 @@ public class MonService extends OmsService implements OmsMessageListener {
 		try{
 		switch (cmd) {
 			case "unjoin":
-				conf.updateName(annuaire.getOmsCall(param));
+				//conf.updateName(annuaire.getOmsCall(param));
+				annuaire.updateName(param, conf);
+				annuaire.participantsStatus(param, conf);
 				conf.delete(annuaire.getOmsCall(param));			
-				conf.participantsStatus(call);
+				//conf.participantsStatus(call);
 				//conf.showParticipant(call.getConfname(), false);
 				break;
 			case "call":

@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.Properties;
 
 import orange.olps.svi.client.ClientFormat;
+import orange.olps.svi.initservice.InitService;
 import orange.olps.svi.navigation.Deconnexion;
 import orange.olps.svi.navigation.Navigation;
 import orange.olps.svi.navigation.NavigationManager;
@@ -23,13 +24,19 @@ import com.orange.olps.api.webrtc.*;
  * 
  */
 
-public class MonServiceSvi2 extends OmsService implements OmsMessageListener {
+/* Pour la lecture des prompts, bien vérifier que les deux dossiers "copy_prompts" et "prompts" ont été crées
+ * dans le repertoire "tmp"(/opt/application/64poms/current/tmp). Mettre tous les fichiers sons dans le 
+ * dossier "prompts".
+ * */
+
+
+public class MonServiceSvi2 extends OmsServiceSvi implements OmsMessageListener {
 
 	/**
 	 * @param args
 	 */
 	
-	private static Logger logger = Logger.getLogger(MonServiceSvi.class);
+	private static Logger logger = Logger.getLogger(MonServiceSvi2.class);
 	private static final String WEBRTC_CONF = "/opt/testlab/utils/stageFabrice/src/main/java/";
 	//private static final String WEBRTC_CONF = "C:\\Users\\JWPN9644\\opt\\application\\64poms\\current\\conf\\";
 	protected static String hostVip = "127.0.0.1";
@@ -47,18 +54,12 @@ public class MonServiceSvi2 extends OmsService implements OmsMessageListener {
 	private static final String DEFAULT_CONF_PORT = "10000";
 	
 	private int actionNavigation;
-	ArrayList<String> tabPrompt;
-	String a8kFile;
+	private ArrayList<String> tabPrompt;
+	private String a8kFile;
 	
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
 		
-		new MonServiceSvi2();		
-	}
-
-	public MonServiceSvi2() {
-		
-		super(Integer.parseInt(portWs));
 		PropertyConfigurator.configure(WEBRTC_CONF + "log4j.properties");
 
 		try {
@@ -78,6 +79,13 @@ public class MonServiceSvi2 extends OmsService implements OmsMessageListener {
 		portVip = prop.getProperty("oms.port", DEFAULT_OMS_PORT);
 		portWs = prop.getProperty("ws.port", DEFAULT_WS_PORT);
 		portVipConf = prop.getProperty("conf.port", DEFAULT_CONF_PORT);
+		
+		new MonServiceSvi2(portWs);		
+	}
+
+	public MonServiceSvi2(String portWs) {
+		
+		super(Integer.parseInt(portWs));
 		
 		addEventListener(this);
 		this.start();
@@ -118,16 +126,16 @@ public class MonServiceSvi2 extends OmsService implements OmsMessageListener {
 				call.init(sdp);
 				// param = "";
 
-				// actionNavigation =
-				// NavigationManager.getInstance().calculerActionNavigation(call);
-				// logger.info("actionNavigation: " + actionNavigation);
-				// tabPrompt = call.getPrompt();
+				actionNavigation = NavigationManager.getInstance()
+						.calculerActionNavigation(call);
+				logger.info("actionNavigation: " + actionNavigation);
+				tabPrompt = call.getPrompt();
 
-				/*
-				 * for (String prompt : tabPrompt) { prompt = a8kFile + "/" +
-				 * prompt + ".a8k"; logger.info("prompt: " + prompt);
-				 * call.play(prompt, true); }
-				 */
+				for (String prompt : tabPrompt) {
+					prompt = a8kFile + "/" + prompt + ".a8k";
+					logger.info("prompt: " + prompt);
+					call.play(prompt, true);
+				}
 
 				break;
 			case "cmd":

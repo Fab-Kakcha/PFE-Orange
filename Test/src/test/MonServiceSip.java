@@ -1,7 +1,6 @@
 package test;
 
 import java.io.BufferedWriter;
-import java.io.Console;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -90,7 +89,7 @@ public class MonServiceSip extends OmsServiceSip implements OmsDtmfListener{
 		try {
 						
 			MonServiceSip[] monsServiceSip = new MonServiceSip[num];
-			String service = "conf";	
+			String service = "call";	
 			
 			for(int i=0; i<num ; i++){
 				
