@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!DOCTYPE vxml PUBLIC "-//W3C//DTD VOICEXML 2.0//EN" "http://www.w3.org/TR/voicexml20/vxml.dtd" >
+<vxml version="2.0" xmlns="http://www.w3.org/2001/vxml" xml:lang="fr-FR">
+
+<!--
+       dc:title="voiceSMS.vxml"
+       dc:description="OLPS ; Appel sortant Orange Niger"
+       dc:publisher="OLPS"
+       dc:language="en"
+       dc:date="2013-07-30"
+       dc:version="0.1"
+       dc:rights=""
+
+<history :>
+Hugues Oudeville	0.1	06/11/2013	creation du script 	
+-->
+<property name="audiomaxage" value="300"/>
+<var name="soundfile" expr="'/Svi/audio/'+session.connection.ccxml.values.soundfile"/>
+<var name="answeringmachine" expr="'false'"/>
+
+<form id="reco_bip">
+	<field name="confirm_bip">
+		<grammar src="asr:null;gabarit=bip,200ms,700Hz,100Hz,20dB"/>
+		<prompt bargein="true" bargeintype='speech' timeout="8s"> 
+			<audio expr="soundfile"></audio>
+		</prompt>
+			
+		<nomatch>
+			<log label="traces">[voiceSMS][VXML] nomatch</log>
+		</nomatch>
+		
+		<noinput>
+			<log label="traces">[voiceSMS][VXML] noinput</log>
+			<goto next="#the_end"/>
+		</noinput>
+
+			
+		<filled>
+			<assign name="answeringmachine" expr="'true'" />
+			<log label="traces">[voiceSMS][VXML] reconnaissance bip</log>
+			<prompt bargein="false"> 
+				<audio expr="soundfile"></audio>
+			</prompt>
+			<goto next="#the_end"/>
+		</filled>
+	</field>
+</form>
+
+<!-- 
+	OPTION # : The end
+-->
+<form id="the_end">
+	<block>
+		<log expr="'[voiceSMS][VXML] [The end]'"/>
+		<exit namelist ="answeringmachine" />
+	</block>
+</form>
+
+<!-- L'appelant a raccroché -->
+<catch event="connection.disconnect.hangup">
+	<log expr="'[voiceSMS] [event=catch disconnect.hangup]'"/>
+	<exit />
+</catch>
+
+<!-- Et les cas d'erreur liéaux énements -->
+<catch event="error.connection">
+	<log expr="'[voiceSMS] [event='+ _event+']'"/>
+	<exit />
+</catch>
+
+<!-- Errors -->
+<catch event="error">
+	<log expr="'[voiceSMS] [event='+ _event+']'"/>
+	<exit />
+</catch>
+
+
+</vxml>

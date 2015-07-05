@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns="http://java.sun.com/xml/ns/javaee"
+	xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_3_0.xsd"
+	id="WebApp_ID" version="3.0">
+	<display-name>CollecteurStat</display-name>
+    <welcome-file-list>
+        <welcome-file>index.html</welcome-file>
+    </welcome-file-list>
+	<servlet>
+		<servlet-name>InitService</servlet-name>
+		<servlet-class>orange.olps.collecteur.servlet.InitService</servlet-class>
+		<init-param>
+			<param-name>log4j-init-file</param-name>
+			<param-value>WEB-INF/log4j.properties</param-value>
+		</init-param>
+		 <init-param>
+            <param-name>init-file</param-name>
+            <param-value>CollecteurStat.properties</param-value>
+        </init-param>
+        <init-param>
+            <param-name>env-rep</param-name>
+            <param-value>HOME_OVP</param-value>
+        </init-param>
+		<load-on-startup>1</load-on-startup>
+	</servlet>
+	<servlet>
+		<servlet-name>CollecteurStat</servlet-name>
+		<servlet-class>orange.olps.collecteur.servlet.CollecteurStat</servlet-class>
+		<load-on-startup>5</load-on-startup>
+	</servlet>
+	
+	
+	<servlet-mapping>
+		<servlet-name>CollecteurStat</servlet-name>
+		<url-pattern>/statas</url-pattern>
+	</servlet-mapping>
+	  <servlet-mapping>
+        <servlet-name>InitService</servlet-name>
+        <url-pattern>/configuration</url-pattern>
+    </servlet-mapping>
+    
+    <session-config>
+        <session-timeout>1</session-timeout>
+    </session-config>
+	
+</web-app>

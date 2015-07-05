@@ -1,0 +1,166 @@
+<!--DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd"-->
+<html>
+<head>
+<title>Administration SVI</title>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<link rel="stylesheet" type="text/css" href="css/style.css" />
+<link rel="stylesheet" type="text/css" href="css/onglet.css" />
+</head>
+
+<body>
+	<div id="entete">
+		<div id="titre">
+			<img alt="logo" id="logo" src="img/logo.jpg" />
+			<h3 id="admSvi">Administration SVI</h3>
+		</div>
+		<div class="onglets">
+			<div class="onglet_inactif onglet">
+				<a href="index.html">Accueil</a>
+			</div>
+			<div class="onglet_actif onglet">
+				<a href="parametrage.html">Paramétrage</a>
+			</div>
+			<div class="onglet_inactif onglet">
+				<a href="architecture.html">Architecture</a>
+			</div>
+
+		</div>
+	</div>
+
+	<div id="contenu">
+
+		<div id="divRechrgmnt">
+			<h4>Rechargement de la configuration</h4>
+			<form name="formRechrgmntDate" id="formRechrgmntDate">
+				<p>
+					<label>Dernier rechargement de la configuration le:</label><label
+						name="dernier" id="dernier"></label>
+				</p>
+				<p>
+					<label>Prochain rechargement de la configuration dans:</label><label
+						name="prochain" id="prochain"></label>
+				</p>
+				<p>
+					<input type="button" name="butConf" class="button"
+						onclick="initialiserSvi()" value="Recharger" />
+					<input type="button" name="butRaf" class="button"
+                        onclick="donnerDateRechargement()" value="Rafraichir" />
+				</p>
+			</form>
+		</div>
+
+		<div id="divLog">
+			<h4>Niveau de log</h4>
+			<form name="formLog" id="formlog">
+				<input type="button" name="Erreur" class="button"
+					onclick="configurerLog('Erreur')" value="Erreur" /> 
+				<input
+					type="button" name="Info" class="button"
+					onclick="configurerLog('Info')" value="Info" /> 
+				<input
+					type="button" name="Debug" class="button"
+					onclick="configurerLog('Debug')" value="Debug" />
+			</form>
+		</div>
+	</div>
+</body>
+<script type="text/javascript">
+	var xmlhttp = creerObjetRequeteHttp();
+	var niveau;
+	// valide/invalide les boutons
+	function invaliderAction(mode) {
+		document.formRechrgmntDate.butConf.disabled = mode;
+		if (mode) {
+			document.formRechrgmntDate.butConf.value = "En cours";
+		} else {
+			document.formRechrgmntDate.butConf.value = "Recharger";
+		}
+		document.formLog.Erreur.disabled = mode;
+		document.formLog.Info.disabled = mode;
+		document.formLog.Debug.disabled = mode;
+	}
+	// creation de l'objet HTTP en fonction du navigateur
+	function creerObjetRequeteHttp() {
+		if (window.XMLHttpRequest) {
+			// ie7 firefox chrome opera 
+			xmlhttp = new XMLHttpRequest();
+		} else {
+			// ie6 ie5
+			xmlhttp = new ActiveXObject("Microsoft.XMLHTTP");
+		}
+		return xmlhttp;
+	}
+	// retour de la requète de configuration
+	function retourConfig() {
+		if (xmlhttp.readyState == 4) {
+			// requete terminée
+			if (xmlhttp.status == 200) {
+				// on parse la reponse
+				var xmlDoc = xmlhttp.responseXML;
+				var nodes = xmlDoc.documentElement.childNodes;
+
+				var element = document.getElementById("dernier");
+				element.innerHTML = nodes.item(0).innerHTML;
+				element = document.getElementById("prochain");
+				element.innerHTML = nodes.item(1).innerHTML;
+
+				invaliderAction(false);
+				var niv = nodes.item(2).innerHTML;
+				if (niv == "Erreur")
+					document.formLog.Erreur.disabled = true;
+				else if (niv == "Info")
+					document.formLog.Info.disabled = true;
+				else if (niv == "Debug")
+					document.formLog.Debug.disabled = true;
+			} else {
+				alert("Erreur requète " + xmlhttp.status);
+				invaliderAction(false);
+			}
+
+		}
+	}
+	// retour de la requète de configuration des log
+	function retourLog() {
+		if (xmlhttp.readyState == 4) {
+			invaliderAction(false);
+			// requete terminée
+			if (niveau == "Erreur")
+				document.formLog.Erreur.disabled = true;
+			else if (niveau == "Info")
+				document.formLog.Info.disabled = true;
+			else
+				document.formLog.Debug.disabled = true;
+		}
+	}
+	// lancement du rechargement des properties
+	function initialiserSvi() {
+		invaliderAction(true);
+		xmlhttp.open("get", "configuration?action=init", true);
+		xmlhttp.setRequestHeader('Content-Type',
+				'application/x-www-form-urlencoded');
+		xmlhttp.onreadystatechange = retourConfig;
+		xmlhttp.send(null);
+	}
+
+	function donnerDateRechargement() {
+		invaliderAction(true);
+		xmlhttp.open("get", "configuration?action=infoInit", true);
+		xmlhttp.setRequestHeader('Content-Type',
+				'application/x-www-form-urlencoded');
+		xmlhttp.onreadystatechange = retourConfig;
+		xmlhttp.send(null);
+	}
+
+	function configurerLog(niv) {
+		invaliderAction(true);
+		niveau = niv;
+		xmlhttp.open("get", "configuration?action=log&niveau=" + niveau, true);
+		xmlhttp.setRequestHeader('Content-Type',
+				'application/x-www-form-urlencoded');
+		xmlhttp.onreadystatechange = retourLog;
+		xmlhttp.send(null);
+	}
+
+	donnerDateRechargement();
+</script>
+</html>

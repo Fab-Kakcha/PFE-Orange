@@ -1,0 +1,136 @@
+* {
+	margin: 0;
+	padding: 0;
+	font-family: Arial, sans-serif;
+	font-size: 12px;
+}
+
+body {
+	background-color: white;
+	font-size: 12px;
+	
+}
+
+body,td,a {
+	font-family: arial;
+	font-size: 12px;
+	color: black;
+	margin: 0px;
+	padding:0px;
+}
+
+h3 {
+	font-size: 22px;
+	color: #FF6600;
+}
+
+h4 {
+	font-size: 18px;
+	font-weight: bold;
+	margin: 0px;
+	font-weight: bold
+}
+
+p {
+	margin-top: 11px;
+}
+
+img {
+	border: 0px;
+}
+
+form {
+	margin: 0px;
+}
+
+ul {
+	list-style: none;
+}
+
+td {
+	vertical-align: top;
+}
+
+a {
+	color: #FF6600;
+	text-decoration: underline;
+	font-size: 14px;
+}
+
+a:hover {
+	color: #000000;
+	background-color: #FF6600;
+	text-decoration: none;
+}
+#entete {
+	margin-top: 0px;
+	padding-top: 0px;
+}
+#logo {
+	position: relative;
+	left: 50px;
+	top: 20px;
+	width: 50px;
+	height: 50px;
+}
+#contenu {
+    background-color: white;
+    border-top: 1px solid black;
+    margin-top: -1px;
+    margin-left: 25px;
+    margin-right: 25px;
+    padding: 25px;
+}
+#admSvi {
+	margin-left: 200px;
+	margin-top: -10px;
+	padding-top: 0px;
+}
+
+#divRechrgmnt {
+	margin-top: 100px;
+	margin-left: 5%;
+	margin-right: 50%;
+	width: 500px;
+	height: 150px;
+}
+
+#formRechrgmntDate {
+	background-color: #EEEEEE;
+	border-width: thin;
+	border-style: solid;
+	padding-left: 5%;
+	padding-bottom: 3%;
+}
+
+#dernier {
+	color: #FF5500;
+}
+
+#prochain {
+	color: #FF5500;
+}
+
+#divLog {
+	margin-top: 100px;
+	margin-left: 5%;
+	margin-right: 50%;
+	width: 500px;
+	height: 150px;
+}
+
+#formLog {
+	background-color: #EEEEEE;
+	border-width: thin;
+	border-style: solid;
+	padding-left: 5%;
+	padding-bottom: 3%;;
+	padding-top: 3%
+}
+
+input.button {
+	width: 100px;
+	margin-left: 5%;
+}
+
+

@@ -1,0 +1,160 @@
+
+#legende {
+    border:thin solid black;
+    padding: 10px;
+    float: left;
+    width: 60%;
+}
+.celImgLegende {
+    padding-left:20px;
+    padding-top: 5px;
+    padding-right: 0px;
+}
+.celLabLegende {
+    padding-left:5px;
+      padding-top: 15px;
+      padding-right: 0px;
+}
+#action {
+    border: thin solid black;
+    float: left;
+    padding: 10px;
+    width: 35%;
+    margin-left: 10px;
+
+}
+.rootArchi {
+    border: thin solid black;
+    float: left;
+    height: 60%;
+    margin-left: 0;
+    margin-top: 25px;
+    padding: 0;
+    width: 60%;
+    overflow: auto;
+}
+#parametre {
+    border: thin solid black;
+    float: left;
+    height: 58%;
+    margin-top: 25px;
+    padding: 10px;
+    width: 35%;
+    margin-left: 10px;
+    overflow: auto;
+}
+.divArchi {
+  margin-left:32px;
+  margin-top: 3px;
+}
+.divArchi1 {
+margin:0px 0px 0px 5px;
+}
+.divSsArchi {
+  height: 36px;
+}
+.flecheArchi {
+  margin:0px;
+  padding: 0px;
+  float:left;
+}
+
+.flecheArchiVide {
+  margin:0px;
+  padding: 0px;
+  float:left;
+}
+.imgArchi {
+  margin:0px;
+  padding: 0px;
+  float:left;
+}
+.imgArchi:hover {
+    cursor: pointer;
+}
+.imgArchi2 {
+  margin:0px;
+  padding: 0px;
+  float:left;
+}
+.labelArchi {
+  margin-top:10px;
+  margin-left: 10px;
+  padding: 0px;
+  float:left;
+}
+.labelArchi:hover {
+    cursor: pointer;
+}
+.labelParam {
+    margin-left: 10px;
+}
+.inputText {
+    margin-left: 10px;
+    width:400px;
+}
+.inputTextArea {
+    margin-left: 10px;
+    width:400px;
+    height: 200px;
+}
+.ctxmenu
+{
+  position:absolute;   
+  min-width: 128px;
+  height:auto;
+  padding: 8px;
+  margin:0;
+  margin-left:32px;
+  margin-top:-16px;
+  border: 1px solid #999;
+  background: #F8F8F8;
+  box-shadow: 2px 2px 2px #AAA;
+  z-index:11;
+  overflow: visible;
+}
+.ctxline
+{
+  display:block;
+  margin:0px;
+  padding:2px 2px 2px 8px;
+  border:1px solid #F8F8F8;
+  border-radius:3px;
+  font-size:12px;
+  overflow:visible;
+}
+.ctxline:hover
+{
+  border:1px solid #BBB;
+  background-color: #F0F0F0;
+  background-image: -moz-linear-gradient(top, #ffffff, #e6e6e6);
+  background-image: -ms-linear-gradient(top, #ffffff, #e6e6e6);
+  background-image: -webkit-gradient(linear, 0 0, 0 100%,
+    from(#ffffff), to(#e6e6e6));
+  background-image: -webkit-linear-gradient(top, #ffffff, #e6e6e6);
+  background-image: -o-linear-gradient(top, #ffffff, #e6e6e6);
+  background-image: linear-gradient(top, #ffffff, #e6e6e6);
+  background-repeat: repeat-x;
+  filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#ffffff',
+    endColorstr='#e6e6e6', GradientType=0);
+}
+
+.saisieInit
+{
+  position:absolute;   
+  min-width: 128px;
+  height:auto;
+  padding: 8px;
+  margin:0;
+  margin-left:32px;
+  margin-top:-16px;
+  border: 1px solid #999;
+  background: #F8F8F8;
+  box-shadow: 2px 2px 2px #AAA;
+  z-index:11;
+  overflow: visible;
+}
+.saisieInitB {
+    width: 50px;
+    margin-left: 5%;
+}

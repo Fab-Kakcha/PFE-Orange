@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<grammar mode="dtmf" version="1.0" 
+xmlns="http://www.w3.org/2001/06/grammar" type="application/srgs+xml" root="gramNDigit">
+
+	<rule id="digit">
+		<one-of> 
+			<item>*</item>
+      <item>#</item>
+      <item>0</item>
+      <item>1</item>
+      <item>2</item>
+      <item>3</item>
+      <item>4</item>
+      <item>5</item>
+      <item>6</item>
+      <item>7</item>
+      <item>8</item>
+			<item>9</item>
+			</one-of>
+	</rule> 
+  <rule id="gramNDigit" scope="public">
+    <one-of>   
+        <item repeat="1-"><ruleref uri="#digit"/></item>
+    </one-of> 
+  </rule> 
+</grammar>

@@ -1,0 +1,44 @@
+@CHARSET "UTF-8";
+.onglets 
+{
+	margin-top:20px;
+	margin-left:50px;
+}
+.onglet
+{
+display:inline-block;
+margin-left:3px;
+margin-right:3px;
+padding:3px;
+border:1px solid black;
+cursor:pointer;
+width: 100px;
+text-align: center;
+}
+.onglet_actif a
+{
+color:#FF5500;
+text-decoration:none;
+}
+.onglet_inactif a
+{
+color:black;
+text-decoration:none;
+}
+.onglet_actif a:hover {color:#FF5500; background-color:white;text-decoration:none;}
+.onglet_inactif a:hover {color:#FF5500; background-color:#EEEEEE;;text-decoration:none;}
+
+
+.onglet_inactif
+{
+background:#EEEEEE;
+border-bottom:1px solid black;
+}
+.onglet_actif
+{
+background:white;
+border-bottom:0px solid white;
+padding-bottom:4px;
+
+}
+

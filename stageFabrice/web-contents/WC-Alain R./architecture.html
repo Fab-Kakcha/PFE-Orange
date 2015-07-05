@@ -1,0 +1,163 @@
+<!--DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd"-->
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>Administration SVI</title>
+<link rel="stylesheet" type="text/css" href="css/style.css" />
+<link rel="stylesheet" type="text/css" href="css/onglet.css" />
+<link rel="stylesheet" type="text/css" href="css/archi.css" />
+
+<script type="text/javascript" src="js/navigation.js"></script>
+<script type="text/javascript" src="js/archi.js"></script>
+
+</head>
+<body>
+	<div id="entete">
+		<div id="titre">
+			<img alt="logo" id="logo" src="img/logo.jpg" />
+			<h3 id="admSvi">Administration SVI</h3>
+		</div>
+		<div class="onglets">
+			<div class="onglet_inactif onglet">
+				<a href="index.html">Accueil</a>
+			</div>
+			<div class="onglet_inactif onglet">
+				<a href="parametrage.html">Paramétrage</a>
+			</div>
+			<div class="onglet_actif onglet">
+				<a href="architecture.html">Architecture</a>
+			</div>
+		</div>
+	</div>
+	<div id="contenu">
+		<div id="legende">
+			<script>
+				var types = [ "affectation", "bdd", "condition", "deconnexion","depart",
+						"enreg", "info", "langue", "menu", "prepare",
+						"redirection", "retour","saisie", "sms", "statistiques","transfert", "websvc" ];
+				document.write("<table id='tabLegende'>");
+				for (i = 0; i < types.length; i++) {
+					if (i % 5 == 0) {
+						document.write("<tr class='ligLegende'>");
+					}
+					document
+							.write("<td class='celImgLegende'><img id="+types[i]+" src='img/"+types[i]+".png' alt='objet' class='imgLegende' draggable='true' ondragstart='drag(event)'/></td><td class='celLabLegende'><label class='labLegende'>"
+									+ types[i] + "</label></td>");
+					if (i % 5 == 4) {
+						document.write("</tr>");
+					}
+				}
+
+				document.write("</table>");
+			</script>
+		</div>
+		<div id="action">
+		<input type="button" name="butNouv" class="button" onclick="var evt = arguments[0] || window.event; nouveau(evt)" value="Nouveau" />
+		<input type="button" name="butOuvrir" class="button"  onclick="var evt = arguments[0] || window.event; ouvrir(evt)" value="Ouvrir..." />
+        <input type="button" name="butSav" class="button" onclick="var evt = arguments[0] || window.event; sauver(evt)" value="Sauver..." />       
+		</div>
+		<div id="000_d_0_archi" class="rootArchi" oncontextmenu="return false" ondrop=drop></div>
+		<div id="parametre"></div>
+
+	</div>
+	<script type="text/javascript">
+		// 
+		var xmlhttp = creerObjetRequeteHttp();
+		
+		// creation de l'objet HTTP en fonction du navigateur
+		function creerObjetRequeteHttp() {
+			if (window.XMLHttpRequest) {
+				// ie7 firefox chrome opera 
+				xmlhttp = new XMLHttpRequest();
+			} else {
+				// ie6 ie5
+				xmlhttp = new ActiveXObject("Microsoft.XMLHTTP");
+			}
+			return xmlhttp;
+		}
+
+		// retour de la requète de recuperation du json du svi
+		function retourInfoSvi() {
+			if (xmlhttp.readyState == 4) {
+				raz();
+				sviJson = JSON.parse(xmlhttp.responseText);
+				if (sviJson == undefined) {
+					alert (xmlhttp.responseText);
+				}
+				var depart = document.getElementById("000_d_0_archi");
+				for (var i = 0; i < sviJson.racines.length; i++) {
+					ajouterNoeud(depart, sviJson.racines[i]);
+				}
+			}
+		}
+		
+		/**
+		* Nouveau design
+		*/
+	    function nouveau(evt) {
+			evt.stopPropagation();
+	    	raz();
+	    	
+	    	sviJson = { "racines": [],"navigations":[]};
+	    	var racines=[];
+
+	    	var service = 'depart';   
+	        var labelPere ="";
+	        var rang = 1;
+	        var navPere = null;
+	        var nav = genererObjetJson('depart',service); // objet nouveau à inserer
+	        var nodePere = donnerNodePere(navPere, rang);
+	        saisirLabel(null,nodePere, navPere, nav, rang);
+	    }
+		
+	    /**
+	    * Ouvrir un json
+	    */
+	    function ouvrir(evt) {
+	    	evt.stopPropagation();
+	    	xmlhttp.open("get", "design?action=lsteRep", true);
+            xmlhttp.setRequestHeader('Content-Type',
+                    'application/x-www-form-urlencoded');
+            xmlhttp.onreadystatechange = retourOuvrirLstRep;
+            xmlhttp.send(null);
+	    }
+	 // retour de la requète de recuperation de la liste des fichiers json disponibles
+        function retourOuvrirLstRep() {
+            if (xmlhttp.readyState == 4) {
+               
+            	if (xmlhttp.status == 200) {
+            		var nodePere = donnerNodePere(null, 1);
+            		choisirFichier(JSON.parse(xmlhttp.responseText), nodePere);
+            	}
+            	else {
+            		alert("Erreur de récuperation de la liste de fichiers code:"+xmlhttp.status);
+            	}               
+            }
+        }
+       /**
+        * Sauver un json
+        */
+        function sauver(evt) {
+        	evt.stopPropagation();
+        	saisirNomSauve(evt, document.getElementById("000_d_0_archi"));
+           
+        }
+	    ////////////////////////////////////////////////////////////////////
+		  xmlhttp.open("get", "design?action=infoSvi", true);
+		     xmlhttp.setRequestHeader('Content-Type',
+		             'application/x-www-form-urlencoded');
+		     xmlhttp.onreadystatechange = retourInfoSvi;
+		     xmlhttp.send(null);
+		 
+	</script>
+	<!-- <script type="text/javascript" src="js/jsonSvi.js"></script>
+	<script type="text/javascript">
+		var depart = document.getElementById("000_d_0_archi");
+		for (var i = 0; i < sviJson.racines.length; i++) {
+			ajouterNoeud(depart, sviJson.racines[i]);
+		}
+		
+
+	</script> -->
+</body>
+</html>

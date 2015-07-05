@@ -1,0 +1,548 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!DOCTYPE ccxml PUBLIC "CCXML/1.0/DTD" "ccxml.dtd">
+<ccxml version="1.0">
+<!--
+<metadata>
+   <rdf:RDF
+       xmlns:rdf = "http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+       xmlns:dc = "http://purl.org/dc/elements/1.1/">
+   <rdf:Description rdf:about="http://www.example.com/meta.ccxml"
+       dc:title="voiceSMS.ccxml"
+       dc:description="voiceSMS Orange Niger"
+       dc:publisher="OLPS"
+       dc:language="en"
+       dc:date="2013-11-06"
+       dc:version="0.1.0"
+       dc:rights=""
+       dc:format="application/ccxml+xml" >
+       
+   </rdf:Description>
+  </rdf:RDF>
+ </metadata>
+
+<history :>
+Hugues Oudeville   0.1  06/11/2013  creation du script 
+
+-->
+
+	<script>
+	<![CDATA[
+	function logValues(){
+		var retour='*** ';
+		retour+='[idConCCXML='+idConCCXML+'] ';
+		retour+='['+service+'] ';
+		retour+='[statusVocal='+statusVocal+'] ';
+		retour+='[statusVocalReason='+statusVocalReason+'] ';
+		
+		retour+='[anotherError='+anotherError+'] ';
+		retour+='[itemCallDuration='+itemCallDuration+'] ';
+			
+		retour+='***';
+		// protects the special character é for display in log file
+		var a='é';
+		var b='e';
+		var i=0;
+		while (i!=-1) {
+			i=retour.indexOf(a,i);
+         		if (i>=0) {
+            		retour=retour.substring(0,i)+b+retour.substring(i+a.length);
+            		i+=b.length;
+         		}
+      	}
+		return retour;
+	} // logValues
+
+	
+    // getDurationInSeconds(8.234) => 8
+    function getDurationInSeconds(string_duration){
+        var reg=new RegExp("\\\.+", "g");
+        var strTmp="";
+        var result;
+
+        if(string_duration != '') {
+            strTmp=string_duration.split(reg);
+            result = strTmp[0];
+            if(typeof(result)=='undefined') {
+                result='0';
+            }
+        } else {
+            result='0';
+        }
+        return result;
+    } // getDurationInSeconds   
+	
+	
+	function logErr(event,msg){
+		var retour='*** ';
+		retour+='ERROR ';
+		retour+='[idConCCXML='+idConCCXML+'] ';
+		retour+='['+service+'] ';
+		retour+='[name='+event.name+'] ';
+		retour+='[reason='+event.reason+'] ';
+		retour+='[dialogid='+event.dialogid+'] ';
+		retour+='['+msg+'] ';
+		retour+='***';
+		return retour;
+	} // logErr
+		
+	function logMsg(event,state,msg){
+		var retour='*** ';
+		retour+='['+service+'] ';
+		retour+='[idConCCXML='+idConCCXML+'] ';
+		retour+='['+msg+'] ';
+		retour+='[event='+event.name+'] ';
+		retour+='[currentState='+state+'] ';
+		retour+='***';
+		return retour;
+	} // logMsg
+
+	function getSIPConnectionFailedReason(event){
+		var result = "";
+		
+		switch(event.reason) {
+			case 'baddestination' :
+				result='baddestination';
+				break;
+			case 'normal' :
+				result='normal';
+				break;
+			case 'busy' :
+				result='busy';
+				break;
+			case 'timeout' :
+			case 'noanswer' :
+				result='noanswer';
+				break;					
+			case '480' :
+				result='Temporarily Unavailable';
+				break;		
+            case '486' :
+				result='busy';
+				break;				
+			default :
+				result=event.reason;
+		}
+		return result;
+	} // getSIPConnectionFailedReason
+	
+	function construireNumeroTransfert(string_to_call,string_passerelle) 
+	{
+					
+		var result = string_to_call+'@'+string_passerelle;
+		return result;
+		
+	} // construireNumeroTransfert
+	
+	function getCalculretries(val)
+    {
+     	return val -1;
+	} //getCalculretries
+	
+	]]>
+	</script>
+	
+	
+	
+	
+	<var name="idConCCXML" />				<!-- id session CCXML -->
+	<var name="dialogIdVXML" />				<!-- id dialog -->
+	<var name="inConnectionId" />			<!-- number to call -->
+	<var name="outConnectionId" />			<!-- number to join -->
+	<var name="service" expr="'voiceSMS'"/>
+	
+	<var name="urlVXML" expr="'/Svi/voiceSMS.vxml'" />
+	<var name="urlReponse" expr="''" />
+	
+	
+			
+	<var name="anotherError" expr="'null'" />
+	<var name="itemCallDuration" expr="'null'" />
+		
+	<var name="dialstarted" expr="'false'"/>
+	<var name="appel" />
+	<var name="discoFlag" expr="'false'"/>
+	<var name="transferTimeout" expr="'30s'"/>
+	<var name="anError" />	
+    <var name="messagerie" expr="'false'" />
+	<var name="human_detected" expr="'false'" />
+	<var name="menu1" expr="'null'"/>
+	<var name="menu2" expr="'null'"/>
+	<var name="menu3" expr="'null'"/>
+	<var name="answeringmachine" expr="'false'"/>
+	<var name="toCall" />
+	<var name="caller" />
+	<var name="soundfile" />
+	<var name="waittime" expr="'20s'"/>
+	<var name="duration" expr="'0'"/>
+	<var name="durationInit" expr="'0'"/>
+    <var name="callid" expr="''"/>
+    <var name="etat" expr="'FAILED'" />	
+	
+	
+	<!-- Set an initial state -->
+	<var name="currentState" expr="'init'" />
+
+	<eventprocessor statevariable="currentState">
+	
+		<!-- ********************************************** -->
+		<!-- ****** currentState : init              ****** -->
+		<!-- ********************************************** -->
+		
+		<transition state="init" event="ccxml.loaded" name="evt">
+			<assign name="idConCCXML" expr="evt.sessionid" />
+			<log expr="logMsg(evt,currentState,'VoiceXML dialog prepare')" />
+			<assign name="callid" expr="session.external.callId" />
+			
+			<assign name="toCall" expr="session.external.sip" />
+			<assign name="caller" expr="session.external.caller" />
+	        <assign name="waittime" expr="session.external.waittime" />
+			<assign name="urlReponse" expr="session.external.urlrep" />
+			<assign name="soundfile" expr="session.external.soundfile" />
+
+			
+			<log expr="logMsg(evt,currentState,'toCall='+toCall)"/>
+			<log expr="logMsg(evt,currentState,'callid='+callid)"/>
+			
+			
+			<!-- Ligne ci-dessous dans le cadre du dialog prepare -->
+            <!--dialogprepare type="'application/voicexml+xml'" src="urlVXML" /-->   
+			<!-- 2 ignes ci-dessous a enlever dans le cadre du dialog prepare -->			
+            <assign name="currentState" expr="'initVXML'" />
+			
+			<createcall  dest="toCall" callerid="caller" timeout="waittime" hints="{dtmfdetect:'true'}" />
+			
+		</transition>
+
+		<!-- 
+		   - VXML Dialog prepared
+		 -->		
+		<transition state="init" event="dialog.prepared" name="evt">
+			<assign name="dialogIdVXML" expr="evt.dialogid" />
+			<log expr="logMsg(evt,currentState,'VXML_dialog prepared, Creating Call ...')" />
+			<assign name="currentState" expr="'initVXML'" />
+			
+			<createcall  dest="toCall" callerid="caller" timeout="waittime" hints="{dtmfdetect:'true'}" joinid="dialogIdVXML" />
+		</transition>
+
+		<!-- 
+		   - VXML Dialog preparation failed
+		 -->		
+		<transition state="init" event="error.dialog.notprepared" name="evt">
+			<assign name="anotherError" expr="evt.reason" />
+			<log expr="logErr(evt,currentState,'VXML_dialog_not_prepared')" />
+			<assign name="etat" expr="'FAILED'" />
+			<assign name="currentState" expr="'finished'" />
+			<send target="idConCCXML" targettype="ccxml" data="'mode.send'"/>
+		</transition>
+
+		<!-- ********************************************** -->
+		<!-- ****** currentState : initVXML          ****** -->
+		<!-- ********************************************** -->	
+		
+		
+		<transition state="initVXML" event="connection.failed" name="evt">
+			<log expr="logMsg(evt,currentState,'Outgoing Call Failed')" />
+			<log expr="logMsg(evt,currentState,'reason='+evt.reason)" />
+			<assign name="etat" expr="getSIPConnectionFailedReason(evt)" />
+		    <!-- On retraduit la raison d'echec en code acceptable par MVA -->
+			<if cond="etat == 'noanswer'">
+                <assign name="etat" expr="'NO ANSWER'" />
+             <elseif cond="etat == 'busy'"/>    
+                <assign name="etat" expr="'BUSY'" />
+		     <else />
+                <assign name="etat" expr="'FAILED'" />                
+            </if>
+			<log expr="logMsg(evt,currentState,'etat='+etat)"/>
+			<!-- Ligne ci-dessous dans le cadre du dialog prepare -->
+			<!--dialogterminate dialogid="dialogIdVXML" immediate="true" /-->
+			<!-- Lignes ci-dessous a supprimer dans le cadre du dialog prepare -->
+			<log expr="logMsg(evt,currentState,'callid='+callid)"/>			
+			<log expr="logMsg(evt,currentState,'menu1='+menu1)"/>
+			<log expr="logMsg(evt,currentState,'menu2='+menu2)"/>
+			<log expr="logMsg(evt,currentState,'menu3='+menu3)"/>
+			<log expr="logMsg(evt,currentState,'etat='+etat)"/>
+			<log expr="logMsg(evt,currentState,'duration='+duration)"/>
+				
+			<!-- ****** go to mode.send ****** -->
+			<assign name="currentState" expr="'finished'" />
+			<send target="idConCCXML" targettype="ccxml" data="'mode.send'"/>
+		</transition>
+		
+		<!-- *** Transition laissee mais non utilisee - mode dialog prepare *** -->
+		<transition state="initVXML" event="dialog.exit" name="evt">
+	
+			<log expr="logMsg(evt,currentState,'callid='+callid)"/>			
+			<log expr="logMsg(evt,currentState,'menu1='+menu1)"/>
+			<log expr="logMsg(evt,currentState,'menu2='+menu2)"/>
+			<log expr="logMsg(evt,currentState,'menu3='+menu3)"/>
+			<log expr="logMsg(evt,currentState,'etat='+etat)"/>
+			<log expr="logMsg(evt,currentState,'duration='+duration)"/>
+				
+			<!-- ****** go to mode.send ****** -->
+			<assign name="currentState" expr="'finished'" />
+			<send target="idConCCXML" targettype="ccxml" data="'mode.send'"/>	
+		</transition>
+		
+		
+		<!-- 
+		   - Connection processing - traite comme un no Answer
+		 -->		
+		<!--transition state="initVXML" event="connection.progressing" name="evt">
+			<log expr="logMsg(evt,currentState,'Connection progressing')" />
+            <assign name="etat" expr="'NO ANSWER'" />
+			<log expr="logMsg(evt,currentState,'etat='+etat)"/>
+			<dialogterminate dialogid="dialogIdVXML" immediate="true" />	
+		</transition-->
+			
+		
+		<!-- 
+		   - VoiceXML Dialog start
+		 -->		
+		<transition state="initVXML" event="connection.connected" name="evt">
+			<log expr="logMsg(evt,currentState,'Lauching VoiceXML dialog')" />
+			<assign name="currentState" expr="'connected'" />
+			<assign name="inConnectionId" expr="evt.connectionid" />
+			<!--dialogstart prepareddialogid="dialogIdVXML"/-->
+			
+			
+			<dialogstart src="urlVXML" parameters="soundfile" connectionid="inConnectionId"/>	
+			
+			<assign name="etat" expr="'ANSWERED'" />
+		</transition>
+
+		<!-- ********************************************** -->
+		<!-- ****** currentState : connected 		 ****** -->
+		<!-- ********************************************** -->
+		
+		<transition state="connected" event="dialog.started" name="evt">
+			<assign name="dialogIdVXML" expr="evt.dialogid"/>
+			<log expr="logMsg(evt,currentState,'VoiceXML dialog started - dialogIdVXML=' +dialogIdVXML)" />
+			<assign name="dialstarted" expr="'true'" />
+			<assign name="durationInit" expr="new Date().getTime()" />
+			<log expr="logMsg(evt,currentState,'durationInit='+durationInit)"/>
+		</transition>
+
+		<!--
+		   - Dialog VXML failed
+		 -->
+		<transition state="connected" event="error.dialog.*" name="evt">
+			<log expr="logErr(evt,currentState,'VXML_dialog_failed')" />
+			<assign name="anotherError" expr="evt.reason" />
+			<send target="idConCCXML" targettype="ccxml" data="'maxtime'" />
+		</transition>
+		
+		<transition state="connected" event="dialog.error" name="evt">
+			<log expr="logErr(evt,currentState,'VXML_dialog_failed')" />
+			<assign name="anotherError" expr="evt.reason" />
+			<send target="idConCCXML" targettype="ccxml" data="'maxtime'" />
+		</transition>		
+		
+		<!-- 
+		   - Timeout
+		 -->		
+	   	<transition state="connected" event="maxtime" name="evt" >
+	    		<log expr="logErr(evt,currentState,'Timeout during VoiceXML dialog')" />
+	    		<assign name="anotherError" expr="evt.reason" />
+			<if cond="dialstarted == 'true'">
+				<dialogterminate dialogid="dialogIdVXML" immediate="true" />
+			<else />
+				<disconnect connectionid="inConnectionId" />
+			</if>				
+	    </transition>
+		
+		
+		<!-- 
+		   - Dialog VoiceXML exit, go to end
+		 -->			    
+		<transition state="connected" event="dialog.exit" name="evt">
+			<log expr="logMsg(evt,currentState,'Voice dialog terminated, exiting')" />
+			<if cond="durationInit != '0'">
+			   <assign name="duration" expr="((new Date().getTime() - durationInit)/1000)"/>
+			   <log expr="logMsg(evt,currentState,'duration='+duration)"/>
+			   <assign name="duration" expr="duration.toString()" />
+			   <assign name="duration" expr="getDurationInSeconds(duration)" />
+			   <!--<assign name="duration" expr="duration.substring(0,duration.length-4)" />-->
+			   <log expr="logMsg(evt,currentState,'duration='+duration)"/>
+			</if>
+			
+			
+			<assign name="answeringmachine" expr="evt.values.answeringmachine" />
+			
+			<if cond="answeringmachine == 'true'">
+                <assign name="etat" expr="'ANSWERINGMACHINE'" />               
+            </if>
+			
+			<log expr="logMsg(evt,currentState,'callid='+callid)"/>			
+			<log expr="logMsg(evt,currentState,'menu1='+menu1)"/>
+			<log expr="logMsg(evt,currentState,'menu2='+menu2)"/>
+			<log expr="logMsg(evt,currentState,'menu3='+menu3)"/>
+			<log expr="logMsg(evt,currentState,'etat='+etat)"/>
+			<log expr="logMsg(evt,currentState,'duration='+duration)"/>
+				
+			<!-- ****** go to mode.send ****** -->
+			<assign name="currentState" expr="'finished'" />
+			<send target="idConCCXML" targettype="ccxml" data="'mode.send'"/>	
+		</transition>		
+			
+		<!-- 
+		   - Hangup during VoiceXML dialog
+		   - Dialog terminate
+		 -->		
+		<transition state="connected" event="connection.disconnected" name="evt">
+			<log expr="logMsg(evt,currentState,'Hangup during VoiceXML dialog')" />
+			<if cond="dialstarted == 'true'">
+				<dialogterminate dialogid="dialogIdVXML" immediate="true" />
+			<else />
+				<assign name="currentState" expr="'finished'" />
+				<send target="idConCCXML" targettype="ccxml" data="'mode.send'"/>
+			</if>
+		</transition>
+		
+				
+		<!-- ****** currentState : connection.signal ****** -->
+		<!-- Detect signal -->
+		
+		<transition event="connection.signal" name="evt">
+				<log expr="logMsg(evt,currentState,'DTMF '+evt.info.value+' catched')" />
+		</transition>
+		
+		<!-- **********************************************-->
+		<!-- ****** currentState : finished 	****** -->
+		<!-- **********************************************-->
+		
+		<!-- 
+		   - connection disconnect
+		 -->				
+				
+		<transition state="finished" event="connection.disconnected" name="evt">
+			<log expr="logMsg(evt,currentState,'...')" />
+      <if cond="evt.connectionid == outConnectionId">
+        <log expr="logMsg(evt,currentState,'disconnect inConnectionId')" />
+				<assign name="outConnectionId" expr="'null'" />
+      <else/>
+        <assign name="inConnectionId" expr="'null'" />
+      </if>
+      <send target="idConCCXML" targettype="ccxml" data="'mode.send'"/>
+		</transition>		
+
+		
+		<!-- 
+		   - Send
+		 -->
+         <transition state="finished" event="mode.send" name="evt">
+			<log expr="logMsg(evt,currentState,'Send basichttp AS CampagneAppel/modifier')" />
+			<assign name="currentState" expr="'lastfinished'" />
+			
+			
+		    <send data="" targettype="'basichttp'" target="urlReponse" namelist="callid etat menu1 menu2 menu3 duration"/>
+		</transition>
+	
+		
+		<!-- 
+		   - Sending made, 
+		 -->
+		<transition state="finished" event="send.successful" name="evt">
+			
+				<log expr="logMsg(evt,currentState,'Send Ok')" />
+				
+			
+		</transition>
+
+		<!-- 
+		   - Sending error,
+		 -->
+		<transition state="finished" event="error.send.*" name="evt">
+		
+			<log expr="logErr(evt,currentState,' error send requete AS modifier')" />
+			
+			
+		</transition>
+   
+        <!-- **********************************************-->
+		<!-- ****** currentState : lastfinished 	****** -->
+		<!-- **********************************************-->	
+
+		<!-- 
+		   - Sending made
+		 -->
+		
+         <transition state="lastfinished" event="send.successful" name="evt">
+			<log expr="logMsg(evt,currentState,' Send Ok')" />
+				<log expr="logMsg(evt,currentState,'The End')" />
+				<exit />
+			
+		</transition>
+   
+   
+   
+		<!-- 
+		   - Sending error
+		 -->
+		<transition state="lastfinished" event="error.send.*" name="evt">
+		
+			<log expr="logErr(evt,' Last send KO')" />
+			<log expr="logMsg(evt,currentState,'The End')" />
+			<exit />
+			
+		</transition>
+		
+        
+		
+
+		<!-- ****** Errors ****** -->
+		<!-- 
+		   - error.ccxml
+		 -->
+		<transition event="error.ccxml" name="evt">
+			<assign name="anotherError" expr="'VXML not valid'" />
+			<log expr="logErr(evt,currentState,'error.ccxml')" />
+			<assign name="currentState" expr="'finished'" />
+			<send target="idConCCXML" targettype="ccxml" data="'mode.send'"/>			
+			
+		</transition>
+				
+		<transition event="error.connection" name="evt">
+			<assign name="anotherError" expr="evt.reason" />
+			<log expr="logErr(evt,currentState,'error.connection')" />
+			<assign name="currentState" expr="'finished'" />
+			<send target="idConCCXML" targettype="ccxml" data="'mode.send'"/>			
+		</transition>
+		
+		<transition event="error.notallowed" name="evt">
+			<assign name="anotherError" expr="evt.reason" />
+			<log expr="logErr(evt,currentState,'Erreur notallowed')" />
+			<assign name="currentState" expr="'finished'" />
+			<send target="idConCCXML" targettype="ccxml" data="'mode.send'"/>
+		</transition>
+
+		<!-- 
+		   - error dialog générée
+		 -->
+		<transition event="dialog.error" name="evt">
+			<log expr="logMsg(evt,currentState,'Erreur dialog.error ...')" />
+			<assign name="anotherError" expr="evt.reason" />
+			<log expr="logErr(evt,currentState,'dialog.error')" />
+			<assign name="currentState" expr="'finished'" />
+			<send target="idConCCXML" targettype="ccxml" data="'mode.send'"/>			
+		</transition>
+
+		<!-- 
+		   - error dialog générée
+		 -->
+		<transition event="dialog.*" name="evt">
+			<log expr="logMsg(evt,currentState,'Erreur dialog ...')" />
+			<assign name="anotherError" expr="evt.reason" />
+			<log expr="logErr(evt,currentState,'Erreur dialog')" />
+			<assign name="currentState" expr="'finished'" />
+			<send target="idConCCXML" targettype="ccxml" data="'mode.send'"/>			
+		</transition>
+
+		<!-- 
+		   - Miscellaneous error cases
+		 -->		
+		<transition event="error.*" name="evt">
+			<log expr="logErr(evt,currentState,Erreur non traitee')" />
+			<exit />
+		</transition>
+	</eventprocessor>
+</ccxml>
