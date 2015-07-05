@@ -26,9 +26,9 @@ import com.google.gson.JsonObject;
 
 public class OmsService extends WebSocketServer {
 
-	protected static HashMap<WebSocket, OmsCall> calls = null;
-	protected static HashMap<WebSocket, OmsClientSvi> clientsSvi = null;
-	protected static HashMap<String, WebSocket> annuaire = null;
+	private static HashMap<WebSocket, OmsCall> calls = null;
+	private static HashMap<WebSocket, OmsClientSvi> clientsSvi = null;
+	private static HashMap<String, WebSocket> annuaire = null;
 	private boolean bool;
 	
 	private static Logger logger = Logger.getLogger(OmsService.class);
@@ -52,46 +52,33 @@ public class OmsService extends WebSocketServer {
 		annuaire = new HashMap<String, WebSocket>();
 	}
 
-	@Override
-	public void onMessage( WebSocket conn, String message ) {
-		System.out.println("Reception : " + conn.getRemoteSocketAddress().getAddress().getHostAddress() 
-				+ " : " + message );
-		
-		OmsCall call = calls.get(conn);		
-		//if(message.indexOf("disconnect") != -1)
-			//call.setHasClientPressDisc(true);
-		
-		OmsMessageEvent msgEvent = new OmsMessageEvent(call, message);
-		Iterator<OmsMessageListener> i = _listeners.iterator();
-		while(i.hasNext())  {
-			((OmsMessageListener) i.next()).omsMessagePerformed(msgEvent);
-		}
-		
-		/*OmsClientSvi omsClientSvi = clientsSvi.get(conn);
-		OmsMessageEvent msgEvent2 = new OmsMessageEvent(omsClientSvi, message);
-		Iterator<OmsMessageListener> i2 = _listeners.iterator();
-		while(i2.hasNext())  {
-			((OmsMessageListener) i2.next()).omsMessagePerformed(msgEvent2);
-		}*/
-	}
 
 	@Override
 	public void onOpen( WebSocket conn, ClientHandshake handshake ) {
 		
 		String ipAddress = conn.getRemoteSocketAddress().getAddress().getHostAddress();
 		logger.info("NOUVEAU CLIENT: " + ipAddress);
-		//logger.info("NOUVEAU CLIENT SVI: " + ipAddress);	
 		
 		// Arrivee d'un appel. On ne connait que conn
 		// On instancie un OmsCall et on le stocke dans la table des OmsCall
 		OmsCall call = new OmsCall(conn, ipAddress);
 		calls.put(conn, call);
+	}
+
+	@Override
+	public void onMessage( WebSocket conn, String message ) {
+		System.out.println("Reception : " + conn.getRemoteSocketAddress().getAddress().getHostAddress() 
+				+ " : " + message );
 		
-		//OmsClientSvi clientSvi = new OmsClientSvi(conn, ipAddress,"1", "723", "null");		
-		//String paramNavigation = NavigationManager.getInstance().getRacineSvc(clientSvi.getService());
-		//clientSvi.setNavCourante(paramNavigation);
+		OmsCall call = calls.get(conn);		
+		if(message.indexOf("disconnect") != -1)
+			call.setHasClientPressDisc(true);
 		
-		//clientsSvi.put(conn, clientSvi);
+		OmsMessageEvent msgEvent = new OmsMessageEvent(call, message);
+		Iterator<OmsMessageListener> i = _listeners.iterator();
+		while(i.hasNext())  {
+			((OmsMessageListener) i.next()).omsMessagePerformed(msgEvent);
+		}
 	}
 
 	@Override
@@ -100,12 +87,11 @@ public class OmsService extends WebSocketServer {
 				+ conn.getRemoteSocketAddress().getAddress().getHostAddress());
 		
 		// Quand un client se deconnecte, on detruit tout ce qui lui appartient
-		//OmsCall call = calls.get(conn);
-		//call.setHasClientPressDisc(false);
-		//bool = call.getHasClientPressDisc();
+		OmsCall call = calls.get(conn);
+		bool = call.getHasClientPressDisc();
 		
-		//if(!bool){
-			/*JsonObject json = new JsonObject();
+		if(!bool){
+			JsonObject json = new JsonObject();
 			json.addProperty("cmd", "disconnect");
 			json.addProperty("param", call.getUserName());
 			String message = json.toString();
@@ -114,13 +100,10 @@ public class OmsService extends WebSocketServer {
 			Iterator<OmsMessageListener> i = _listeners.iterator();
 			while(i.hasNext())  {
 				((OmsMessageListener) i.next()).omsMessagePerformed(msgEvent);
-			}	*/	
-		//}
-		//calls.remove(conn);
-		//conn.close();
-		
-		//OmsClientSvi omsClientSvi = clientsSvi.get(conn);
-		clientsSvi.remove(conn);
+			}	
+		}
+
+		calls.remove(conn);
 		conn.close();
 	}
 

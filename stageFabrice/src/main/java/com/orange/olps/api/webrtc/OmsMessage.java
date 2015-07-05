@@ -107,33 +107,6 @@ public class OmsMessage {
 		return cmdParam.getParam();
 	}
 	
-	
-	/*private List<OmsMessageListener> listenersArray = new ArrayList<OmsMessageListener>();
-	
-	public synchronized void addOmsMessageListener(OmsMessageListener msgListener){
-		
-		listenersArray.add(msgListener);		
-	}
-	
-	public synchronized void removeOmsMessageListener(OmsMessageListener msgListener){
-		
-		listenersArray.remove(msgListener);
-	}
-	
-	
-	public synchronized void fireEvent(OmsCall call, String msg) throws OmsException{
-		
-		OmsMessageListener msgLis = null;
-		OmsMessageEvent msgEvt = new OmsMessageEvent(call, msg);
-		Iterator<OmsMessageListener> iter = listenersArray.iterator();
-		
-		while(iter.hasNext()){
-			
-			msgLis = iter.next();
-			msgLis.omsMessagePerformed(msgEvt);
-		}
-	}*/
-	
 }
 
 class Msg {

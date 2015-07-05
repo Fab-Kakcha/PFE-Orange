@@ -31,7 +31,6 @@ import org.java_websocket.WebSocket;
 public class OmsCall extends Thread {
 
 	
-
 	private static Logger logger = Logger.getLogger(OmsCall.class);
 
 	private VipConnexion connOMS = null;
@@ -50,30 +49,15 @@ public class OmsCall extends Thread {
 	private String confName = null;
 	private String userName = null;
 	private String exConfName = null;
-	private boolean hasClientPressDisc = true;
+	private boolean hasClientPressDisc = false;
 	private boolean hasCreatedConf = false;
 	
 	//private String filePath = "C:\\opt\\infosOnConferences.log";
 	//private List<WebSocket> listOfPeopleCalled = new ArrayList<WebSocket>();
 	
-	private ConferenceParameters conferenceParam;
-	private String[] hosPortVip;
+	private ConferenceParameters conferenceParam = null;
+	private String[] hosPortVip = null;
 	
-	
-	private void setExConfName(String exConfName){
-		this.exConfName = exConfName;
-	}
-	
-	private String getExConfName(){
-		return this.exConfName;
-	}
-	
-	/**
-	 * 
-	 */
-	public OmsCall() {
-		super();
-	}
 
 	/**
 	 * To set the Browser or client websocket and IP address
@@ -84,7 +68,6 @@ public class OmsCall extends Thread {
 		 
 		this.conn = conn;
 		this.ipAddress = ipAddress;
-		hasClientPressDisc = false;
 		this.start();
 	}
 	
@@ -106,66 +89,15 @@ public class OmsCall extends Thread {
 			//String respInfo = this.connOMS.getReponse("info ocam");
 			String respWebrtcCreation = this.connOMS.getReponse("new mt1 webrtc");
 			
-			if (respWebrtcCreation.equals("OK")) {
+			if(respWebrtcCreation.equals("OK")) {
 				this.connOMS.getReponse("mt1 setparam escape_sdp_newline=true");
-			} else 
+			}else 
 				throw new OmsException("Error: Cannot create rvi webrtc "+ respWebrtcCreation);	
 			
 			isRviWebrtcExist = true;
 		}		
 	}
 	
-	/**
-	 * 
-	 * @param sdpOfferReceived
-	 *            is the sdp received from OMS. Its contains unexpected characters "\\"
-	 * @return OMS's sdp is return without unexpected character
-	 * @throws IOException
-	 */
-	private String toSdpOms(String sdpOfferReceived) {
-
-		StringTokenizer str = new StringTokenizer(sdpOfferReceived,"\"");
-		str.nextToken();
-		String sdpOms = str.nextToken().replaceAll("\\\\n","\\n").replaceAll("\\\\r","\\r");
-
-		return sdpOms;
-	}
-
-	/**
-	 * 
-	 * @param sdpOms is OMS sdp
-	 * @param type is either "offer" or "answer"
-	 * @return OMS's sdp is adapted to a form that a Browser can recognize
-	 */
-	private String toSdpBrowser(String sdpOms, String type) {
-
-		String sdpToReturn = "{\"sdp\":{\"type\":\"" + type + "\",\"sdp\":\"" + sdpOms.substring(12) + "\"}}";
-
-		return sdpToReturn;
-	}
-	
-	private Sdp sdpAnswer(String rviWebrtc, String sdpNav) throws OmsException {
-
-			Sdp sdp = new Sdp();
-
-			String sdpRequest = this.getVipConnexion().getReponse(rviWebrtc +
-					" generate type=answer \"content=" + sdpNav + "\"");
-			if (sdpRequest.equals("OK")) {
-
-				String respSdpAnswer = connOMS.getReponse("wait evt="+ rviWebrtc +".answered");
-				if(!respSdpAnswer.startsWith("OK"))
-					throw new OmsException("cmd wait evt answered failed ");
-				
-				logger.info(respSdpAnswer);
-				String sdpOms = toSdpOms(respSdpAnswer);
-				String sdpBrowser = toSdpBrowser(sdpOms, "answer");
-				sdp.setSdp(sdpBrowser);
-				sdp.setType("answer");
-			} else
-				throw new OmsException("cmd " + rviWebrtc + " generate type=answer failed "+ sdpRequest);
-
-			return sdp;
-	}
 	
 	/**
 	 * To synthesize a message
@@ -203,13 +135,12 @@ public class OmsCall extends Thread {
 		if (!respSay.equals("OK"))
 			throw new OmsException("Cannot send cmd say to OMS " + respSay);	
 		
-		/*if(!interrupt){			
+		if(!interrupt){			
 			String resp = connOMS.getReponse("wait evt=mt1.starving");
 			if(!resp.startsWith("OK")){
 				System.out.println("cmd wait evt=mt1.starving failed: " + resp);
 			}
-		}*/
-
+		}
 	}
 	
 	/**
@@ -247,27 +178,12 @@ public class OmsCall extends Thread {
 		if (!respPlay.equals("OK"))
 			throw new OmsException("Cannot execute cmd play file " + respPlay);
 		
-		/*if(!interrupt){		
+		if(!interrupt){		
 			String resp = connOMS.getReponse("wait evt=mt1.starving");
 			if(!resp.startsWith("OK")){
 				System.out.println("cmd wait evt=mt1.starving failed: " + resp);
 			}
-		}*/		
-	}
-	
-	/**
-	 * To wait until the audio file is entirely read to the user
-	 * @throws OmsException
-	 */
-	public void starve() throws OmsException{
-		
-		if(isRviWebrtcExist){
-			
-			String resp = connOMS.getReponse("wait evt=mt1.starving");
-			if(!resp.startsWith("OK"))
-				throw new OmsException("cmd wait evt=mt1.starving failed: " + resp);			
-		}else
-			throw new OmsException("Cannot starve: rvi webrtc doesn't exist");
+		}
 	}
 	
 	
@@ -287,9 +203,7 @@ public class OmsCall extends Thread {
 		
 		String enreg = this.connOMS.getReponse("e start "+ filePathEnreg);//Start the recording into the file
 		if(!enreg.equals("OK"))
-			throw new OmsException("cannot create an rvi enreg:" + enreg);
-		
-		//e stop to stop the recording
+			throw new OmsException("cannot create an rvi enreg:" + enreg);		
 	}
 	
 
@@ -348,70 +262,6 @@ public class OmsCall extends Thread {
 
 		return rviStatus;
 	}
-
-	/**
-	 * Deleting all rvi resources created. When a call was made, its deletes for the callee's rvi as well
-	 * @throws OmsException
-	 */
-	
-	private void delResources() throws OmsException{
-			
-		//int i;
-		//int num = this.getNbOfClientConnected();
-		int num =1;
-		
-		/*if(this.getIsCaller()){
-			
-			OmsCall call = null;
-			Iterator<OmsCall> iter = this.listOmsCall.iterator();
-			
-			while(iter.hasNext()){			
-				call = iter.next();
-				call.getWebSocket().send("logout");
-			}
-			
-		  for(i=1 ; i <= num ; i++){
-			
-			String delRviWebrtc = this.connOMS.getReponse("delete mt" + i);
-			if (delRviWebrtc.equals("OK"))
-				this.connOMS.getReponse("wait evt=mt"+ i +".mediadisconnected");
-			else
-				throw new OmsException("Error cannot delete webrtc rvi mt"+ i +": "+ delRviWebrtc);
-			
-			String delRviSyn = this.connOMS.getReponse("delete s" + i);
-			if(!delRviSyn.equals("OK"))
-				throw new OmsException("Error cannot delete synt rvi s " + delRviSyn);
-		  }
-		
-			if(isRviEnregExist){
-			
-				String delRviEnreg = this.connOMS.getReponse("delete e");
-				if(!delRviEnreg.equals("OK"))
-					throw new OmsException(" Error cannot delete enreg rvi " + delRviEnreg);			
-			}
-		
-		}else if(this.getIsCallee()){*/
-			
-			if(isRviWebrtcExist){
-				String delRviWebrtc = this.getVipConnexion().getReponse("delete mt" + num);
-				if (delRviWebrtc.equals("OK"))
-					this.getVipConnexion().getReponse("wait evt=mt"+ num +".mediadisconnected");
-				else
-					throw new OmsException("Error cannot delete webrtc rvi mt"+ num +": "+ delRviWebrtc);			
-			}
-					
-			if(isRviSyntExist){
-				String delRviSyn = this.getVipConnexion().getReponse("delete s" + num);
-				if(!delRviSyn.equals("OK"))
-					throw new OmsException("Error cannot delete synt rvi s " + delRviSyn);				
-			}
-			if(isRviEnregExist){
-				String delRviEnreg = this.connOMS.getReponse("delete e");
-				if(!delRviEnreg.equals("OK"))
-					throw new OmsException(" Error cannot delete enreg rvi " + delRviEnreg);
-			}			
-		//}
-	}
 		
 	/**
 	 * To sleep the thread
@@ -444,8 +294,10 @@ public class OmsCall extends Thread {
 			throw new IllegalArgumentException("Argument OmsConference cannot be null");
 		
 		WebSocket calleeWs = callee.getWebSocket();
-		String userName = this.getUserName();	
-		calleeWs.send("incomingCall:"+userName);		
+		String userName = this.getUserName();
+		
+		if(calleeWs != null)
+			calleeWs.send("incomingCall:"+userName);		
 		
 		this.play("/opt/application/64poms/current/tmp/Ringback_Tone.a8k", true);
 		
@@ -471,19 +323,19 @@ public class OmsCall extends Thread {
 		if(caller == null)
 			throw new IllegalArgumentException("Argument OmsCall cannot be null");
 		if(conf == null)
-			throw new IllegalArgumentException("Argument Annuaire cannot be null");
-		else if(annuaire == null)
 			throw new IllegalArgumentException("Argument OmsConference cannot be null");
-				
-		
+		else if(annuaire == null)
+			throw new IllegalArgumentException("Argument Annuaire cannot be null");
+						
 		List<OmsCall> listOmsCallInConf = new ArrayList<OmsCall>();
 		HashMap<OmsCall, String> omsListOms = annuaire.getAnnuaire();
 		Set<OmsCall> listOms = omsListOms.keySet();
 		
 		WebSocket callerWs = caller.getWebSocket();
-		callerWs.send("answer:" + this.getUserName());
-		caller.setIsCaller(true);
+		if(callerWs != null)
+			callerWs.send("answer:" + this.getUserName());
 		
+		caller.setIsCaller(true);		
 		Random ran = new Random();
 		int randomNb = ran.nextInt();
 		
@@ -533,8 +385,7 @@ public class OmsCall extends Thread {
 						c = ite.next();
 						if (!c.equals(c2)){
 							
-							c.getWebSocket().send("showUserNameConnectedToOMS:" + userName
-									+ ":hangup");
+							c.getWebSocket().send("showUserNameConnectedToOMS:" + userName + ":hangup");
 						}														
 					}
 				}				
@@ -553,8 +404,9 @@ public class OmsCall extends Thread {
 			while(ite3.hasNext()){
 				
 				c = ite3.next();
-				conf.participantsStatus(c);
+				annuaire.participantsStatus(c.getUserName(), conf);
 			}
+			
 		}else
 			throw new OmsException("Cannot leave the conference, because you are not in a conference");
 	}
@@ -574,9 +426,9 @@ public class OmsCall extends Thread {
 		if(caller == null)
 			throw new IllegalArgumentException("Argument OmsCall cannot be null");
 		if(conf == null)
-			throw new IllegalArgumentException("Argument Annuaire cannot be null");
-		else if(annuaire == null)
 			throw new IllegalArgumentException("Argument OmsConference cannot be null");
+		else if(annuaire == null)
+			throw new IllegalArgumentException("Argument Annuaire cannot be null");
 		
 		HashMap<OmsCall, String> omsList = annuaire.getAnnuaire();
 		Set<OmsCall> listOms = omsList.keySet();
@@ -651,7 +503,7 @@ public class OmsCall extends Thread {
 		while(ite.hasNext()){
 			
 			c = ite.next();
-			conf.participantsStatus(c);
+			annuaire.participantsStatus(c.getUserName(), conf);
 		}			
 	}
 	
@@ -697,9 +549,9 @@ public class OmsCall extends Thread {
 		if(omsCall == null)
 			throw new IllegalArgumentException("Argument OmsCall cannot be null");
 		if(conf == null)
-			throw new IllegalArgumentException("Argument Annuaire cannot be null");
-		else if(annuaire == null)
 			throw new IllegalArgumentException("Argument OmsConference cannot be null");
+		else if(annuaire == null)
+			throw new IllegalArgumentException("Argument Annuaire cannot be null");
 		
 		List<OmsCall> listOmsCallInConf2 = new ArrayList<OmsCall>();
 		
@@ -772,7 +624,7 @@ public class OmsCall extends Thread {
 				
 				callee.setExConfName(null);
 				//conf.add(callee, conferenceParam);	
-				logger.info("Callee back in his conference");			
+				logger.info("Callee back in his former conference");			
 			}		
 			
 			if(caller.getExConfName() != null){
@@ -787,16 +639,8 @@ public class OmsCall extends Thread {
 			while(ite.hasNext()){
 				
 				c = ite.next();
-				conf.participantsStatus(c);
+				annuaire.participantsStatus(c.getUserName(), conf);
 			}	
-	}
-	
-	protected boolean getIsCaller(){
-		return isCaller;
-	}
-	
-	protected void setIsCaller(boolean bool){
-		isCaller = bool;;
 	}
 		
 	/**
@@ -854,6 +698,9 @@ public class OmsCall extends Thread {
 	
 	public void init(String sdp) throws OmsException{
 		
+		if(sdp == null)
+			throw new IllegalArgumentException("Argument cannot be null");
+		
 		Sdp sdpAnswer = this.sdpAnswer("mt1", sdp);
 		this.conn.send(sdpAnswer.getSdp());
 
@@ -876,14 +723,6 @@ public class OmsCall extends Thread {
 			vipConn.getSocket().close();
 		}					
 	}
-
-	protected void setVipConnexion(VipConnexion connOMS) {
-		this.connOMS = connOMS;
-	}
-
-	protected VipConnexion getVipConnexion() {
-		return this.connOMS;
-	}
 	
 	/**
 	 * To get the user websocket
@@ -902,23 +741,46 @@ public class OmsCall extends Thread {
 	}
 	
 	/**
-	 * To get OMS IP address and port
-	 * @return IP address and port of OMS
-	 */
-	protected String[] getHostPortVip(){
-		return hosPortVip;
-	}
-	
-	protected void setPartNumberConf(int num){	
-		partNumberConf = num;
-	}
-	
-	/**
 	 * To get the number for the user in the conference, which is also its unique identifier
 	 * @return user unique identifier in the conference
 	 */
 	public int getPartNumberConf(){	
 		return partNumberConf;
+	}
+	
+	/**
+	 * To get the conference name that the user has joined
+	 * @return
+	 */
+	public String getConfname(){	
+		return confName;
+	}
+	
+	/**
+	 * To get the client username
+	 * @return client username
+	 */
+	public String getUserName(){
+		return userName;
+	}
+	
+	/**
+	 * To wait until the audio file is entirely read to the user
+	 * @throws OmsException
+	 */
+	protected void starve() throws OmsException{
+		
+		if(isRviWebrtcExist){
+			
+			String resp = connOMS.getReponse("wait evt=mt1.starving");
+			if(!resp.startsWith("OK"))
+				throw new OmsException("cmd wait evt=mt1.starving failed: " + resp);			
+		}else
+			throw new OmsException("Cannot starve: rvi webrtc doesn't exist");
+	}
+	
+	protected void setUserName(String userName){
+		this.userName = userName;
 	}
 	
 	protected void setHasCreatedConf(boolean bool){
@@ -932,26 +794,34 @@ public class OmsCall extends Thread {
 	protected void setConfName(String conf){
 		confName = conf;
 	}
-	
+		
 	/**
-	 * To get the conference name that the user has joined
-	 * @return
+	 * To get OMS IP address and port
+	 * @return IP address and port of OMS
 	 */
-	public String getConfname(){	
-		return confName;
+	protected String[] getHostPortVip(){
+		return hosPortVip;
 	}
 	
-	protected void setUserName(String userName){
-		this.userName = userName;
+	protected void setPartNumberConf(int num){	
+		partNumberConf = num;
 	}
 	
-	/**
-	 * To get the client username
-	 * @return client username
-	 */
-	public String getUserName(){
-		return userName;
+	protected void setVipConnexion(VipConnexion connOMS) {
+		this.connOMS = connOMS;
 	}
+
+	protected VipConnexion getVipConnexion() {
+		return this.connOMS;
+	}	
+	
+	protected boolean getIsCaller(){
+		return isCaller;
+	}
+	
+	protected void setIsCaller(boolean bool){
+		isCaller = bool;;
+	}	
 	
 	/**
 	 * To dealt with the case where a Browser either clicks on the disconnect button or just close 
@@ -974,20 +844,149 @@ public class OmsCall extends Thread {
 	}
 	
 	
+	/**
+	 * Deleting all rvi resources created. When a call was made, its deletes for the callee's rvi as well
+	 * @throws OmsException
+	 */
+	
+	private void delResources() throws OmsException{
+			
+		//int i;
+		//int num = this.getNbOfClientConnected();
+		int num =1;
+		
+		/*if(this.getIsCaller()){
+			
+			OmsCall call = null;
+			Iterator<OmsCall> iter = this.listOmsCall.iterator();
+			
+			while(iter.hasNext()){			
+				call = iter.next();
+				call.getWebSocket().send("logout");
+			}
+			
+		  for(i=1 ; i <= num ; i++){
+			
+			String delRviWebrtc = this.connOMS.getReponse("delete mt" + i);
+			if (delRviWebrtc.equals("OK"))
+				this.connOMS.getReponse("wait evt=mt"+ i +".mediadisconnected");
+			else
+				throw new OmsException("Error cannot delete webrtc rvi mt"+ i +": "+ delRviWebrtc);
+			
+			String delRviSyn = this.connOMS.getReponse("delete s" + i);
+			if(!delRviSyn.equals("OK"))
+				throw new OmsException("Error cannot delete synt rvi s " + delRviSyn);
+		  }
+		
+			if(isRviEnregExist){
+			
+				String delRviEnreg = this.connOMS.getReponse("delete e");
+				if(!delRviEnreg.equals("OK"))
+					throw new OmsException(" Error cannot delete enreg rvi " + delRviEnreg);			
+			}
+		
+		}else if(this.getIsCallee()){*/
+			
+			if(isRviWebrtcExist){
+				String delRviWebrtc = this.getVipConnexion().getReponse("delete mt" + num);
+				if (delRviWebrtc.indexOf("OK") != -1){
+					
+					this.getVipConnexion().getReponse("wait evt=mt"+ num +".mediadisconnected");
+					isRviWebrtcExist = false;
+				}					
+				else
+					throw new OmsException("Error cannot delete webrtc rvi mt"+ num +": "+ delRviWebrtc);			
+			}
+					
+			if(isRviSyntExist){
+				String delRviSyn = this.getVipConnexion().getReponse("delete s" + num);
+				if(!delRviSyn.equals("OK"))				
+					throw new OmsException("Error cannot delete synt rvi s " + delRviSyn);								
+			
+				isRviSyntExist = false;
+			}
+			if(isRviEnregExist){
+				String delRviEnreg = this.connOMS.getReponse("delete e");
+				if(!delRviEnreg.equals("OK"))
+					throw new OmsException(" Error cannot delete enreg rvi " + delRviEnreg);
+				
+				isRviEnregExist = false;
+			}			
+		//}
+	}
+	
+	/**
+	 * 
+	 * @param sdpOfferReceived
+	 *            is the sdp received from OMS. Its contains unexpected characters "\\"
+	 * @return OMS's sdp is return without unexpected character
+	 * @throws IOException
+	 */
+	private String toSdpOms(String sdpOfferReceived) {
+
+		StringTokenizer str = new StringTokenizer(sdpOfferReceived,"\"");
+		str.nextToken();
+		String sdpOms = str.nextToken().replaceAll("\\\\n","\\n").replaceAll("\\\\r","\\r");
+
+		return sdpOms;
+	}
+
+	/**
+	 * 
+	 * @param sdpOms is OMS sdp
+	 * @param type is either "offer" or "answer"
+	 * @return OMS's sdp is adapted to a form that a Browser can recognize
+	 */
+	private String toSdpBrowser(String sdpOms, String type) {
+
+		String sdpToReturn = "{\"sdp\":{\"type\":\"" + type + "\",\"sdp\":\"" + sdpOms.substring(12) + "\"}}";
+
+		return sdpToReturn;
+	}
+	
+	private Sdp sdpAnswer(String rviWebrtc, String sdpNav) throws OmsException {
+
+			Sdp sdp = new Sdp();
+
+			String sdpRequest = this.getVipConnexion().getReponse(rviWebrtc +
+					" generate type=answer \"content=" + sdpNav + "\"");
+			if (sdpRequest.equals("OK")) {
+
+				String respSdpAnswer = connOMS.getReponse("wait evt="+ rviWebrtc +".answered");
+				if(!respSdpAnswer.startsWith("OK"))
+					throw new OmsException("cmd wait evt answered failed ");
+				
+				logger.info(respSdpAnswer);
+				String sdpOms = toSdpOms(respSdpAnswer);
+				String sdpBrowser = toSdpBrowser(sdpOms, "answer");
+				sdp.setSdp(sdpBrowser);
+				sdp.setType("answer");
+			} else
+				throw new OmsException("cmd " + rviWebrtc + " generate type=answer failed "+ sdpRequest);
+
+			return sdp;
+	}
+	
+	private void setExConfName(String exConfName){
+		this.exConfName = exConfName;
+	}
+	
+	private String getExConfName(){
+		return this.exConfName;
+	}
+	
 	/*public void setIsCaller(boolean isCaller){
 		this.isCaller = isCaller;
 	}
 	
 	public void setIsCallee(boolean isCallee){
 		this.isCallee = isCallee;
-	}*/
-	
+	}*/	
 
 	/*public boolean getIsCaller(){
 		return this.isCaller;
 	}
 	
-
 	public boolean getIsCallee(){
 		return this.isCallee;
 	}*/

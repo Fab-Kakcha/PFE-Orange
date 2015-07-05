@@ -3,9 +3,11 @@
  */
 package com.orange.olps.api.webrtc;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Set;
 
 import org.java_websocket.WebSocket;
@@ -219,6 +221,132 @@ public class Annuaire {
 		
 		return null;		
 	}
+		
+	
+	/**
+	 * To show the status of others users already in a conference, a "showUserNameConnectedToOMS:" message will
+	 * be sent to user given in parameters
+	 * @param omsCall user to send other users status
+	 * @throws OmsException
+	 */
+	public void participantsStatus(String userName, OmsConference conf) throws OmsException{
+		
+		HashMap<String, List<OmsCall>> annuaireForConference = conf.getAnnuaireForConference();	
+		Set<String> listCli = annuaireForConference.keySet();
+		Iterator<String> ite = listCli.iterator();
+		Iterator<OmsCall> ite1;
+		String name;
+		OmsCall c;
+		OmsCall omsCall = this.getOmsCall(userName);
+		
+		List<OmsCall> listUserName = new ArrayList<OmsCall>();
+			
+		if(conf.isClientJoined(omsCall)){
+			
+			while(ite.hasNext()){
+				
+				name = ite.next();
+				listUserName = annuaireForConference.get(name);
+				ite1 = listUserName.iterator();
+				
+				while(ite1.hasNext()){
+					
+					c = ite1.next();
+					if(!c.equals(omsCall))
+						omsCall.getWebSocket().send("showUserNameConnectedToOMS:" + c.getUserName());
+					//omsCall.getWebSocket().send("showUserNameConnectedToOMS:" + c.getUserName() + ":inConf");
+				}
+				
+			}			
+			
+		}else{
+			
+			while(ite.hasNext()){
+				
+				name = ite.next();
+				listUserName = annuaireForConference.get(name);
+				ite1 = listUserName.iterator();
+				
+				while(ite1.hasNext()){
+					
+					c = ite1.next();
+					//if(!c.equals(omsCall))
+						omsCall.getWebSocket().send("showUserNameConnectedToOMS:" + c.getUserName());
+					//omsCall.getWebSocket().send("showUserNameConnectedToOMS:" + c.getUserName() + ":inConf");
+				}
+				
+			}
+		}	
+	}
+	
+	
+	/**
+	 * To update the status of the user given in parameter to other users in the same conference, his status will 
+	 * be updated when he leaves the conference, and a "updateName" message will be sent to other users. The
+	 * method was useful for the service implemented on 13rd May 2015. 
+	 * @param omsCall user leaving the conference and whom the name is to be updated by other user in the same
+	 * conference 
+	 * @throws OmsException
+	 */
+	public void updateName(String userName, OmsConference conf) throws OmsException {
+		
+		if (userName == null)
+			throw new IllegalArgumentException("Argument String cannot be null");
+		else if(conf == null)
+			throw new IllegalArgumentException("Argument OmsConference cannot be null");
+
+		HashMap<String, List<OmsCall>> annuaireForConference = conf.getAnnuaireForConference();	
+		OmsCall omsCall = this.getOmsCall(userName);
+		String confName = omsCall.getConfname();
+		
+		if (confName != null){
+			
+			boolean bool = annuaireForConference.containsKey(confName);
+			if (!bool)
+				throw new OmsException("The conference name for the OmsCall is unknown: "+ confName);
+			
+			List<OmsCall> listOmsCallInConf = annuaireForConference.get(confName);
+			if (listOmsCallInConf.isEmpty())
+				throw new OmsException("Cannot delete the participant. Nobody in the conference");
+			
+			ArrayList<OmsCall> clonedList = new ArrayList<OmsCall>();
+			ArrayList<OmsCall> clonedList2 = new ArrayList<OmsCall>();
+			clonedList.addAll(listOmsCallInConf);
+			clonedList2.addAll(listOmsCallInConf);
+			
+			Iterator<OmsCall> ite2 = clonedList.iterator();	
+			Iterator<OmsCall> ite3;		
+			OmsCall c2, c3;
+			
+			while (ite2.hasNext()) {
+				c2 = ite2.next();	
+				ite3 = clonedList2.iterator();
+				
+				if(!omsCall.equals(c2)){
+					c2.getWebSocket().send("updateName:" + omsCall.getUserName()+":leftConf");
+					
+					while(ite3.hasNext()){
+						c3 = ite3.next();
+						if(!c3.equals(c2))						
+								if(!c3.equals(omsCall))
+									c2.getWebSocket().send("updateName:" + c3.getUserName());													
+					}
+					
+				}else{
+					
+					while(ite3.hasNext()){
+						c3 = ite3.next();					
+						if(!c3.equals(c2))	{
+							
+							c2.getWebSocket().send("deleteUserNameInConf::" + c3.getUserName());
+							c2.getWebSocket().send("updateName:" + c3.getUserName()+":iClickedAndLeft");
+						}														
+					}
+				}						
+			}			
+		}					
+	}
+	
 		
 	/**
 	 * To get the annuaire containing all clients connected to OMS

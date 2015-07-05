@@ -2,12 +2,16 @@ package com.orange.olps.api.sip;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.apache.log4j.Logger;
 
 public class OmsCallSip extends Thread {
 
 	private static Logger logger = Logger.getLogger(OmsCallSip.class);
+	private static Pattern pat = Pattern.compile("value=\"([^\\s/>]+)");
+	
 	private VipConnexion connOMS = null;
 	private boolean isRviSyntExist = false;
 	private boolean isRviEnregExist = false;
@@ -181,6 +185,20 @@ public class OmsCallSip extends Thread {
 		
 		if(respWaitEvent.indexOf("OK") == -1)
 			throw new OmsException("connected evt failed: " + respWaitEvent);
+		
+		
+		String respInfoEvt = connOMS.getReponse("wait evt=t1.info");
+		if(respInfoEvt.indexOf("OK") == -1)
+			throw new OmsException("wait evt=t1.info failed: " + respInfoEvt);
+		
+		Matcher mat = pat.matcher(respInfoEvt);
+		
+		do{
+			
+			logger.info(mat.group());
+			
+		}while(mat.find());
+		
 	}
 	
 	/**
@@ -657,8 +675,7 @@ public class OmsCallSip extends Thread {
 			}
 		}
 		
-		logger.info("rvi media port: "+ port);
-		
+		logger.info("rvi media port: "+ port);		
 		String respDial = connOMS.getReponse("t"+callNum+" dial sig=to=sip:"+number+"@"+ipAddress+" "
 				+ "\"media=ip="+ getOmsIpAddress()+" aport="+port+"\"");
 		if(respDial.indexOf("OK") == -1)
@@ -749,7 +766,6 @@ public class OmsCallSip extends Thread {
 				System.out.println("cmd wait evt=mt1.starving failed: " + resp);
 			}
 		}
-
 	}
 	
 	/**
