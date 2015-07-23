@@ -18,7 +18,6 @@ import orange.olps.svi.util.Util;
 
 import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
-
 import com.orange.olps.api.webrtc.*;
 
 
@@ -61,7 +60,7 @@ public class MonServiceSvi extends OmsService implements OmsMessageListener {
 	private Annuaire annuaire;	
 	private int actionNavigation;
 	ArrayList<String> tabPrompt;
-	String a8kFile;
+	private String a8kFile;
 	
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub

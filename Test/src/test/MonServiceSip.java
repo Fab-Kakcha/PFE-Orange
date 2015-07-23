@@ -6,6 +6,8 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Properties;
 import java.util.Scanner;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
@@ -15,9 +17,10 @@ import com.orange.olps.api.sip.*;
 public class MonServiceSip extends OmsServiceSip implements OmsDtmfListener{
 	
 	private static Logger logger = Logger.getLogger(MonServiceSip.class);
+	private static Pattern pat = Pattern.compile("value=([^/>]+)");
 	private static final String osName = System.getProperty("os.name").toLowerCase();
 	//private static String ipAddress = "10.184.50.176"; //Ihda's IP address
-	private static final String ipAddress = "10.184.49.124"; //Laptop's IP address
+	private static final String ipAddress = "10.184.176.1"; //Laptop's IP address
 	private static String filePath = "/opt/application/64poms/current/tmp/recordingSip.a8k";
 	
 	private static final String DEFAULT_OMS_HOST = "127.0.0.1";
@@ -25,7 +28,7 @@ public class MonServiceSip extends OmsServiceSip implements OmsDtmfListener{
 	private static final String DEFAULT_WS_PORT = "8887";
 	private static final String DEFAULT_CONF_PORT = "10000";
 	private static String WEBRTC_CONF = "/opt/testlab/utils/stageFabrice/src/main/java/";
-	//private static String WEBRTC_CONF = "C:\\Users\\JWPN9644\\opt\\application\\64poms\\current\\conf\\";
+	//private static String WEBRTC_CONF = "/users/ad64poms/testlab/utils/stageFabrice/src/main/java/";
 	private static String hostVip = "127.0.0.1";
 	private static String portVip = "4670000";
 	private static String portVipConf = "10000";
@@ -37,6 +40,9 @@ public class MonServiceSip extends OmsServiceSip implements OmsDtmfListener{
 	private static OmsConference omsConference;
 	private String pathVideoFile = "/opt/application/64poms/current/tmp/recordedVideo.h264";
 	private static int num = 1;
+	private static String a8kFile;
+	private String prompt;
+	private Matcher mat;
 	
 	public static void main(String[] args) {
 		
@@ -89,13 +95,15 @@ public class MonServiceSip extends OmsServiceSip implements OmsDtmfListener{
 		try {
 						
 			MonServiceSip[] monsServiceSip = new MonServiceSip[num];
-			String service = "call";	
+			String service = "svaip";  //Available services: conf, call and svaip	
 			
 			for(int i=0; i<num ; i++){
-				
+								
 				monsServiceSip[i] = new MonServiceSip("Thread #"+i, hostVip, portVip, service);
 				monsServiceSip[i].start();
 			}
+			
+			a8kFile = System.getenv("A8KFILES");
 			
 			if(service.equals("conf"))
 				omsConference = new OmsConference(hostVip, portVipConf);
@@ -143,65 +151,82 @@ public class MonServiceSip extends OmsServiceSip implements OmsDtmfListener{
 		try {
 			switch (dtmf) {
 			case "newCall":	
-				
+								
 				omsCallSip.say("Bienvenue sur OMS", false);
 				omsCallSip.say("Pour ecouter un fichier audio tapez 1", false);
 				//omsCallSip.say("Pour un enregistrement vocal tapez 2", false);
 				//omsCallSip.say("Pour finir l'enregistrement vocal tapez 3", false);
-				//omsCallSip.say("Pour quitter tapez #", false);
+				omsCallSip.say("Pour quitter tapez #", false);
+				
 				break;
 			case "newConf":		
 				
 				String conferenceName = omsCallSip.getConfname();
 				
 				omsCallSip.say("Bienvenue sur la conference", false);
-				omsCallSip.say("Taper 1 pour l'enregistrement", false);
-				omsCallSip.say("Taper 2 pour arreter l'enregistrement", false);
-				omsCallSip.say("Taper 3 pour mute", false);
+				//omsCallSip.say("Taper 1 pour l'enregistrement", false);
+				//omsCallSip.say("Taper 2 pour arreter l'enregistrement", false);
+				//omsCallSip.say("Taper 3 pour mute", false);
 												
 				boolean bool = omsConference.status(conferenceName);				
 				if(!bool)
 				   omsConference.create(omsCallSip, conferenceName);
 				else 
 				   omsConference.add(omsCallSip, conferenceName);
+				   
+				//while(true);
 				break;
 			case "1":
-				omsCallSip.say("Vous avez tapez 1", false);
-				omsCallSip.play(filePath, false);
+				//omsCallSip.say("Vous avez tapez 1", false);
+				//omsCallSip.play(filePath, false);
 				//omsConference.startRecording(omsCallSip);
 				break;
 			case "2":
-				omsCallSip.say("Vous avez tapez 2", false);				
-				omsCallSip.enreg(filePath);
+				//omsCallSip.say("Vous avez tapez " + dtmf, false);				
+				//omsCallSip.enreg(filePath);
 				//omsConference.stopRecording(omsCallSip.getConfname());
 				break;
 			case "3":
-				omsCallSip.say("Vous avez tapez 3", false);
-				omsCallSip.stopEnreg();
+				//omsCallSip.say("Vous avez tapez " + dtmf, false);
+				//omsCallSip.stopEnreg();
 				//omsConference.mute(omsCallSip);
 				break;
 			case "4":
-				//omsConference.unmute(omsCallSip);
+				omsConference.mute(omsCallSip);
 				break;
 			case "5":
 				//omsConference.playRecording(omsCallSip);
-				omsCallSip.videoRecording(pathVideoFile);
+				omsConference.unmute(omsCallSip);
 				break;
 			case "6":
 				String digitArray = "003365353535";
 				//String digitArray = "";
-				omsCallSip.say("Vous avez tapez 4", false);
-				omsCallSip.say("Entrez un numero s'il vous plait. Faite * pour finir",false);
+				//omsCallSip.say("Vous avez tapez "+ dtmf, false);
+				//omsCallSip.say("Entrez un numero s'il vous plait. Faite * pour finir",false);
 				
-				/*do {
+				do {
 					dtmf = omsCallSip.dtmf();
 					if (!dtmf.equals("*"))
 						digitArray = digitArray + dtmf;
 
-				} while (!dtmf.equals("*"));*/
+				} while (!dtmf.equals("*"));
 				 
-				digitArray = "0678";
-				omsCallSip.call(digitArray, ipAddress);				
+				digitArray = "530256";
+				//omsCallSip.call(digitArray, ipAddress);
+				
+				bool = omsConference.status("conf1");				
+				if(!bool)
+				   omsConference.create(omsCallSip, "conf1"); 
+				else
+					omsConference.add(omsCallSip, "conf1"); 
+				
+				//omsConference.create(omsCallSip, "conf1");
+				
+				OmsCallSip sipCall = omsCallSip.call1(digitArray, ipAddress);
+				sipCall.say("Bienvenu, vous allez entrer dans un conferencee", false);
+				
+				omsConference.add(sipCall, "conf1");
+				
 				break;
 			case "#":
 				//omsCallSip.say("Vous avez tapez #", false);
@@ -215,8 +240,11 @@ public class MonServiceSip extends OmsServiceSip implements OmsDtmfListener{
 			case "newThread":
 				new MonServiceSip(this.getName(), this.getService()).start();
 				break;
+			case "*":		
+				
+				break;
 			default:
-				omsCallSip.say("Touche inconnue", false);
+				omsCallSip.say("Touche inconnue", false);				
 				break;
 			}
 		} catch (OmsException | IOException e) {

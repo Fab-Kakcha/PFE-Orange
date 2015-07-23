@@ -37,7 +37,7 @@ public class OmsConferenceTest {
 	public void initialiser() throws OmsException, IOException{
 			
 		omsConference = new OmsConference("10.184.48.159","10000");	
-		omsCall = new OmsCall();
+		omsCall = new OmsCall(null, null);
 		omsCall.connect("10.184.48.159","2470");
 	}
 	
@@ -66,21 +66,6 @@ public class OmsConferenceTest {
 		try {
 			String param = "t:speaker:conf1";
 			omsConference.create(omsCall, param);
-		} catch (OmsException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-	}
-
-
-	@Test(expected=OmsException.class)
-	public void testAdd() {
-			
-		try {
-			String param = "t:speaker:conf1";
-			omsConference.create(omsCall, param);
-			omsCall.setConfName("conf1");
-			omsConference.add(omsCall, param);
 		} catch (OmsException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

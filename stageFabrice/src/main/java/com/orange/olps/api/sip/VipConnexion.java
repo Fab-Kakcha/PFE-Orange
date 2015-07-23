@@ -49,14 +49,18 @@ public class VipConnexion extends Connexion {
 	}
 	
 	public String getReponse(String question) throws OmsException {
-
+		
+		//logger.info("Before printing: " + question);
 		out.println(question);
+		//logger.info("After printing: " + question);
 		out.flush();
 
 		String recu = null;
 		try {
+			
 			recu = in.readLine();
 			while (in.ready()) {
+				
 				String suite = in.readLine();
 				try {
 					if ( ! suite.equals("")) System.out.println(suite);

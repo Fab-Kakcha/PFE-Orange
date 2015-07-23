@@ -129,19 +129,26 @@ public class OmsServiceSip extends Thread{
 			if(service.equals("call")){
 				
 				logger.info("Start listening for incoming voice calls: ");
-				omsCallSip.listen();
+				omsCallSip.listen(service);
 				newCall(omsCallSip, "newCall");
+				newDtmf(omsCallSip);
+				//newDtmf(omsCallSip);
 				
 			}else if(service.equals("conf")){
 				
 				logger.info("Start listening for incoming conference calls: ");
-				omsCallSip.listenConf();
+				omsCallSip.listen(service);
 				newCall(omsCallSip,"newConf");
+				newDtmf(omsCallSip);
+				
+			}else if(service.equals("svaip")){
+				
+				logger.info("Start listening for incoming svaip calls: ");
+				omsCallSip.listen(service);
+				newCall(omsCallSip,"newSvaip");
+				//newDtmf(omsCallSip);
 			}
-						
-			newDtmf(omsCallSip);
-			
-			
+					
 		} catch (OmsException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

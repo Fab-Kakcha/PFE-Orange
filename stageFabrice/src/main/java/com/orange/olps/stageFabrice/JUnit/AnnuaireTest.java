@@ -30,7 +30,7 @@ public static void main(String[] args){
 	@Before
 	public void setUp() throws Exception {
 		annuaire = new Annuaire();
-		omsCall = new OmsCall();
+		omsCall = new OmsCall(null, null);
 	}
 
 	@After

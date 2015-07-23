@@ -13,6 +13,8 @@ import java.util.List;
 import java.util.Random;
 import java.util.Set;
 import java.util.StringTokenizer;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.apache.log4j.Logger;
 import org.java_websocket.WebSocket;
@@ -32,8 +34,9 @@ public class OmsCall extends Thread {
 
 	
 	private static Logger logger = Logger.getLogger(OmsCall.class);
+	private static Pattern pat = Pattern.compile("file=([^\"]+)");	
 
-	private VipConnexion connOMS = null;
+	private VipConnexion connOMS, connUrl2file = null;;
 	//private List<OmsCall> listOmsCall = new ArrayList<OmsCall>();
 	private boolean isRviSyntExist = false;
 	private boolean isRviEnregExist = false;
@@ -80,6 +83,11 @@ public class OmsCall extends Thread {
 	 */
 	public void connect(String hostVip, String portVip) throws OmsException, IOException{
 		
+		if(hostVip == null)
+			throw new IllegalArgumentException("first String argument cannot be null");
+		else if (portVip ==null)
+			throw new IllegalArgumentException("second String argument cannot be null");
+		
 		hosPortVip = new String[2];
 		hosPortVip[0] = hostVip;
 		hosPortVip[1] = portVip;
@@ -108,6 +116,9 @@ public class OmsCall extends Thread {
 	
 	public void say(String say, boolean interrupt) throws OmsException {
 
+		if(say == null)
+			throw new IllegalArgumentException("Argument String cannot be null");
+		
 		if (!isRviSyntExist) {
 			String resp1 = this.connOMS.getReponse("new s1 synt");
 			
@@ -150,8 +161,11 @@ public class OmsCall extends Thread {
 	 * @throws OmsException
 	 */
 	
-	public void play(String filePath, boolean interrupt) throws OmsException {
+	public void play(String filePath, boolean interrupt, boolean loop) throws OmsException {
 
+		if(filePath == null)
+			throw new IllegalArgumentException("Argument String cannot be null");
+		
 		if (!isRviSyntExist) {
 			String resp1 = this.connOMS.getReponse("new s1 synt");
 			
@@ -167,14 +181,18 @@ public class OmsCall extends Thread {
 		
 		String respSh = connOMS.getReponse("mt1 shutup");
 		if(!respSh.equals("OK"))
-			throw new OmsException("Cannot shutup mt1");
+			throw new OmsException("Cannot shutup mt1: " + respSh);
 		
 		String setParam = this.connOMS.getReponse("mt1 setparam bind=s1");
 		if(!setParam.equals("OK"))
 			throw new OmsException("cannot execute mt1 setparam bind=s1");
 		
-		String respPlay = connOMS.getReponse("s1 play file=" + filePath); //loop=1
-		sleep(2000);
+		String respPlay;
+		if(loop)
+			respPlay = connOMS.getReponse("s1 play loop=1 file=" + filePath); // loop=1
+		else 
+			respPlay = connOMS.getReponse("s1 play file=" + filePath); // loop=1
+				
 		if (!respPlay.equals("OK"))
 			throw new OmsException("Cannot execute cmd play file " + respPlay);
 		
@@ -186,6 +204,41 @@ public class OmsCall extends Thread {
 		}
 	}
 	
+	/**
+	 * Getting an audio file from a remote server and stored it into the cache
+	 * @param ipaddUrl2file IP address of the remote server where to get the audio file
+	 * @param portUrl2file port of the url2file server
+	 * @param fileName name of the audio file to get from a remote server
+	 * @return ath of the audio file in the local machine
+	 * @throws OmsException
+	 */
+	public String url2file(String ipaddUrl2file, String portUrl2file, String fileName) throws OmsException{
+		
+		if(ipaddUrl2file == null)
+			throw new IllegalArgumentException("first String argument cannot be null");
+		else if(portUrl2file == null)
+			throw new IllegalArgumentException("second String argument cannot be null");
+		else if(fileName == null)
+			throw new IllegalArgumentException("third String argument cannot be null");
+		
+		connUrl2file = new VipConnexion(hosPortVip[0], portUrl2file);
+		String url2file = connUrl2file.getReponse("get url=http://"+ ipaddUrl2file +"/svaip/" + fileName + 
+				" max-age=3600");
+		
+		logger.info("url2file: " + url2file);
+		if(url2file.indexOf("OK") == -1)
+			throw new OmsException("cannot get the file with url2file: " + url2file);
+		
+		String prompt = null;
+		Matcher mat = pat.matcher(url2file);	
+		if(mat.find()){			
+			
+			prompt = mat.group(1);										
+		}else 
+			logger.info("No match");
+			
+		return prompt;		
+	}
 	
 	/**
 	 * To record a communication to OMS into a a8k extension audio file
@@ -193,6 +246,9 @@ public class OmsCall extends Thread {
 	 * @throws OmsException
 	 */
 	public void record(String filePathEnreg) throws OmsException{
+		
+		if(filePathEnreg == null)
+			throw new IllegalArgumentException("String argument cannot be null");
 		
 		if(!isRviEnregExist){
 			String respEnreg = this.connOMS.getReponse("new e enreg");
@@ -299,13 +355,13 @@ public class OmsCall extends Thread {
 		if(calleeWs != null)
 			calleeWs.send("incomingCall:"+userName);		
 		
-		this.play("/opt/application/64poms/current/tmp/Ringback_Tone.a8k", true);
+		this.play("/opt/application/64poms/current/tmp/Ringback_Tone.a8k", true, false);
 		
 		if(conf.isClientJoined(callee)){			
 			conf.myPlay(callee.getConfname(), "/opt/application/64poms/current/tmp/Beatles-Hey_Jude.a8k");
 		}
 		else
-			callee.play("/opt/application/64poms/current/tmp/Beatles-Hey_Jude.a8k", true);		
+			callee.play("/opt/application/64poms/current/tmp/Beatles-Hey_Jude.a8k", true, false);		
 		
 	}
 	

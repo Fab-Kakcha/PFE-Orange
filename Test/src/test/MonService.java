@@ -125,8 +125,8 @@ public class MonService extends OmsService implements OmsMessageListener {
 					call.say("Bienvenue sur le serveur de conference. Pour entrer dans la conference. "
 									+ "Tapez conference", true);
 					//call.play("/opt/application/64poms/current/tmp/bienvenuconf.a8k", false);
-					annuaire.setUserName(call, userName2);
-					annuaire.showPeopleConnectedToOms(call, true);
+					//annuaire.setUserName(call, userName2);
+					//annuaire.showPeopleConnectedToOms(call, true);
 					//conf.showPeopleInConf(call);
 					//conf.participantsStatus(call);
 				}
@@ -216,7 +216,8 @@ public class MonService extends OmsService implements OmsMessageListener {
 
 				splitParam = param.split(":");
 				mode = splitParam[0];
-				confName = splitParam[1];
+				//confName = splitParam[1];
+				confName = "conf1";
 
 				conferenceParam = new ConferenceParameters(confName);
 				conferenceParam.setName(call.getUserName());

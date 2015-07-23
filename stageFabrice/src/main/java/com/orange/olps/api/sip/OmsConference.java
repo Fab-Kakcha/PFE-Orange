@@ -17,7 +17,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.Random;
-import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -57,18 +56,10 @@ public class OmsConference{
 	private OmsCallSip omsCallRecord = null;
 	private Random randomGenerator;
 	private String enregFile = "/opt/application/64poms/current/tmp/enregFile";
-	private boolean destroyConf = false;
 	private Thread t, t1;
 	private boolean running = true;
-	//private boolean isCoachExist = false;
-	//private boolean isStudentExist = false;
 	private byte[] buf;
-	private boolean hasCreatedConf = false;
-	//private Annuaire annuaire;
 
-	//On peut avoir plusieurs conférences, dans une même session
-	//identifier chaque conférence
-	//indentifier les participants de chaque conférence
 	protected static HashMap<String, List<OmsCallSip>> annuaireForConference = 
 			new HashMap<String, List<OmsCallSip>>(); 
 	
@@ -90,11 +81,11 @@ public class OmsConference{
 	
 	/**
 	 * To create a new conference with name given by argument param
-	 * @param param the conference name to be created
+	 * @param param name of the conference to create
 	 * @throws OmsException
 	 */
 	
-	public void create(OmsCallSip omsCall, String param) throws OmsException { //param = nom de la conference
+	public void create(OmsCallSip omsCall, String param) throws OmsException { 
 		
 		if(omsCall == null)
 			throw new IllegalArgumentException("Argument OmsCall cannot be null");
@@ -158,7 +149,7 @@ public class OmsConference{
 	 * To add an user in a already existing conference with name param
 	 * @param omsCall
 	 *            client to join the conference
-	 * @param param conference name
+	 * @param param name of the conference
 	 * @throws OmsException
 	 */
 	public void add(OmsCallSip omsCall, String param) throws OmsException {
@@ -183,7 +174,7 @@ public class OmsConference{
 				int num = 1;
 				Iterator<OmsCallSip> ite2;
 				
-				/*String repStatus = getVipConnexion()
+				String repStatus = getVipConnexion()
 						.getReponse("<conference><status requestid=\"req6\" conferenceid=\""
 								+ confName + "\"/></conference>");				
 				
@@ -200,9 +191,9 @@ public class OmsConference{
 						
 						num = Collections.max(arrayList) + 1;
 					}					
-				}*/
+				}
 				
-				if (!annuaireForConference.isEmpty()) {
+				/*if (!annuaireForConference.isEmpty()) {
 
 					Set<String> listeCli = annuaireForConference.keySet();
 					Iterator<String> ite1 = listeCli.iterator();
@@ -219,7 +210,7 @@ public class OmsConference{
 					}
 
 					num = Collections.max(arrayList) + 1;
-				}
+				}*/
 								
 				String respSh = connOMSCall.getReponse("mt1 shutup");
 				if (!respSh.equals("OK"))
@@ -282,6 +273,29 @@ public class OmsConference{
 				connOMSCall = omsCall.getVipConnexion();
 				int num = 1;
 				Iterator<OmsCallSip> ite2;
+				
+				String repStatus = getVipConnexion()
+						.getReponse("<conference><status requestid=\"req6\" conferenceid=\""
+								+ confName + "\"/></conference>");				
+				
+				if (repStatus.indexOf("OK") != -1) {
+
+					Matcher mat3 = pat3.matcher(repStatus);
+					while (mat3.find()) {
+
+						String participantId = mat3.group(1);						
+						arrayList.add(Integer.parseInt(participantId));
+					}
+					
+					if(!arrayList.isEmpty()){
+						
+						num = Collections.max(arrayList) + 1;
+					}					
+				}
+								
+				/*connOMSCall = omsCall.getVipConnexion();
+				int num = 1;
+				Iterator<OmsCallSip> ite2;
 				confName = conferenceid;
 				
 				if(!annuaireForConference.isEmpty()){
@@ -301,15 +315,13 @@ public class OmsConference{
 					}
 					
 					num = Collections.max(arrayList) + 1;
-				}
+				}*/
 				
 				String repJoin = connOMSConf.getReponse("<conference><join  requestid=\"req1\" conferenceid=\""
 						+ conferenceid+ "\" participantid=\""+ num + "\" entertone=\""+entertone+"\" exittone=\""
 						+ exittone+"\" codec=\""+codec+"\" name=\""+ name+"\" confrole=\""+confrole+"\"/></conference>");
 							
 				processingJoinResp(repJoin);
-				//omsCall.setConfName(confName);
-				//omsCall.setUserName(name);
 				omsCall.setPartNumberConf(num);
 				
 				if (!annuaireForConference.containsKey(confName)) {
@@ -384,28 +396,7 @@ public class OmsConference{
 			}
 			
 			if(listOmsCallInConf.isEmpty())
-				destroy(omsCall);						
-			
-			// connOMSCall.getReponse("wait evt=mt1.*");			
-			/*arrayList.clear();
-			String repStatus = getVipConnexion()
-					.getReponse("<conference><status requestid=\"req6\" conferenceid=\""
-							+ confName + "\"/></conference>");				
-			
-			if (repStatus.indexOf("OK") != -1) {
-
-				Matcher mat3 = pat3.matcher(repStatus);
-				while (mat3.find()) {
-
-					String participantId = mat3.group(1);						
-					arrayList.add(Integer.parseInt(participantId));
-				}
-				
-				if(arrayList.isEmpty())					
-					destroy(omsCall);
-				else 
-					System.exit(0);
-			}	*/		
+				destroy(omsCall);							
 		}					
 	}
 	
@@ -1508,8 +1499,7 @@ public class OmsConference{
 				String mediaInput = "/" + mat2.group(1);
 				String respEnreg = connOMSCall.getReponse("new e1 enreg");
 				if (respEnreg.indexOf("OK") == -1)
-					throw new OmsException(
-							"cannot create a new recording ressource: "+ respEnreg);
+					throw new OmsException("cannot create a new recording ressource: "+ respEnreg);
 
 				String startRec = connOMSCall
 						.getReponse("e1 start /opt/application/64poms/current/tmp" + mediaInput + "");
@@ -1522,8 +1512,7 @@ public class OmsConference{
 		} else if (repJoin.indexOf("406") != -1) {
 			throw new OmsException("Error cannot join the conference : " + repJoin);
 		} else if (repJoin.indexOf("411") != -1)
-			throw new OmsException(
-					"Delete files conf_1.rd and conf_1.wr at /opt/application/64poms/current/tmp");
+			throw new OmsException("Delete files conf_1.rd and conf_1.wr at /opt/application/64poms/current/tmp");
 		else if (repJoin.indexOf("408") != -1)
 			throw new OmsException("Error cannot join the conference : " + repJoin);		
 	}
